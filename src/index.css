@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --color-nm-purple: #922CB5;
+  --color-nm-deep: #391548;
+  --color-nm-black: #151419;
+  --color-nm-charcoal: #242129;
+  --color-nm-lime: #B7F34B;
+}
+
+:root {
+  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+[dir="rtl"] body, [dir="rtl"] {
+  font-family: 'Cairo', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+/* Custom scrollbar for dark aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #151419;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #242129;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #922CB5;
+}

@@ -1,0 +1,6 @@
+{
+  "name": "Nasir Mobile Dubai",
+  "description": "Premium technology store catalogue in Dubai, UAE. Discover mobile phones, accessories, smartwatches, and electronics with direct WhatsApp enquiry.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
