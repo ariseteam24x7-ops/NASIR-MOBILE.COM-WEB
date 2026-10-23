@@ -19,6 +19,7 @@ import {
 import { eq, desc, asc, and, or, ilike, sql } from 'drizzle-orm';
 import { requireAuth, AuthRequest, adminSessions, createSignedToken } from './src/middleware/auth.ts';
 import { initDatabase } from './src/db/init.ts';
+import { adminAuth } from './src/lib/firebase-admin.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -483,12 +484,10 @@ async function startServer() {
         });
       }
 
-      // Case B: Firebase Auth ID Token login
       if (firebaseToken) {
         let tokenEmail = '';
         let uid = '';
         try {
-          const { adminAuth } = await import('./src/lib/firebase-admin.ts');
           const decoded = await adminAuth.verifyIdToken(firebaseToken);
           tokenEmail = (decoded.email || '').toLowerCase();
           uid = decoded.uid;

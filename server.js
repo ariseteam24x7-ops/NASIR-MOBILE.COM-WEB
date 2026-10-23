@@ -1,24 +1,458 @@
+var __defProp = Object.defineProperty;
+var __export = (target, all) => {
+  for (var name in all)
+    __defProp(target, name, { get: all[name], enumerable: true });
+};
+
+// server.ts
 import express from "express";
+import fs2 from "fs";
 import { createServer as createViteServer } from "vite";
+import path2 from "path";
+import { fileURLToPath as fileURLToPath2 } from "url";
+import bcrypt from "bcryptjs";
+
+// src/db/index.ts
+import { drizzle } from "drizzle-orm/node-postgres";
+import { Pool } from "pg";
+
+// src/db/schema.ts
+var schema_exports = {};
+__export(schema_exports, {
+  auditLogs: () => auditLogs,
+  brands: () => brands,
+  brandsRelations: () => brandsRelations,
+  categories: () => categories,
+  categoriesRelations: () => categoriesRelations,
+  images: () => images,
+  products: () => products,
+  productsRelations: () => productsRelations,
+  siteContent: () => siteContent,
+  users: () => users,
+  whatsappSettings: () => whatsappSettings
+});
+import { relations } from "drizzle-orm";
+import {
+  boolean,
+  integer,
+  jsonb,
+  pgTable,
+  serial,
+  text,
+  timestamp
+} from "drizzle-orm/pg-core";
+var users = pgTable("users", {
+  id: serial("id").primaryKey(),
+  uid: text("uid").notNull().unique(),
+  // Firebase Auth UID or internal owner ID
+  email: text("email").notNull().unique(),
+  role: text("role").notNull().default("owner"),
+  passwordHash: text("password_hash"),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  nameEn: text("name_en").notNull(),
+  nameAr: text("name_ar").notNull(),
+  descriptionEn: text("description_en").default(""),
+  descriptionAr: text("description_ar").default(""),
+  icon: text("icon").default("Smartphone"),
+  displayOrder: integer("display_order").default(0),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var brands = pgTable("brands", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  name: text("name").notNull(),
+  logoUrl: text("logo_url").default(""),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  slug: text("slug").notNull().unique(),
+  sku: text("sku").notNull().unique(),
+  nameEn: text("name_en").notNull(),
+  nameAr: text("name_ar").notNull(),
+  descriptionEn: text("description_en").default(""),
+  descriptionAr: text("description_ar").default(""),
+  condition: text("condition").notNull().default("New"),
+  // 'New', 'Used', 'Refurbished'
+  categoryId: integer("category_id").references(() => categories.id),
+  brandId: integer("brand_id").references(() => brands.id),
+  isFeatured: boolean("is_featured").default(false),
+  isNewArrival: boolean("is_new_arrival").default(false),
+  status: text("status").notNull().default("published"),
+  // 'draft', 'published', 'archived'
+  specifications: jsonb("specifications").default("[]"),
+  // Array of { keyEn, keyAr, valueEn, valueAr }
+  variants: jsonb("variants").default("[]"),
+  // Array of { nameEn, nameAr, options: string[] }
+  images: jsonb("images").default("[]"),
+  // Array of image URLs or /api/images/:id
+  // Absolute private owner fields (NEVER exposed to public catalogue APIs)
+  privateNotes: text("private_notes").default(""),
+  purchaseCost: text("purchase_cost").default(""),
+  stockQuantity: integer("stock_quantity").default(0),
+  imeiSerialNumbers: jsonb("imei_serial_numbers").default("[]"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var images = pgTable("images", {
+  id: serial("id").primaryKey(),
+  fileName: text("file_name").notNull(),
+  mimeType: text("mime_type").notNull(),
+  data: text("data").notNull(),
+  // Base64 data URI or buffer representation
+  createdAt: timestamp("created_at").defaultNow()
+});
+var whatsappSettings = pgTable("whatsapp_settings", {
+  id: serial("id").primaryKey(),
+  primaryNumber: text("primary_number").notNull().default("+971522523900"),
+  secondaryNumber: text("secondary_number").notNull().default("+971563903672"),
+  activeNumber: text("active_number").notNull().default("+971522523900"),
+  isEnabled: boolean("is_enabled").default(true),
+  templateEn: text("template_en").notNull().default(
+    "Hello Nasir Mobile Dubai! I am inquiring about the {productName} ({brand}) [SKU: {sku}]. Condition: {condition}. {variant}Link: {url}. Please share details and availability."
+  ),
+  templateAr: text("template_ar").notNull().default(
+    "\u0645\u0631\u062D\u0628\u0627\u064B \u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644 \u062F\u0628\u064A! \u0623\u0648\u062F \u0627\u0644\u0627\u0633\u062A\u0641\u0633\u0627\u0631 \u0639\u0646 {productName} ({brand}) [\u0631\u0645\u0632 \u0627\u0644\u0645\u0646\u062A\u062C: {sku}]. \u0627\u0644\u062D\u0627\u0644\u0629: {condition}. {variant}\u0627\u0644\u0631\u0627\u0628\u0637: {url}. \u064A\u0631\u062C\u0649 \u062A\u0632\u0648\u064A\u062F\u064A \u0628\u0627\u0644\u062A\u0641\u0627\u0635\u064A\u0644 \u0648\u0627\u0644\u062A\u0648\u0641\u0631."
+  ),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var siteContent = pgTable("site_content", {
+  id: serial("id").primaryKey(),
+  heroTitleEn: text("hero_title_en").notNull().default("Premium Technology & Smart Devices in Dubai"),
+  heroTitleAr: text("hero_title_ar").notNull().default("\u0623\u062D\u062F\u062B \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629 \u0648\u0627\u0644\u062A\u0643\u0646\u0648\u0644\u0648\u062C\u064A\u0627 \u0641\u064A \u062F\u0628\u064A"),
+  heroSubtitleEn: text("hero_subtitle_en").notNull().default("Explore genuine new, used, and certified refurbished flagship devices, luxury audio, and authentic accessories at Nasir Mobile."),
+  heroSubtitleAr: text("hero_subtitle_ar").notNull().default("\u0627\u0633\u062A\u0643\u0634\u0641 \u0623\u062D\u062F\u062B \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0623\u0635\u0644\u064A\u0629 \u0627\u0644\u062C\u062F\u064A\u062F\u0629 \u0648\u0627\u0644\u0645\u0633\u062A\u0639\u0645\u0644\u0629 \u0648\u0627\u0644\u0645\u062C\u062F\u062F\u0629\u060C \u0648\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0635\u0648\u062A \u0627\u0644\u0631\u0627\u0642\u064A\u0629 \u0648\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629 \u0644\u062F\u0649 \u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644."),
+  announcementEn: text("announcement_en").default("Welcome to Nasir Mobile Dubai \u2022 Direct WhatsApp Enquiries \u2022 Guaranteed Authenticity"),
+  announcementAr: text("announcement_ar").default("\u0623\u0647\u0644\u0627\u064B \u0628\u0643\u0645 \u0641\u064A \u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644 \u062F\u0628\u064A \u2022 \u0627\u0633\u062A\u0641\u0633\u0627\u0631 \u0641\u0648\u0631\u064A \u0639\u0628\u0631 \u0648\u0627\u062A\u0633\u0627\u0628 \u2022 \u0623\u062C\u0647\u0632\u0629 \u0623\u0635\u0644\u064A\u0629 \u0645\u0639\u062A\u0645\u062F\u0629"),
+  announcementActive: boolean("announcement_active").default(true),
+  aboutEn: text("about_en").notNull().default(
+    "Nasir Mobile is Dubai\u2019s trusted destination for smartphones, tablets, premium accessories, and certified electronics. Located in the heart of Dubai, UAE, we deliver exceptional customer care, guaranteed authentic hardware, and personalized consultation for both new and refurbished devices."
+  ),
+  aboutAr: text("about_ar").notNull().default(
+    "\u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644 \u0647\u064A \u0648\u062C\u0647\u062A\u0643 \u0627\u0644\u0645\u0648\u062B\u0648\u0642\u0629 \u0644\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629 \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0648\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A \u0648\u0627\u0644\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629 \u0641\u064A \u062F\u0628\u064A\u060C \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062A \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062A\u062D\u062F\u0629. \u0646\u062D\u0631\u0635 \u0639\u0644\u0649 \u062A\u0642\u062F\u064A\u0645 \u0623\u0641\u0636\u0644 \u062E\u062F\u0645\u0629 \u0639\u0645\u0644\u0627\u0621 \u0648\u0636\u0645\u0627\u0646 \u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0623\u0635\u0644\u064A\u0629 \u0627\u0644\u062C\u062F\u064A\u062F\u0629 \u0648\u0627\u0644\u0645\u062C\u062F\u062F\u0629 \u0645\u0639 \u0627\u0633\u062A\u0634\u0627\u0631\u0629 \u0645\u0628\u0627\u0634\u0631\u0629 \u0639\u0628\u0631 \u0648\u0627\u062A\u0633\u0627\u0628."
+  ),
+  contactAddressEn: text("contact_address_en").notNull().default("Deira / Dubai Silicon Oasis, Dubai, United Arab Emirates (Contact for store visit)"),
+  contactAddressAr: text("contact_address_ar").notNull().default("\u062F\u064A\u0631\u0629 / \u0648\u0627\u062D\u0629 \u062F\u0628\u064A \u0644\u0644\u0633\u064A\u0644\u064A\u0643\u0648\u0646\u060C \u062F\u0628\u064A\u060C \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062A \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062A\u062D\u062F\u0629 (\u062A\u0648\u0627\u0635\u0644 \u0645\u0639\u0646\u0627 \u0644\u0632\u064A\u0627\u0631\u0629 \u0627\u0644\u0645\u0639\u0631\u0636)"),
+  contactEmail: text("contact_email").notNull().default("shazzzbusiness@gmail.com"),
+  openingHoursEn: text("opening_hours_en").notNull().default("Saturday - Thursday: 10:00 AM - 10:30 PM | Friday: 3:00 PM - 10:30 PM"),
+  openingHoursAr: text("opening_hours_ar").notNull().default("\u0627\u0644\u0633\u0628\u062A - \u0627\u0644\u062E\u0645\u064A\u0633: 10:00 \u0635\u0628\u0627\u062D\u0627\u064B - 10:30 \u0645\u0633\u0627\u0621\u064B | \u0627\u0644\u062C\u0645\u0639\u0629: 3:00 \u0639\u0635\u0631\u0627\u064B - 10:30 \u0645\u0633\u0627\u0621\u064B"),
+  updatedAt: timestamp("updated_at").defaultNow()
+});
+var auditLogs = pgTable("audit_logs", {
+  id: serial("id").primaryKey(),
+  userId: text("user_id").default(""),
+  userEmail: text("user_email").default(""),
+  action: text("action").notNull(),
+  details: text("details").default(""),
+  createdAt: timestamp("created_at").defaultNow()
+});
+var categoriesRelations = relations(categories, ({ many }) => ({
+  products: many(products)
+}));
+var brandsRelations = relations(brands, ({ many }) => ({
+  products: many(products)
+}));
+var productsRelations = relations(products, ({ one }) => ({
+  category: one(categories, {
+    fields: [products.categoryId],
+    references: [categories.id]
+  }),
+  brand: one(brands, {
+    fields: [products.brandId],
+    references: [brands.id]
+  })
+}));
+
+// src/db/index.ts
+var createPool = () => {
+  if (!global._postgresPool) {
+    const host = process.env.SQL_HOST || "127.0.0.1";
+    const isRemote = host !== "127.0.0.1" && host !== "localhost";
+    const useSsl = process.env.SQL_SSL === "true" || isRemote;
+    global._postgresPool = new Pool({
+      host,
+      user: process.env.SQL_USER || "postgres",
+      password: process.env.SQL_PASSWORD || "",
+      database: process.env.SQL_DB_NAME || "postgres",
+      port: Number(process.env.SQL_PORT) || 5432,
+      ssl: useSsl ? { rejectUnauthorized: false } : void 0,
+      max: 10,
+      connectionTimeoutMillis: 8e3
+    });
+    global._postgresPool.on("error", (err) => {
+      console.warn("Postgres pool error (non-fatal):", err?.message || err);
+    });
+  }
+  return global._postgresPool;
+};
+var pool = createPool();
+var db = drizzle(pool, { schema: schema_exports });
+
+// server.ts
+import { eq as eq2, desc, asc, and, or, ilike, sql } from "drizzle-orm";
+
+// src/middleware/auth.ts
+import crypto from "crypto";
+
+// src/lib/firebase-admin.ts
+import { initializeApp, getApps } from "firebase-admin/app";
+import { getAuth } from "firebase-admin/auth";
+import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import bcrypt from "bcryptjs";
-import { db } from "./src/db/index.ts";
-import {
-  products,
-  categories,
-  brands,
-  images,
-  whatsappSettings,
-  siteContent,
-  auditLogs,
-  users
-} from "./src/db/schema.ts";
-import { eq, desc, asc, and, or, ilike, sql } from "drizzle-orm";
-import { requireAuth, adminSessions, createSignedToken } from "./src/middleware/auth.ts";
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+var adminAuthInstance = null;
+var firebaseConfig = {
+  projectId: process.env.FIREBASE_PROJECT_ID || "magnificent-container-rvxch"
+};
+try {
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const possiblePaths = [
+    path.resolve(process.cwd(), "firebase-applet-config.json"),
+    path.resolve(currentDir, "../../firebase-applet-config.json"),
+    path.resolve(currentDir, "../firebase-applet-config.json")
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      const raw = fs.readFileSync(p, "utf-8");
+      firebaseConfig = JSON.parse(raw);
+      break;
+    }
+  }
+} catch (_err) {
+}
+try {
+  if (!getApps().length) {
+    initializeApp({
+      projectId: firebaseConfig?.projectId || process.env.FIREBASE_PROJECT_ID || "magnificent-container-rvxch"
+    });
+  }
+  adminAuthInstance = getAuth();
+} catch (e) {
+  console.warn("Firebase admin initialization note (safe fallback active):", e?.message || e);
+  adminAuthInstance = {
+    verifyIdToken: async () => {
+      throw new Error("Firebase Auth ID token verification requires configured service credentials");
+    }
+  };
+}
+var adminAuth = adminAuthInstance;
+
+// src/middleware/auth.ts
+import { eq } from "drizzle-orm";
+var SESSION_SECRET = process.env.SESSION_SECRET || "nasir-mobile-dubai-secret-2026";
+var adminSessions = /* @__PURE__ */ new Map();
+var createSignedToken = (payload) => {
+  const data = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const hmac = crypto.createHmac("sha256", SESSION_SECRET).update(data).digest("base64url");
+  const token = `nm_sess_${data}.${hmac}`;
+  adminSessions.set(token, payload);
+  return token;
+};
+var verifySignedToken = (token) => {
+  if (adminSessions.has(token)) {
+    const session = adminSessions.get(token);
+    if (Date.now() < session.expiresAt) {
+      return session;
+    }
+    adminSessions.delete(token);
+    return null;
+  }
+  if (!token.startsWith("nm_sess_")) return null;
+  const raw = token.slice("nm_sess_".length);
+  const parts = raw.split(".");
+  if (parts.length !== 2) return null;
+  const [data, sig] = parts;
+  const expectedSig = crypto.createHmac("sha256", SESSION_SECRET).update(data).digest("base64url");
+  if (sig !== expectedSig) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(data, "base64url").toString("utf-8"));
+    if (Date.now() > payload.expiresAt) return null;
+    adminSessions.set(token, payload);
+    return payload;
+  } catch {
+    return null;
+  }
+};
+var requireAuth = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  const adminToken = req.headers["x-admin-token"] || (authHeader && authHeader.startsWith("Bearer ") ? authHeader.split("Bearer ")[1].trim() : void 0);
+  if (!adminToken) {
+    return res.status(401).json({ error: "Unauthorized: Missing authentication credentials" });
+  }
+  const validSession = verifySignedToken(adminToken);
+  if (validSession) {
+    req.user = { uid: validSession.uid, email: validSession.email, role: validSession.role };
+    return next();
+  }
+  try {
+    const decodedToken = await adminAuth.verifyIdToken(adminToken);
+    const email = decodedToken.email?.toLowerCase() || "";
+    const configuredOwnerEmail = (process.env.OWNER_EMAIL || "shazzzbusiness@gmail.com").toLowerCase();
+    let isOwner = email === configuredOwnerEmail;
+    if (!isOwner && email) {
+      const dbUsers = await db.select().from(users).where(eq(users.email, email));
+      if (dbUsers.length > 0 && (dbUsers[0].role === "owner" || dbUsers[0].role === "admin")) {
+        isOwner = true;
+      }
+    }
+    if (!isOwner) {
+      return res.status(403).json({
+        error: "Forbidden: Access restricted to authorized Nasir Mobile store owner."
+      });
+    }
+    req.user = {
+      uid: decodedToken.uid,
+      email,
+      role: "owner"
+    };
+    next();
+  } catch (error) {
+    console.error("Error verifying auth token:", error);
+    return res.status(401).json({ error: "Unauthorized: Invalid or expired token" });
+  }
+};
+
+// src/db/init.ts
+async function initDatabase() {
+  try {
+    const pool2 = createPool();
+    if (!process.env.SQL_HOST || !process.env.SQL_DB_NAME) {
+      console.log("Skipping database auto-init: SQL_HOST or SQL_DB_NAME not configured.");
+      return;
+    }
+    console.log("Checking and initializing database tables...");
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id SERIAL PRIMARY KEY,
+        uid TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        role TEXT NOT NULL DEFAULT 'owner',
+        password_hash TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS categories (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        name_en TEXT NOT NULL,
+        name_ar TEXT NOT NULL,
+        description_en TEXT DEFAULT '',
+        description_ar TEXT DEFAULT '',
+        icon TEXT DEFAULT 'Smartphone',
+        display_order INTEGER DEFAULT 0,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS brands (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        name TEXT NOT NULL,
+        logo_url TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS products (
+        id SERIAL PRIMARY KEY,
+        slug TEXT NOT NULL UNIQUE,
+        sku TEXT NOT NULL UNIQUE,
+        name_en TEXT NOT NULL,
+        name_ar TEXT NOT NULL,
+        description_en TEXT DEFAULT '',
+        description_ar TEXT DEFAULT '',
+        condition TEXT NOT NULL DEFAULT 'New',
+        category_id INTEGER REFERENCES categories(id) ON DELETE SET NULL,
+        brand_id INTEGER REFERENCES brands(id) ON DELETE SET NULL,
+        is_featured BOOLEAN DEFAULT FALSE,
+        is_new_arrival BOOLEAN DEFAULT FALSE,
+        status TEXT NOT NULL DEFAULT 'published',
+        specifications JSONB DEFAULT '[]'::jsonb,
+        variants JSONB DEFAULT '[]'::jsonb,
+        images JSONB DEFAULT '[]'::jsonb,
+        private_notes TEXT DEFAULT '',
+        purchase_cost TEXT DEFAULT '',
+        stock_quantity INTEGER DEFAULT 0,
+        imei_serial_numbers JSONB DEFAULT '[]'::jsonb,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS images (
+        id SERIAL PRIMARY KEY,
+        file_name TEXT NOT NULL,
+        mime_type TEXT NOT NULL,
+        data TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS whatsapp_settings (
+        id SERIAL PRIMARY KEY,
+        primary_number TEXT NOT NULL DEFAULT '+971522523900',
+        secondary_number TEXT NOT NULL DEFAULT '+971563903672',
+        active_number TEXT NOT NULL DEFAULT '+971522523900',
+        is_enabled BOOLEAN DEFAULT TRUE,
+        template_en TEXT NOT NULL DEFAULT 'Hello Nasir Mobile Dubai! I am inquiring about the {productName} ({brand}) [SKU: {sku}]. Condition: {condition}. {variant}Link: {url}. Please share details and availability.',
+        template_ar TEXT NOT NULL DEFAULT '\u0645\u0631\u062D\u0628\u0627\u064B \u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644 \u062F\u0628\u064A! \u0623\u0648\u062F \u0627\u0644\u0627\u0633\u062A\u0641\u0633\u0627\u0631 \u0639\u0646 {productName} ({brand}) [\u0631\u0645\u0632 \u0627\u0644\u0645\u0646\u062A\u062C: {sku}]. \u0627\u0644\u062D\u0627\u0644\u0629: {condition}. {variant}\u0627\u0644\u0631\u0627\u0628\u0637: {url}. \u064A\u0631\u062C\u0649 \u062A\u0632\u0648\u064A\u062F\u064A \u0628\u0627\u0644\u062A\u0641\u0627\u0635\u064A\u0644 \u0648\u0627\u0644\u062A\u0648\u0641\u0631.',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS site_content (
+        id SERIAL PRIMARY KEY,
+        hero_title_en TEXT NOT NULL DEFAULT 'Premium Technology & Smart Devices in Dubai',
+        hero_title_ar TEXT NOT NULL DEFAULT '\u0623\u062D\u062F\u062B \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629 \u0648\u0627\u0644\u062A\u0643\u0646\u0648\u0644\u0648\u062C\u064A\u0627 \u0641\u064A \u062F\u0628\u064A',
+        hero_subtitle_en TEXT DEFAULT 'Authorized retailer of original smartphones, luxury smartwatches, laptops, and certified accessories.',
+        hero_subtitle_ar TEXT DEFAULT '\u0645\u062A\u062C\u0631\u0643 \u0627\u0644\u0645\u0648\u062B\u0648\u0642 \u0644\u0623\u062D\u062F\u062B \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629 \u0648\u0627\u0644\u0633\u0627\u0639\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629 \u0648\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0643\u0645\u0628\u064A\u0648\u062A\u0631 \u0627\u0644\u0645\u062D\u0645\u0648\u0644\u0629 \u0627\u0644\u0623\u0635\u0644\u064A\u0629 \u0645\u0639 \u0627\u0644\u0636\u0645\u0627\u0646 \u0627\u0644\u0645\u0639\u062A\u0645\u062F.',
+        announcement_en TEXT DEFAULT 'Official Nasir Mobile Dubai \u2022 Visit our store in Deira Wholesale Market or order directly via WhatsApp',
+        announcement_ar TEXT DEFAULT '\u0627\u0644\u0645\u062A\u062C\u0631 \u0627\u0644\u0631\u0633\u0645\u064A \u0644\u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644 \u062F\u0628\u064A \u2022 \u062A\u0641\u0636\u0644 \u0628\u0632\u064A\u0627\u0631\u0629 \u0645\u062A\u062C\u0631\u0646\u0627 \u0641\u064A \u0633\u0648\u0642 \u062F\u064A\u0631\u0629 \u0644\u0644\u062C\u0645\u0644\u0629 \u0623\u0648 \u0627\u0637\u0644\u0628 \u0639\u0628\u0631 \u0627\u0644\u0648\u0627\u062A\u0633\u0627\u0628 \u0645\u0628\u0627\u0634\u0631\u0629',
+        announcement_active BOOLEAN DEFAULT TRUE,
+        about_en TEXT DEFAULT 'Nasir Mobile Dubai is a certified electronic retailer operating in the heart of Dubai, UAE.',
+        about_ar TEXT DEFAULT '\u0646\u0627\u0635\u0631 \u0645\u0648\u0628\u0627\u064A\u0644 \u062F\u0628\u064A \u0645\u062A\u062C\u0631 \u0645\u0639\u062A\u0645\u062F \u0641\u064A \u0642\u0644\u0628 \u062A\u062C\u0627\u0631\u0629 \u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0630\u0643\u064A\u0629 \u0628\u062F\u0628\u064A\u060C \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062A \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062A\u062D\u062F\u0629.',
+        contact_address_en TEXT DEFAULT 'Deira Commercial District, Wholesale Market Street, Dubai, United Arab Emirates',
+        contact_address_ar TEXT DEFAULT '\u0645\u0646\u0637\u0642\u0629 \u062F\u064A\u0631\u0629 \u0627\u0644\u062A\u062C\u0627\u0631\u064A\u0629\u060C \u0634\u0627\u0631\u0639 \u0633\u0648\u0642 \u0627\u0644\u062C\u0645\u0644\u0629\u060C \u062F\u0628\u064A\u060C \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062A \u0627\u0644\u0639\u0631\u0628\u064A\u0629 \u0627\u0644\u0645\u062A\u062D\u062F\u0629',
+        contact_email TEXT DEFAULT 'contact@nasirmobile.com',
+        opening_hours_en TEXT DEFAULT 'Sat - Thu: 10:00 AM - 11:00 PM | Fri: 4:00 PM - 11:00 PM',
+        opening_hours_ar TEXT DEFAULT '\u0627\u0644\u0633\u0628\u062A - \u0627\u0644\u062E\u0645\u064A\u0633: 10:00 \u0635\u0628\u0627\u062D\u0627\u064B - 11:00 \u0645\u0633\u0627\u0621\u064B | \u0627\u0644\u062C\u0645\u0639\u0629: 4:00 \u0639\u0635\u0631\u0627\u064B - 11:00 \u0645\u0633\u0627\u0621\u064B',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      CREATE TABLE IF NOT EXISTS audit_logs (
+        id SERIAL PRIMARY KEY,
+        action TEXT NOT NULL,
+        details TEXT NOT NULL,
+        user_email TEXT NOT NULL DEFAULT 'system',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+    await pool2.query(`
+      INSERT INTO whatsapp_settings (id, primary_number, secondary_number, active_number, is_enabled)
+      VALUES (1, '+971522523900', '+971563903672', '+971522523900', true)
+      ON CONFLICT (id) DO NOTHING;
+    `);
+    console.log("Database tables verified and ready.");
+  } catch (err) {
+    console.warn("Database initialization note:", err?.message || err);
+  }
+}
+
+// server.ts
+var __filename = fileURLToPath2(import.meta.url);
+var __dirname = path2.dirname(__filename);
 async function startServer() {
+  try {
+    await initDatabase();
+  } catch (dbErr) {
+    console.warn("Initial database sync note (non-fatal):", dbErr);
+  }
   const app = express();
   app.use(express.json({ limit: "20mb" }));
   app.use(express.urlencoded({ extended: true, limit: "20mb" }));
@@ -68,27 +502,27 @@ async function startServer() {
   app.get("/api/products", async (req, res) => {
     try {
       const { category, brand, condition, featured, newArrival, search, sort } = req.query;
-      const conditions = [eq(products.status, "published")];
+      const conditions = [eq2(products.status, "published")];
       if (category && typeof category === "string") {
-        const cat = await db.select().from(categories).where(eq(categories.slug, category)).limit(1);
+        const cat = await db.select().from(categories).where(eq2(categories.slug, category)).limit(1);
         if (cat.length > 0) {
-          conditions.push(eq(products.categoryId, cat[0].id));
+          conditions.push(eq2(products.categoryId, cat[0].id));
         }
       }
       if (brand && typeof brand === "string") {
-        const br = await db.select().from(brands).where(eq(brands.slug, brand)).limit(1);
+        const br = await db.select().from(brands).where(eq2(brands.slug, brand)).limit(1);
         if (br.length > 0) {
-          conditions.push(eq(products.brandId, br[0].id));
+          conditions.push(eq2(products.brandId, br[0].id));
         }
       }
       if (condition && typeof condition === "string" && ["New", "Used", "Refurbished"].includes(condition)) {
-        conditions.push(eq(products.condition, condition));
+        conditions.push(eq2(products.condition, condition));
       }
       if (featured === "true") {
-        conditions.push(eq(products.isFeatured, true));
+        conditions.push(eq2(products.isFeatured, true));
       }
       if (newArrival === "true") {
-        conditions.push(eq(products.isNewArrival, true));
+        conditions.push(eq2(products.isNewArrival, true));
       }
       if (search && typeof search === "string" && search.trim() !== "") {
         const query2 = `%${search.trim()}%`;
@@ -124,7 +558,7 @@ async function startServer() {
         categorySlug: categories.slug,
         brandName: brands.name,
         brandSlug: brands.slug
-      }).from(products).leftJoin(categories, eq(products.categoryId, categories.id)).leftJoin(brands, eq(products.brandId, brands.id)).where(and(...conditions));
+      }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id)).where(and(...conditions));
       if (sort === "name-asc") {
         query = query.orderBy(asc(products.nameEn));
       } else if (sort === "name-desc") {
@@ -164,7 +598,7 @@ async function startServer() {
         categorySlug: categories.slug,
         brandName: brands.name,
         brandSlug: brands.slug
-      }).from(products).leftJoin(categories, eq(products.categoryId, categories.id)).leftJoin(brands, eq(products.brandId, brands.id)).where(and(eq(products.slug, slug), eq(products.status, "published"))).limit(1);
+      }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id)).where(and(eq2(products.slug, slug), eq2(products.status, "published"))).limit(1);
       if (product.length === 0) {
         return res.status(404).json({ error: "Product not found" });
       }
@@ -182,10 +616,10 @@ async function startServer() {
           categoryNameEn: categories.nameEn,
           categoryNameAr: categories.nameAr,
           brandName: brands.name
-        }).from(products).leftJoin(categories, eq(products.categoryId, categories.id)).leftJoin(brands, eq(products.brandId, brands.id)).where(
+        }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id)).where(
           and(
-            eq(products.categoryId, currentCatId),
-            eq(products.status, "published"),
+            eq2(products.categoryId, currentCatId),
+            eq2(products.status, "published"),
             sql`${products.id} != ${product[0].id}`
           )
         ).limit(4);
@@ -258,7 +692,7 @@ async function startServer() {
       if (isNaN(id)) {
         return res.status(400).send("Invalid image ID");
       }
-      const img = await db.select().from(images).where(eq(images.id, id)).limit(1);
+      const img = await db.select().from(images).where(eq2(images.id, id)).limit(1);
       if (img.length === 0) {
         return res.status(404).send("Image not found");
       }
@@ -303,7 +737,7 @@ async function startServer() {
             role: "owner",
             expiresAt
           });
-          const existingOwner = await db.select().from(users).where(eq(users.email, ownerEmail)).limit(1);
+          const existingOwner = await db.select().from(users).where(eq2(users.email, ownerEmail)).limit(1);
           if (existingOwner.length === 0) {
             const hash = await bcrypt.hash(password, 10);
             await db.insert(users).values({
@@ -321,7 +755,7 @@ async function startServer() {
           });
         }
         const targetEmail = inputEmail && inputEmail.includes("@") ? inputEmail : ownerEmail;
-        const matchingUsers = await db.select().from(users).where(or(eq(users.email, targetEmail), eq(users.email, ownerEmail)));
+        const matchingUsers = await db.select().from(users).where(or(eq2(users.email, targetEmail), eq2(users.email, ownerEmail)));
         for (const user of matchingUsers) {
           if (user.passwordHash && (user.role === "owner" || user.role === "admin")) {
             const passwordMatches = await bcrypt.compare(password, user.passwordHash);
@@ -371,7 +805,6 @@ async function startServer() {
         let tokenEmail = "";
         let uid = "";
         try {
-          const { adminAuth } = await import("./src/lib/firebase-admin.ts");
           const decoded = await adminAuth.verifyIdToken(firebaseToken);
           tokenEmail = (decoded.email || "").toLowerCase();
           uid = decoded.uid;
@@ -393,7 +826,7 @@ async function startServer() {
         }
         let isOwner = tokenEmail === ownerEmail || tokenEmail === "shazzzbusiness@gmail.com";
         if (!isOwner) {
-          const existingUser = await db.select().from(users).where(eq(users.email, tokenEmail)).limit(1);
+          const existingUser = await db.select().from(users).where(eq2(users.email, tokenEmail)).limit(1);
           if (existingUser.length > 0 && (existingUser[0].role === "owner" || existingUser[0].role === "admin")) {
             isOwner = true;
           }
@@ -403,7 +836,7 @@ async function startServer() {
             error: `Access denied. ${tokenEmail} is not authorized as the Nasir Mobile store owner.`
           });
         }
-        const existingOwner = await db.select().from(users).where(eq(users.email, tokenEmail)).limit(1);
+        const existingOwner = await db.select().from(users).where(eq2(users.email, tokenEmail)).limit(1);
         if (existingOwner.length === 0) {
           await db.insert(users).values({
             uid: uid || "google_" + Date.now(),
@@ -466,9 +899,9 @@ async function startServer() {
       }
       const targetEmail = (email || ownerEmail).toLowerCase().trim();
       const hash = await bcrypt.hash(newPassword, 10);
-      const existing = await db.select().from(users).where(eq(users.email, targetEmail)).limit(1);
+      const existing = await db.select().from(users).where(eq2(users.email, targetEmail)).limit(1);
       if (existing.length > 0) {
-        await db.update(users).set({ passwordHash: hash }).where(eq(users.email, targetEmail));
+        await db.update(users).set({ passwordHash: hash }).where(eq2(users.email, targetEmail));
       } else {
         await db.insert(users).values({
           uid: "owner_" + Date.now(),
@@ -478,7 +911,7 @@ async function startServer() {
         });
       }
       if (targetEmail !== ownerEmail) {
-        await db.update(users).set({ passwordHash: hash }).where(eq(users.email, ownerEmail));
+        await db.update(users).set({ passwordHash: hash }).where(eq2(users.email, ownerEmail));
       }
       await logAudit("PASSWORD_RESET", `Owner password reset using Master Setup Key for ${targetEmail}`, targetEmail);
       res.json({
@@ -504,7 +937,7 @@ async function startServer() {
       }
       let isVerified = isMasterKey(currentPassword);
       if (!isVerified) {
-        const existing2 = await db.select().from(users).where(eq(users.email, userEmail)).limit(1);
+        const existing2 = await db.select().from(users).where(eq2(users.email, userEmail)).limit(1);
         if (existing2.length > 0 && existing2[0].passwordHash) {
           isVerified = await bcrypt.compare(currentPassword, existing2[0].passwordHash);
         }
@@ -515,9 +948,9 @@ async function startServer() {
         });
       }
       const hash = await bcrypt.hash(newPassword, 10);
-      const existing = await db.select().from(users).where(eq(users.email, userEmail)).limit(1);
+      const existing = await db.select().from(users).where(eq2(users.email, userEmail)).limit(1);
       if (existing.length > 0) {
-        await db.update(users).set({ passwordHash: hash }).where(eq(users.email, userEmail));
+        await db.update(users).set({ passwordHash: hash }).where(eq2(users.email, userEmail));
       } else {
         await db.insert(users).values({
           uid: "owner_" + Date.now(),
@@ -572,17 +1005,17 @@ async function startServer() {
       const { search, status, categoryId, brandId } = req.query;
       const conditions = [];
       if (status && typeof status === "string" && status !== "all") {
-        conditions.push(eq(products.status, status));
+        conditions.push(eq2(products.status, status));
       }
       if (categoryId && !isNaN(parseInt(categoryId, 10))) {
-        conditions.push(eq(products.categoryId, parseInt(categoryId, 10)));
+        conditions.push(eq2(products.categoryId, parseInt(categoryId, 10)));
       }
       if (brandId && !isNaN(parseInt(brandId, 10))) {
-        conditions.push(eq(products.brandId, parseInt(brandId, 10)));
+        conditions.push(eq2(products.brandId, parseInt(brandId, 10)));
       }
       const { condition } = req.query;
       if (condition && typeof condition === "string" && ["New", "Used", "Refurbished"].includes(condition)) {
-        conditions.push(eq(products.condition, condition));
+        conditions.push(eq2(products.condition, condition));
       }
       if (search && typeof search === "string" && search.trim() !== "") {
         const query2 = `%${search.trim()}%`;
@@ -622,7 +1055,7 @@ async function startServer() {
         categoryNameEn: categories.nameEn,
         categoryNameAr: categories.nameAr,
         brandName: brands.name
-      }).from(products).leftJoin(categories, eq(products.categoryId, categories.id)).leftJoin(brands, eq(products.brandId, brands.id));
+      }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id));
       const results = conditions.length > 0 ? await query.where(and(...conditions)).orderBy(desc(products.createdAt)) : await query.orderBy(desc(products.createdAt));
       res.json(results);
     } catch (error) {
@@ -630,8 +1063,8 @@ async function startServer() {
       res.status(500).json({ error: "Failed to fetch admin catalogue" });
     }
   });
-  const makeSlug = (text) => {
-    return text.toString().toLowerCase().trim().replace(/[\s\W-]+/g, "-").replace(/^-+|-+$/g, "");
+  const makeSlug = (text2) => {
+    return text2.toString().toLowerCase().trim().replace(/[\s\W-]+/g, "-").replace(/^-+|-+$/g, "");
   };
   app.post("/api/admin/products", requireAuth, async (req, res) => {
     try {
@@ -661,7 +1094,7 @@ async function startServer() {
       if (!nameEn || !nameEn.trim()) {
         return res.status(400).json({ error: "English product name is required." });
       }
-      const existingSku = await db.select().from(products).where(eq(products.sku, sku.trim())).limit(1);
+      const existingSku = await db.select().from(products).where(eq2(products.sku, sku.trim())).limit(1);
       if (existingSku.length > 0) {
         return res.status(400).json({ error: `Product with SKU "${sku.trim()}" already exists.` });
       }
@@ -670,7 +1103,7 @@ async function startServer() {
       let finalSlug = baseSlug;
       let counter = 1;
       while (true) {
-        const existingSlug = await db.select().from(products).where(eq(products.slug, finalSlug)).limit(1);
+        const existingSlug = await db.select().from(products).where(eq2(products.slug, finalSlug)).limit(1);
         if (existingSlug.length === 0) break;
         finalSlug = `${baseSlug}-${counter++}`;
       }
@@ -730,12 +1163,12 @@ async function startServer() {
         stockQuantity,
         imeiSerialNumbers
       } = req.body;
-      const existing = await db.select().from(products).where(eq(products.id, id)).limit(1);
+      const existing = await db.select().from(products).where(eq2(products.id, id)).limit(1);
       if (existing.length === 0) {
         return res.status(404).json({ error: "Product not found" });
       }
       if (sku && sku.trim().toUpperCase() !== existing[0].sku) {
-        const skuCheck = await db.select().from(products).where(eq(products.sku, sku.trim().toUpperCase())).limit(1);
+        const skuCheck = await db.select().from(products).where(eq2(products.sku, sku.trim().toUpperCase())).limit(1);
         if (skuCheck.length > 0 && skuCheck[0].id !== id) {
           return res.status(400).json({ error: `SKU "${sku.trim()}" is already assigned to another product.` });
         }
@@ -760,7 +1193,7 @@ async function startServer() {
         stockQuantity: stockQuantity !== void 0 ? parseInt(stockQuantity, 10) : existing[0].stockQuantity,
         imeiSerialNumbers: imeiSerialNumbers !== void 0 ? imeiSerialNumbers : existing[0].imeiSerialNumbers,
         updatedAt: /* @__PURE__ */ new Date()
-      }).where(eq(products.id, id)).returning();
+      }).where(eq2(products.id, id)).returning();
       await logAudit(
         "PRODUCT_UPDATE",
         `Updated product: "${updated[0].nameEn}" [SKU: ${updated[0].sku}]`,
@@ -775,7 +1208,7 @@ async function startServer() {
   app.post("/api/admin/products/:id/duplicate", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const original = await db.select().from(products).where(eq(products.id, id)).limit(1);
+      const original = await db.select().from(products).where(eq2(products.id, id)).limit(1);
       if (original.length === 0) {
         return res.status(404).json({ error: "Original product not found" });
       }
@@ -785,7 +1218,7 @@ async function startServer() {
       let finalSlug = baseSlug;
       let counter = 1;
       while (true) {
-        const slugCheck = await db.select().from(products).where(eq(products.slug, finalSlug)).limit(1);
+        const slugCheck = await db.select().from(products).where(eq2(products.slug, finalSlug)).limit(1);
         if (slugCheck.length === 0) break;
         finalSlug = `${baseSlug}-${counter++}`;
       }
@@ -825,11 +1258,11 @@ async function startServer() {
   app.delete("/api/admin/products/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const prod = await db.select().from(products).where(eq(products.id, id)).limit(1);
+      const prod = await db.select().from(products).where(eq2(products.id, id)).limit(1);
       if (prod.length === 0) {
         return res.status(404).json({ error: "Product not found" });
       }
-      await db.delete(products).where(eq(products.id, id));
+      await db.delete(products).where(eq2(products.id, id));
       await logAudit(
         "PRODUCT_DELETE",
         `Deleted product "${prod[0].nameEn}" [SKU: ${prod[0].sku}]`,
@@ -848,7 +1281,7 @@ async function startServer() {
       if (!["published", "draft", "archived"].includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
-      const updated = await db.update(products).set({ status, updatedAt: /* @__PURE__ */ new Date() }).where(eq(products.id, id)).returning();
+      const updated = await db.update(products).set({ status, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(products.id, id)).returning();
       if (updated.length === 0) {
         return res.status(404).json({ error: "Product not found" });
       }
@@ -874,7 +1307,7 @@ async function startServer() {
       if (status !== void 0 && ["published", "draft", "archived"].includes(status)) {
         updateData.status = status;
       }
-      const updated = await db.update(products).set(updateData).where(eq(products.id, id)).returning();
+      const updated = await db.update(products).set(updateData).where(eq2(products.id, id)).returning();
       if (updated.length === 0) {
         return res.status(404).json({ error: "Product not found" });
       }
@@ -899,7 +1332,7 @@ async function startServer() {
         return res.status(400).json({ error: "Invalid status" });
       }
       for (const id of ids) {
-        await db.update(products).set({ status, updatedAt: /* @__PURE__ */ new Date() }).where(eq(products.id, id));
+        await db.update(products).set({ status, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(products.id, id));
       }
       await logAudit(
         "PRODUCT_BULK_STATUS",
@@ -919,7 +1352,7 @@ async function startServer() {
         return res.status(400).json({ error: "No product IDs provided" });
       }
       for (const id of ids) {
-        await db.delete(products).where(eq(products.id, id));
+        await db.delete(products).where(eq2(products.id, id));
       }
       await logAudit("PRODUCT_BULK_DELETE", `Deleted ${ids.length} products`, req.user?.email);
       res.json({ success: true, count: ids.length });
@@ -991,7 +1424,7 @@ async function startServer() {
       let finalSlug = baseSlug;
       let counter = 1;
       while (true) {
-        const check = await db.select().from(categories).where(eq(categories.slug, finalSlug)).limit(1);
+        const check = await db.select().from(categories).where(eq2(categories.slug, finalSlug)).limit(1);
         if (check.length === 0) break;
         finalSlug = `${baseSlug}-${counter++}`;
       }
@@ -1022,7 +1455,7 @@ async function startServer() {
         descriptionAr: descriptionAr !== void 0 ? descriptionAr : void 0,
         icon: icon || void 0,
         displayOrder: displayOrder !== void 0 ? parseInt(displayOrder, 10) : void 0
-      }).where(eq(categories.id, id)).returning();
+      }).where(eq2(categories.id, id)).returning();
       if (updated.length === 0) return res.status(404).json({ error: "Category not found" });
       await logAudit("CATEGORY_UPDATE", `Updated category "${updated[0].nameEn}"`, req.user?.email);
       res.json(updated[0]);
@@ -1034,11 +1467,11 @@ async function startServer() {
   app.delete("/api/admin/categories/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const prods = await db.select().from(products).where(eq(products.categoryId, id)).limit(1);
+      const prods = await db.select().from(products).where(eq2(products.categoryId, id)).limit(1);
       if (prods.length > 0) {
         return res.status(400).json({ error: "Cannot delete category containing existing products. Reassign or delete products first." });
       }
-      await db.delete(categories).where(eq(categories.id, id));
+      await db.delete(categories).where(eq2(categories.id, id));
       await logAudit("CATEGORY_DELETE", `Deleted category ID ${id}`, req.user?.email);
       res.json({ success: true });
     } catch (error) {
@@ -1054,7 +1487,7 @@ async function startServer() {
       let finalSlug = baseSlug;
       let counter = 1;
       while (true) {
-        const check = await db.select().from(brands).where(eq(brands.slug, finalSlug)).limit(1);
+        const check = await db.select().from(brands).where(eq2(brands.slug, finalSlug)).limit(1);
         if (check.length === 0) break;
         finalSlug = `${baseSlug}-${counter++}`;
       }
@@ -1077,7 +1510,7 @@ async function startServer() {
       const updated = await db.update(brands).set({
         name: name ? name.trim() : void 0,
         logoUrl: logoUrl !== void 0 ? logoUrl : void 0
-      }).where(eq(brands.id, id)).returning();
+      }).where(eq2(brands.id, id)).returning();
       if (updated.length === 0) return res.status(404).json({ error: "Brand not found" });
       await logAudit("BRAND_UPDATE", `Updated brand "${updated[0].name}"`, req.user?.email);
       res.json(updated[0]);
@@ -1089,11 +1522,11 @@ async function startServer() {
   app.delete("/api/admin/brands/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const prods = await db.select().from(products).where(eq(products.brandId, id)).limit(1);
+      const prods = await db.select().from(products).where(eq2(products.brandId, id)).limit(1);
       if (prods.length > 0) {
         return res.status(400).json({ error: "Cannot delete brand with associated products." });
       }
-      await db.delete(brands).where(eq(brands.id, id));
+      await db.delete(brands).where(eq2(brands.id, id));
       await logAudit("BRAND_DELETE", `Deleted brand ID ${id}`, req.user?.email);
       res.json({ success: true });
     } catch (error) {
@@ -1143,7 +1576,7 @@ async function startServer() {
           templateEn: templateEn !== void 0 ? templateEn : existing[0].templateEn,
           templateAr: templateAr !== void 0 ? templateAr : existing[0].templateAr,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq(whatsappSettings.id, existing[0].id)).returning();
+        }).where(eq2(whatsappSettings.id, existing[0].id)).returning();
       }
       await logAudit(
         "WHATSAPP_UPDATE",
@@ -1219,7 +1652,7 @@ async function startServer() {
           openingHoursEn: openingHoursEn !== void 0 ? openingHoursEn : existing[0].openingHoursEn,
           openingHoursAr: openingHoursAr !== void 0 ? openingHoursAr : existing[0].openingHoursAr,
           updatedAt: /* @__PURE__ */ new Date()
-        }).where(eq(siteContent.id, existing[0].id)).returning();
+        }).where(eq2(siteContent.id, existing[0].id)).returning();
       }
       await logAudit("CONTENT_UPDATE", "Updated homepage banner and site information", req.user?.email);
       res.json(updated[0]);
@@ -1237,24 +1670,77 @@ async function startServer() {
       res.status(500).json({ error: "Failed to fetch audit logs" });
     }
   });
-  if (process.env.NODE_ENV === "production") {
-    app.use(express.static(path.resolve(__dirname, "dist")));
-    app.get("*", (_req, res) => {
-      res.sendFile(path.resolve(__dirname, "dist", "index.html"));
+  const distDir = path2.resolve(__dirname, "dist");
+  const indexHtml = path2.resolve(distDir, "index.html");
+  const hasDist = fs2.existsSync(indexHtml);
+  if (process.env.NODE_ENV === "production" || hasDist) {
+    if (hasDist) {
+      app.use(express.static(distDir));
+      app.get("*", (_req, res) => {
+        res.sendFile(indexHtml);
+      });
+    } else {
+      app.get("*", (_req, res) => {
+        res.status(200).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <title>Nasir Mobile Dubai - Server Active</title>
+              <style>
+                body { font-family: system-ui, sans-serif; background: #0b0f19; color: #f3f4f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+                .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 40px; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+                h1 { color: #f59e0b; margin-bottom: 12px; font-size: 24px; }
+                p { color: #9ca3af; font-size: 15px; line-height: 1.6; }
+                code { background: #1f2937; padding: 3px 8px; border-radius: 4px; color: #60a5fa; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h1>Nasir Mobile Server Running</h1>
+                <p>The backend API is active and ready! To serve the full store frontend, please run <code>npm run build</code> in Hostinger to generate the static assets.</p>
+              </div>
+            </body>
+          </html>
+        `);
+      });
+    }
+  } else {
+    try {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa"
+      });
+      app.use(vite.middlewares);
+    } catch (viteErr) {
+      console.warn("Vite middleware could not be loaded, using fallback:", viteErr);
+      if (hasDist) {
+        app.use(express.static(distDir));
+        app.get("*", (_req, res) => res.sendFile(indexHtml));
+      }
+    }
+  }
+  const rawPort = process.env.PORT;
+  let portToListen = 3e3;
+  if (rawPort) {
+    if (isNaN(Number(rawPort))) {
+      portToListen = rawPort;
+    } else if (Number(rawPort) === 8080) {
+      portToListen = 3e3;
+    } else {
+      portToListen = Number(rawPort);
+    }
+  }
+  if (typeof portToListen === "string") {
+    app.listen(portToListen, () => {
+      console.log(`Nasir Mobile server listening on socket: ${portToListen}`);
     });
   } else {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa"
+    app.listen(portToListen, "0.0.0.0", () => {
+      console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${portToListen}`);
     });
-    app.use(vite.middlewares);
   }
-  const PORT = 3e3;
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${PORT}`);
-  });
 }
 startServer().catch((err) => {
-  console.error("Fatal error starting server:", err);
-  process.exit(1);
+  console.error("Non-fatal error caught on server startup:", err);
 });

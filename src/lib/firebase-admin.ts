@@ -1,8 +1,33 @@
 import { initializeApp, getApps } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import firebaseConfig from '../../firebase-applet-config.json';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 let adminAuthInstance: any = null;
+
+// Safely load config without throwing ERR_IMPORT_ATTRIBUTE_MISSING
+let firebaseConfig: any = {
+  projectId: process.env.FIREBASE_PROJECT_ID || 'magnificent-container-rvxch',
+};
+
+try {
+  const currentDir = path.dirname(fileURLToPath(import.meta.url));
+  const possiblePaths = [
+    path.resolve(process.cwd(), 'firebase-applet-config.json'),
+    path.resolve(currentDir, '../../firebase-applet-config.json'),
+    path.resolve(currentDir, '../firebase-applet-config.json'),
+  ];
+  for (const p of possiblePaths) {
+    if (fs.existsSync(p)) {
+      const raw = fs.readFileSync(p, 'utf-8');
+      firebaseConfig = JSON.parse(raw);
+      break;
+    }
+  }
+} catch (_err) {
+  // Safe fallback to default projectId
+}
 
 try {
   if (!getApps().length) {
