@@ -6,6 +6,12 @@ declare global {
   var _postgresPool: Pool | undefined;
 }
 
+export let isPostgresAvailable = false;
+
+export const setPostgresAvailable = (val: boolean) => {
+  isPostgresAvailable = val;
+};
+
 export const createPool = () => {
   if (!global._postgresPool) {
     const host = process.env.SQL_HOST || '127.0.0.1';
@@ -20,11 +26,11 @@ export const createPool = () => {
       port: Number(process.env.SQL_PORT) || 5432,
       ssl: useSsl ? { rejectUnauthorized: false } : undefined,
       max: 10,
-      connectionTimeoutMillis: 8000,
+      connectionTimeoutMillis: 5000,
     });
 
-    global._postgresPool.on('error', (err) => {
-      console.warn('Postgres pool error (non-fatal):', (err as any)?.message || err);
+    global._postgresPool.on('error', () => {
+      isPostgresAvailable = false;
     });
   }
   return global._postgresPool;

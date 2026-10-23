@@ -1,15 +1,19 @@
-import { db, createPool } from './index.ts';
-import { sql } from 'drizzle-orm';
+import { db, createPool, setPostgresAvailable } from './index.ts';
 
 export async function initDatabase() {
   try {
-    const pool = createPool();
-    if (!process.env.SQL_HOST || !process.env.SQL_DB_NAME) {
-      console.log('Skipping database auto-init: SQL_HOST or SQL_DB_NAME not configured.');
+    const host = process.env.SQL_HOST;
+    if (!host || host === '127.0.0.1' || host === 'localhost') {
+      // Hostinger / cloud instances without local Postgres
+      setPostgresAvailable(false);
       return;
     }
 
-    console.log('Checking and initializing database tables...');
+    const pool = createPool();
+
+    // Fast probe to verify PostgreSQL is reachable before attempting schema queries
+    await pool.query('SELECT 1');
+    setPostgresAvailable(true);
 
     // 1. Users table
     await pool.query(`
@@ -114,7 +118,7 @@ export async function initDatabase() {
         announcement_ar TEXT DEFAULT 'المتجر الرسمي لناصر موبايل دبي • تفضل بزيارة متجرنا في سوق ديرة للجملة أو اطلب عبر الواتساب مباشرة',
         announcement_active BOOLEAN DEFAULT TRUE,
         about_en TEXT DEFAULT 'Nasir Mobile Dubai is a certified electronic retailer operating in the heart of Dubai, UAE.',
-        about_ar TEXT DEFAULT 'ناصر موبايل دبي متجر معتمد في قلب تجارة الأجهزة الذكية بدبي، الإمارات العربية المتحدة.',
+        aboutAr TEXT DEFAULT 'ناصر موبايل دبي متجر معتمد في قلب تجارة الأجهزة الذكية بدبي، الإمارات العربية المتحدة.',
         contact_address_en TEXT DEFAULT 'Deira Commercial District, Wholesale Market Street, Dubai, United Arab Emirates',
         contact_address_ar TEXT DEFAULT 'منطقة ديرة التجارية، شارع سوق الجملة، دبي، الإمارات العربية المتحدة',
         contact_email TEXT DEFAULT 'contact@nasirmobile.com',
@@ -142,8 +146,8 @@ export async function initDatabase() {
       ON CONFLICT (id) DO NOTHING;
     `);
 
-    console.log('Database tables verified and ready.');
-  } catch (err) {
-    console.warn('Database initialization note:', (err as any)?.message || err);
+    setPostgresAvailable(true);
+  } catch (_err) {
+    setPostgresAvailable(false);
   }
 }

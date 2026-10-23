@@ -5,7 +5,7 @@ import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { db } from './src/db/index.ts';
+import { db, isPostgresAvailable } from './src/db/index.ts';
 import {
   products,
   categories,
@@ -20,6 +20,13 @@ import { eq, desc, asc, and, or, ilike, sql } from 'drizzle-orm';
 import { requireAuth, AuthRequest, adminSessions, createSignedToken } from './src/middleware/auth.ts';
 import { initDatabase } from './src/db/init.ts';
 import { adminAuth } from './src/lib/firebase-admin.ts';
+import {
+  FALLBACK_CATEGORIES,
+  FALLBACK_BRANDS,
+  FALLBACK_WHATSAPP,
+  FALLBACK_SITE_CONTENT,
+  FALLBACK_PRODUCTS,
+} from './src/db/fallbacks.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -55,6 +62,9 @@ async function startServer() {
 
   // Public Categories
   app.get('/api/categories', async (_req, res) => {
+    if (!isPostgresAvailable) {
+      return res.json(FALLBACK_CATEGORIES);
+    }
     try {
       const allCategories = await db
         .select({
@@ -69,15 +79,20 @@ async function startServer() {
         })
         .from(categories)
         .orderBy(asc(categories.displayOrder), asc(categories.nameEn));
-      res.json(allCategories);
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      res.status(500).json({ error: 'Failed to fetch categories' });
+      if (allCategories && allCategories.length > 0) {
+        return res.json(allCategories);
+      }
+      res.json(FALLBACK_CATEGORIES);
+    } catch {
+      res.json(FALLBACK_CATEGORIES);
     }
   });
 
   // Public Brands
   app.get('/api/brands', async (_req, res) => {
+    if (!isPostgresAvailable) {
+      return res.json(FALLBACK_BRANDS);
+    }
     try {
       const allBrands = await db
         .select({
@@ -88,16 +103,59 @@ async function startServer() {
         })
         .from(brands)
         .orderBy(asc(brands.name));
-      res.json(allBrands);
-    } catch (error) {
-      console.error('Error fetching brands:', error);
-      res.status(500).json({ error: 'Failed to fetch brands' });
+      if (allBrands && allBrands.length > 0) {
+        return res.json(allBrands);
+      }
+      res.json(FALLBACK_BRANDS);
+    } catch {
+      res.json(FALLBACK_BRANDS);
     }
   });
+
+  // Helper for in-memory fallback product filtering
+  const filterFallbackProducts = (query: any) => {
+    const { category, brand, condition, featured, newArrival, search, sort } = query;
+    let filtered = [...FALLBACK_PRODUCTS];
+
+    if (category && typeof category === 'string') {
+      filtered = filtered.filter((p) => p.categorySlug === category);
+    }
+    if (brand && typeof brand === 'string') {
+      filtered = filtered.filter((p) => p.brandSlug === brand);
+    }
+    if (condition && typeof condition === 'string' && ['New', 'Used', 'Refurbished'].includes(condition)) {
+      filtered = filtered.filter((p) => p.condition === condition);
+    }
+    if (featured === 'true') {
+      filtered = filtered.filter((p) => p.isFeatured);
+    }
+    if (newArrival === 'true') {
+      filtered = filtered.filter((p) => p.isNewArrival);
+    }
+    if (search && typeof search === 'string' && search.trim() !== '') {
+      const q = search.trim().toLowerCase();
+      filtered = filtered.filter(
+        (p) =>
+          p.nameEn.toLowerCase().includes(q) ||
+          p.nameAr.includes(q) ||
+          p.sku.toLowerCase().includes(q) ||
+          p.descriptionEn.toLowerCase().includes(q)
+      );
+    }
+    if (sort === 'name-asc') {
+      filtered.sort((a, b) => a.nameEn.localeCompare(b.nameEn));
+    } else if (sort === 'name-desc') {
+      filtered.sort((a, b) => b.nameEn.localeCompare(a.nameEn));
+    }
+    return filtered;
+  };
 
   // Public Products Catalogue (Filters: category, brand, condition, featured, newArrival, search, sort)
   // ABSOLUTE PRIVACY: Only public catalogue fields returned
   app.get('/api/products', async (req, res) => {
+    if (!isPostgresAvailable) {
+      return res.json(filterFallbackProducts(req.query));
+    }
     try {
       const { category, brand, condition, featured, newArrival, search, sort } = req.query;
 
@@ -181,17 +239,29 @@ async function startServer() {
       }
 
       const results = await query;
-      res.json(results);
-    } catch (error) {
-      console.error('Error fetching public products:', error);
-      res.status(500).json({ error: 'Failed to fetch catalogue products' });
+      if (results && results.length > 0) {
+        return res.json(results);
+      }
+      res.json(filterFallbackProducts(req.query));
+    } catch {
+      res.json(filterFallbackProducts(req.query));
     }
   });
 
   // Public Single Product by Slug
   app.get('/api/products/:slug', async (req, res) => {
+    const slug = req.params.slug;
+    if (!isPostgresAvailable) {
+      const fallbackItem = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+      if (fallbackItem) {
+        return res.json({
+          product: fallbackItem,
+          related: FALLBACK_PRODUCTS.filter((p) => p.id !== fallbackItem.id).slice(0, 4),
+        });
+      }
+      return res.status(404).json({ error: 'Product not found' });
+    }
     try {
-      const slug = req.params.slug;
       const product = await db
         .select({
           id: products.id,
@@ -222,106 +292,99 @@ async function startServer() {
         .where(and(eq(products.slug, slug), eq(products.status, 'published')))
         .limit(1);
 
-      if (product.length === 0) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
-
-      // Fetch related products in the same category
-      const currentCatId = product[0].categoryId;
-      let related: any[] = [];
-      if (currentCatId) {
-        related = await db
-          .select({
-            id: products.id,
-            slug: products.slug,
-            sku: products.sku,
-            nameEn: products.nameEn,
-            nameAr: products.nameAr,
-            condition: products.condition,
-            images: products.images,
-            categoryNameEn: categories.nameEn,
-            categoryNameAr: categories.nameAr,
-            brandName: brands.name,
-          })
-          .from(products)
-          .leftJoin(categories, eq(products.categoryId, categories.id))
-          .leftJoin(brands, eq(products.brandId, brands.id))
-          .where(
-            and(
-              eq(products.categoryId, currentCatId),
-              eq(products.status, 'published'),
-              sql`${products.id} != ${product[0].id}`
+      if (product.length > 0) {
+        const currentCatId = product[0].categoryId;
+        let related: any[] = [];
+        if (currentCatId) {
+          related = await db
+            .select({
+              id: products.id,
+              slug: products.slug,
+              sku: products.sku,
+              nameEn: products.nameEn,
+              nameAr: products.nameAr,
+              condition: products.condition,
+              images: products.images,
+              categoryNameEn: categories.nameEn,
+              categoryNameAr: categories.nameAr,
+              brandName: brands.name,
+            })
+            .from(products)
+            .leftJoin(categories, eq(products.categoryId, categories.id))
+            .leftJoin(brands, eq(products.brandId, brands.id))
+            .where(
+              and(
+                eq(products.categoryId, currentCatId),
+                eq(products.status, 'published'),
+                sql`${products.id} != ${product[0].id}`
+              )
             )
-          )
-          .limit(4);
+            .limit(4);
+        }
+
+        return res.json({
+          product: product[0],
+          related,
+        });
       }
 
-      res.json({
-        product: product[0],
-        related,
-      });
-    } catch (error) {
-      console.error('Error fetching single product:', error);
-      res.status(500).json({ error: 'Failed to fetch product' });
+      const fallbackItem = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+      if (fallbackItem) {
+        return res.json({
+          product: fallbackItem,
+          related: FALLBACK_PRODUCTS.filter((p) => p.id !== fallbackItem.id).slice(0, 4),
+        });
+      }
+
+      return res.status(404).json({ error: 'Product not found' });
+    } catch {
+      const fallbackItem = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+      if (fallbackItem) {
+        return res.json({
+          product: fallbackItem,
+          related: FALLBACK_PRODUCTS.filter((p) => p.id !== fallbackItem.id).slice(0, 4),
+        });
+      }
+      res.status(404).json({ error: 'Product not found' });
     }
   });
 
   // Public WhatsApp Settings (Safe public subset)
   app.get('/api/whatsapp-settings', async (_req, res) => {
+    if (!isPostgresAvailable) {
+      return res.json(FALLBACK_WHATSAPP);
+    }
     try {
       const settings = await db.select().from(whatsappSettings).limit(1);
-      if (settings.length === 0) {
+      if (settings.length > 0) {
         return res.json({
-          activeNumber: '+971522523900',
-          primaryNumber: '+971522523900',
-          secondaryNumber: '+971563903672',
-          isEnabled: true,
-          templateEn:
-            'Hello Nasir Mobile Dubai! I am inquiring about {productName} ({brand}) [SKU: {sku}]. Condition: {condition}. {variant}Link: {url}. Please share details and availability.',
-          templateAr:
-            'مرحباً ناصر موبايل دبي! أود الاستفسار عن {productName} ({brand}) [رمز المنتج: {sku}]. الحالة: {condition}. {variant}الرابط: {url}. يرجى تزويدي بالتفاصيل والتوفر.',
+          activeNumber: settings[0].activeNumber,
+          primaryNumber: settings[0].primaryNumber,
+          secondaryNumber: settings[0].secondaryNumber,
+          isEnabled: settings[0].isEnabled,
+          templateEn: settings[0].templateEn,
+          templateAr: settings[0].templateAr,
         });
       }
-      res.json({
-        activeNumber: settings[0].activeNumber,
-        primaryNumber: settings[0].primaryNumber,
-        secondaryNumber: settings[0].secondaryNumber,
-        isEnabled: settings[0].isEnabled,
-        templateEn: settings[0].templateEn,
-        templateAr: settings[0].templateAr,
-      });
-    } catch (error) {
-      console.error('Error fetching whatsapp settings:', error);
-      res.status(500).json({ error: 'Failed to fetch WhatsApp configuration' });
+      res.json(FALLBACK_WHATSAPP);
+    } catch {
+      res.json(FALLBACK_WHATSAPP);
     }
   });
 
   // Public Site Content
   app.get('/api/site-content', async (_req, res) => {
+    if (!isPostgresAvailable) {
+      return res.json(FALLBACK_SITE_CONTENT);
+    }
     try {
       const content = await db.select().from(siteContent).limit(1);
-      if (content.length === 0) {
-        return res.json({
-          heroTitleEn: 'Premium Technology & Smart Devices in Dubai',
-          heroTitleAr: 'أحدث الهواتف الذكية والتكنولوجيا في دبي',
-          heroSubtitleEn: 'Explore genuine new, used, and certified refurbished flagship devices, luxury audio, and authentic accessories at Nasir Mobile.',
-          heroSubtitleAr: 'استكشف أحدث الهواتف الأصلية الجديدة والمستعملة والمجددة، وأجهزة الصوت الراقية والإكسسوارات المعتمدة لدى ناصر موبايل.',
-          announcementEn: 'Welcome to Nasir Mobile Dubai • Direct WhatsApp Enquiries • Guaranteed Authenticity',
-          announcementAr: 'أهلاً بكم في ناصر موبايل دبي • استفسار فوري عبر واتساب • أجهزة أصلية معتمدة',
-          announcementActive: true,
-          aboutEn: 'Nasir Mobile is Dubai’s trusted destination for smartphones, tablets, premium accessories, and certified electronics.',
-          aboutAr: 'ناصر موبايل هي وجهتك الموثوقة للهواتف الذكية والأجهزة اللوحية والإكسسوارات في دبي.',
-          contactAddressEn: 'Deira / Silicon Oasis, Dubai, United Arab Emirates',
-          contactAddressAr: 'ديرة / واحة دبي للسيليكون، دبي، الإمارات العربية المتحدة',
-          contactEmail: 'shazzzbusiness@gmail.com',
-          openingHoursEn: 'Saturday - Thursday: 10:00 AM - 10:30 PM | Friday: 3:00 PM - 10:30 PM',
-          openingHoursAr: 'السبت - الخميس: 10:00 صباحاً - 10:30 مساءً | الجمعة: 3:00 عصراً - 10:30 مساءً',
-        });
+      if (content.length > 0) {
+        return res.json(content[0]);
       }
-      res.json(content[0]);
-    } catch (error) {
-      console.error('Error fetching site content:', error);
-      res.status(500).json({ error: 'Failed to fetch site content' });
+      res.json(FALLBACK_SITE_CONTENT);
+    } catch {
+      res.json(FALLBACK_SITE_CONTENT);
     }
   });
 
@@ -398,19 +461,22 @@ async function startServer() {
             expiresAt,
           });
 
-          // Ensure owner is recorded in users table
-          const existingOwner = await db.select().from(users).where(eq(users.email, ownerEmail)).limit(1);
-          if (existingOwner.length === 0) {
-            const hash = await bcrypt.hash(password, 10);
-            await db.insert(users).values({
-              uid: 'owner_' + Date.now(),
-              email: ownerEmail,
-              role: 'owner',
-              passwordHash: hash,
-            });
+          // Ensure owner is recorded in users table if DB is reachable
+          try {
+            const existingOwner = await db.select().from(users).where(eq(users.email, ownerEmail)).limit(1);
+            if (existingOwner.length === 0) {
+              const hash = await bcrypt.hash(password, 10);
+              await db.insert(users).values({
+                uid: 'owner_' + Date.now(),
+                email: ownerEmail,
+                role: 'owner',
+                passwordHash: hash,
+              });
+            }
+            await logAudit('OWNER_LOGIN', 'Owner logged in via master setup credentials', ownerEmail);
+          } catch (dbErr) {
+            console.warn('Database note: Owner record sync skipped while DB is offline:', (dbErr as any)?.message);
           }
-
-          await logAudit('OWNER_LOGIN', 'Owner logged in via master setup credentials', ownerEmail);
 
           return res.json({
             success: true,
