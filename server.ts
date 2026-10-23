@@ -1582,7 +1582,7 @@ async function startServer() {
     app.use(vite.middlewares);
   }
 
-  const PORT = 3000;
+  const PORT = Number(process.env.PORT) === 8080 ? 3000 : (Number(process.env.PORT) || 3000);
   app.listen(PORT, '0.0.0.0', () => {
     console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${PORT}`);
   });
