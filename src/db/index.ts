@@ -8,17 +8,23 @@ declare global {
 
 export const createPool = () => {
   if (!global._postgresPool) {
+    const host = process.env.SQL_HOST || '127.0.0.1';
+    const isRemote = host !== '127.0.0.1' && host !== 'localhost';
+    const useSsl = process.env.SQL_SSL === 'true' || isRemote;
+
     global._postgresPool = new Pool({
-      host: process.env.SQL_HOST,
-      user: process.env.SQL_USER,
-      password: process.env.SQL_PASSWORD,
-      database: process.env.SQL_DB_NAME,
+      host: host,
+      user: process.env.SQL_USER || 'postgres',
+      password: process.env.SQL_PASSWORD || '',
+      database: process.env.SQL_DB_NAME || 'postgres',
+      port: Number(process.env.SQL_PORT) || 5432,
+      ssl: useSsl ? { rejectUnauthorized: false } : undefined,
       max: 10,
-      connectionTimeoutMillis: 15000,
+      connectionTimeoutMillis: 8000,
     });
 
     global._postgresPool.on('error', (err) => {
-      console.error('Unexpected error on idle SQL pool client:', err);
+      console.warn('Postgres pool error (non-fatal):', (err as any)?.message || err);
     });
   }
   return global._postgresPool;

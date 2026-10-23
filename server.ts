@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'fs';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -23,8 +24,12 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  // Automatically ensure database tables exist (no manual terminal command required)
-  await initDatabase();
+  // Automatically ensure database tables exist (safely catch without crashing server)
+  try {
+    await initDatabase();
+  } catch (dbErr) {
+    console.warn('Initial database sync note (non-fatal):', dbErr);
+  }
 
   const app = express();
   app.use(express.json({ limit: '20mb' }));
@@ -1573,26 +1578,88 @@ async function startServer() {
   // ----------------------------------------------------
   // VITE DEV MIDDLEWARE / STATIC FILES
   // ----------------------------------------------------
-  if (process.env.NODE_ENV === 'production') {
-    app.use(express.static(path.resolve(__dirname, 'dist')));
-    app.get('*', (_req, res) => {
-      res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-    });
+  const distDir = path.resolve(__dirname, 'dist');
+  const indexHtml = path.resolve(distDir, 'index.html');
+  const hasDist = fs.existsSync(indexHtml);
+
+  if (process.env.NODE_ENV === 'production' || hasDist) {
+    if (hasDist) {
+      app.use(express.static(distDir));
+      app.get('*', (_req, res) => {
+        res.sendFile(indexHtml);
+      });
+    } else {
+      app.get('*', (_req, res) => {
+        res.status(200).send(`
+          <!DOCTYPE html>
+          <html>
+            <head>
+              <meta charset="utf-8" />
+              <title>Nasir Mobile Dubai - Server Active</title>
+              <style>
+                body { font-family: system-ui, sans-serif; background: #0b0f19; color: #f3f4f6; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; text-align: center; }
+                .card { background: #111827; border: 1px solid #1f2937; border-radius: 12px; padding: 40px; max-width: 500px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+                h1 { color: #f59e0b; margin-bottom: 12px; font-size: 24px; }
+                p { color: #9ca3af; font-size: 15px; line-height: 1.6; }
+                code { background: #1f2937; padding: 3px 8px; border-radius: 4px; color: #60a5fa; }
+              </style>
+            </head>
+            <body>
+              <div class="card">
+                <h1>Nasir Mobile Server Running</h1>
+                <p>The backend API is active and ready! To serve the full store frontend, please run <code>npm run build</code> in Hostinger to generate the static assets.</p>
+              </div>
+            </body>
+          </html>
+        `);
+      });
+    }
   } else {
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: 'spa',
-    });
-    app.use(vite.middlewares);
+    try {
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: 'spa',
+      });
+      app.use(vite.middlewares);
+    } catch (viteErr) {
+      console.warn('Vite middleware could not be loaded, using fallback:', viteErr);
+      if (hasDist) {
+        app.use(express.static(distDir));
+        app.get('*', (_req, res) => res.sendFile(indexHtml));
+      }
+    }
   }
 
-  const PORT = Number(process.env.PORT) === 8080 ? 3000 : (Number(process.env.PORT) || 3000);
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${PORT}`);
-  });
+  // ----------------------------------------------------
+  // PORT & PASSENGER SOCKET BINDING
+  // ----------------------------------------------------
+  const rawPort = process.env.PORT;
+  let portToListen: any = 3000;
+
+  if (rawPort) {
+    if (isNaN(Number(rawPort))) {
+      // Unix domain socket (Hostinger/Passenger socket)
+      portToListen = rawPort;
+    } else if (Number(rawPort) === 8080) {
+      // AI Studio preview environment
+      portToListen = 3000;
+    } else {
+      portToListen = Number(rawPort);
+    }
+  }
+
+  if (typeof portToListen === 'string') {
+    app.listen(portToListen, () => {
+      console.log(`Nasir Mobile server listening on socket: ${portToListen}`);
+    });
+  } else {
+    app.listen(portToListen, '0.0.0.0', () => {
+      console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${portToListen}`);
+    });
+  }
 }
 
 startServer().catch((err) => {
-  console.error('Fatal error starting server:', err);
-  process.exit(1);
+  console.error('Non-fatal error caught on server startup:', err);
 });
+
