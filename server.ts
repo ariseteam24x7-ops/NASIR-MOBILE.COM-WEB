@@ -17,11 +17,15 @@ import {
 } from './src/db/schema.ts';
 import { eq, desc, asc, and, or, ilike, sql } from 'drizzle-orm';
 import { requireAuth, AuthRequest, adminSessions, createSignedToken } from './src/middleware/auth.ts';
+import { initDatabase } from './src/db/init.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
+  // Automatically ensure database tables exist (no manual terminal command required)
+  await initDatabase();
+
   const app = express();
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
