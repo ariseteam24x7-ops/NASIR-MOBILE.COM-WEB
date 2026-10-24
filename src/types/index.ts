@@ -112,3 +112,30 @@ export interface FAQQuickReply {
   questionAr: string;
   icon?: string;
 }
+
+export interface PublicVisitorStats {
+  isEnabled: boolean;
+  displayMode: 'both' | 'today' | 'total';
+  todayVisitors: number;
+  totalVisitors: number;
+}
+
+export interface VisitorDailyRecord {
+  date: string;
+  uniqueVisitors: number;
+  pageViews: number;
+}
+
+export interface AdminVisitorAnalytics {
+  actualTodayVisitors: number;
+  actualTotalVisitors: number;
+  actualTodayPageViews: number;
+  displayTodayVisitors: number;
+  displayTotalVisitors: number;
+  todayAdjustment: number;
+  totalAdjustment: number;
+  isEnabled: boolean;
+  displayMode: 'both' | 'today' | 'total';
+  recentDailyStats: VisitorDailyRecord[];
+}
+

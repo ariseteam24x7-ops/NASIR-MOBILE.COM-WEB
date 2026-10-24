@@ -127,6 +127,43 @@ export const auditLogs = pgTable('audit_logs', {
   createdAt: timestamp('created_at').defaultNow(),
 });
 
+// Visitor Counter Settings (Admin adjustments & display mode)
+export const visitorSettings = pgTable('visitor_settings', {
+  id: serial('id').primaryKey(),
+  isEnabled: boolean('is_enabled').default(true),
+  displayMode: text('display_mode').default('both'), // 'both', 'today', 'total'
+  todayAdjustment: integer('today_adjustment').default(0),
+  totalAdjustment: integer('total_adjustment').default(0),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Visitor Daily Aggregations (Date in Asia/Dubai YYYY-MM-DD)
+export const visitorDailyStats = pgTable('visitor_daily_stats', {
+  id: serial('id').primaryKey(),
+  date: text('date').notNull().unique(),
+  uniqueVisitors: integer('unique_visitors').default(0),
+  pageViews: integer('page_views').default(0),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+// Anonymous Visitor Logs (Deduplication within same day)
+export const visitorLogs = pgTable('visitor_logs', {
+  id: serial('id').primaryKey(),
+  visitorId: text('visitor_id').notNull(),
+  date: text('date').notNull(),
+  path: text('path').default('/'),
+  userAgent: text('user_agent').default(''),
+  createdAt: timestamp('created_at').defaultNow(),
+});
+
+// Security Settings table (Custom Master Setup Key)
+export const securitySettings = pgTable('security_settings', {
+  id: serial('id').primaryKey(),
+  masterKey: text('master_key').default('NasirMobileDubai2026!'),
+  updatedAt: timestamp('updated_at').defaultNow(),
+});
+
+
 // Relationships
 export const categoriesRelations = relations(categories, ({ many }) => ({
   products: many(products),

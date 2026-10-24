@@ -2,18 +2,12 @@ import { db, createPool, setPostgresAvailable } from './index.ts';
 
 export async function initDatabase() {
   try {
-    const host = process.env.SQL_HOST;
-    if (!host || host === '127.0.0.1' || host === 'localhost') {
-      // Hostinger / cloud instances without local Postgres
-      setPostgresAvailable(false);
-      return;
-    }
-
     const pool = createPool();
 
     // Fast probe to verify PostgreSQL is reachable before attempting schema queries
     await pool.query('SELECT 1');
     setPostgresAvailable(true);
+    console.log('PostgreSQL database connected and verified successfully');
 
     // 1. Users table
     await pool.query(`
@@ -139,10 +133,63 @@ export async function initDatabase() {
       );
     `);
 
+    // 9. Visitor Settings table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitor_settings (
+        id SERIAL PRIMARY KEY,
+        is_enabled BOOLEAN DEFAULT TRUE,
+        display_mode TEXT DEFAULT 'both',
+        today_adjustment INTEGER DEFAULT 0,
+        total_adjustment INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 10. Visitor Daily Stats table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitor_daily_stats (
+        id SERIAL PRIMARY KEY,
+        date TEXT NOT NULL UNIQUE,
+        unique_visitors INTEGER DEFAULT 0,
+        page_views INTEGER DEFAULT 0,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
+    // 11. Visitor Logs table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS visitor_logs (
+        id SERIAL PRIMARY KEY,
+        visitor_id TEXT NOT NULL,
+        date TEXT NOT NULL,
+        path TEXT DEFAULT '/',
+        user_agent TEXT DEFAULT '',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_visitor_logs_date_id ON visitor_logs(date, visitor_id);
+    `);
+
+    // 12. Security Settings table
+    await pool.query(`
+      CREATE TABLE IF NOT EXISTS security_settings (
+        id SERIAL PRIMARY KEY,
+        master_key TEXT DEFAULT 'NasirMobileDubai2026!',
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+      );
+    `);
+
     // Seed default settings row if missing
     await pool.query(`
       INSERT INTO whatsapp_settings (id, primary_number, secondary_number, active_number, is_enabled)
       VALUES (1, '+971522523900', '+971563903672', '+971522523900', true)
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO visitor_settings (id, is_enabled, display_mode, today_adjustment, total_adjustment)
+      VALUES (1, true, 'both', 0, 0)
+      ON CONFLICT (id) DO NOTHING;
+
+      INSERT INTO security_settings (id, master_key)
+      VALUES (1, 'NasirMobileDubai2026!')
       ON CONFLICT (id) DO NOTHING;
     `);
 

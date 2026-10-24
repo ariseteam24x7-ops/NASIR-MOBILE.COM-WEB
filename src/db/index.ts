@@ -15,8 +15,11 @@ export const setPostgresAvailable = (val: boolean) => {
 export const createPool = () => {
   if (!global._postgresPool) {
     const host = process.env.SQL_HOST || '127.0.0.1';
-    const isRemote = host !== '127.0.0.1' && host !== 'localhost';
-    const useSsl = process.env.SQL_SSL === 'true' || isRemote;
+    const isUnixSocket = host.startsWith('/');
+
+    // Cloud SQL Unix domain sockets (/app/cloudsql/...) and local environments do NOT support SSL.
+    // Only remote TCP connections should use SSL if explicitly requested via SQL_SSL === 'true'.
+    const useSsl = !isUnixSocket && process.env.SQL_SSL === 'true';
 
     global._postgresPool = new Pool({
       host: host,
@@ -29,7 +32,8 @@ export const createPool = () => {
       connectionTimeoutMillis: 5000,
     });
 
-    global._postgresPool.on('error', () => {
+    global._postgresPool.on('error', (err) => {
+      console.warn('PostgreSQL pool background error:', err?.message);
       isPostgresAvailable = false;
     });
   }

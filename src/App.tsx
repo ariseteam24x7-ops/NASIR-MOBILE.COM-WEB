@@ -16,6 +16,7 @@ import { AboutSection } from './components/AboutSection.tsx';
 import { FaqSection } from './components/FaqSection.tsx';
 import { ContactSection } from './components/ContactSection.tsx';
 import { Footer } from './components/Footer.tsx';
+import { VisitorCounter } from './components/VisitorCounter.tsx';
 import { AdminLogin } from './components/AdminLogin.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import {
@@ -719,6 +720,9 @@ function StoreApp() {
         whatsAppSettings={whatsAppSettings}
         siteContent={siteContent}
       />
+
+      {/* Real-time Website Visitor Counter */}
+      <VisitorCounter />
 
       {/* Footer */}
       <Footer

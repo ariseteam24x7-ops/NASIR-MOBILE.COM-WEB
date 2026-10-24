@@ -10,6 +10,7 @@ import {
   AuditLog,
   ProductCondition,
   ProductStatus,
+  AdminVisitorAnalytics,
 } from '../types/index.ts';
 import {
   Package,
@@ -47,6 +48,11 @@ import {
   Maximize2,
   SlidersHorizontal,
   Download,
+  Activity,
+  RotateCcw,
+  TrendingUp,
+  BarChart3,
+  Users,
 } from 'lucide-react';
 import { ProductMultiImageUploader, ImageAspectRatio, ImageFitMode } from './ProductMultiImageUploader.tsx';
 import { IconImageUploader } from './IconImageUploader.tsx';
@@ -65,7 +71,17 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onViewPublicSite,
 }) => {
   const { language, setLanguage } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'whatsapp' | 'content' | 'audit' | 'security'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'whatsapp' | 'content' | 'audit' | 'security' | 'visitors'>('overview');
+
+  // Visitor Analytics State
+  const [visitorAnalytics, setVisitorAnalytics] = useState<AdminVisitorAnalytics | null>(null);
+  const [visitorLoading, setVisitorLoading] = useState(false);
+  const [visitorSaving, setVisitorSaving] = useState(false);
+  const [visitorResetting, setVisitorResetting] = useState(false);
+  const [editVisitorEnabled, setEditVisitorEnabled] = useState(true);
+  const [editVisitorDisplayMode, setEditVisitorDisplayMode] = useState<'both' | 'today' | 'total'>('both');
+  const [editVisitorTodayAdj, setEditVisitorTodayAdj] = useState(0);
+  const [editVisitorTotalAdj, setEditVisitorTotalAdj] = useState(0);
 
   // Security & Password Change State
   const [currPassword, setCurrPassword] = useState('');
@@ -74,6 +90,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [passwordChangeLoading, setPasswordChangeLoading] = useState(false);
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState<string | null>(null);
   const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
+
+  // Master Key Reset & Management State
+  const [masterKeyInfo, setMasterKeyInfo] = useState<{ isDefault: boolean; maskedKey: string; hasCustomKey: boolean } | null>(null);
+  const [newMasterKeyInput, setNewMasterKeyInput] = useState('');
+  const [confirmMasterKeyInput, setConfirmMasterKeyInput] = useState('');
+  const [masterKeyVerifyPassword, setMasterKeyVerifyPassword] = useState('');
+  const [masterKeyLoading, setMasterKeyLoading] = useState(false);
+  const [masterKeySuccess, setMasterKeySuccess] = useState<string | null>(null);
+  const [masterKeyError, setMasterKeyError] = useState<string | null>(null);
 
   // Overview Stats
   const [stats, setStats] = useState<{
@@ -282,18 +307,174 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  // Fetch Visitor Analytics
+  const fetchVisitorAnalytics = async () => {
+    try {
+      setVisitorLoading(true);
+      const res = await fetch('/api/admin/visitors', { headers: authHeaders });
+      if (res.status === 401) {
+        onLogout();
+        return;
+      }
+      if (res.ok) {
+        const data: AdminVisitorAnalytics = await res.json();
+        setVisitorAnalytics(data);
+        setEditVisitorEnabled(data.isEnabled);
+        setEditVisitorDisplayMode(data.displayMode);
+        setEditVisitorTodayAdj(data.todayAdjustment);
+        setEditVisitorTotalAdj(data.totalAdjustment);
+      }
+    } catch (e) {
+      console.error('Failed to load visitor analytics', e);
+    } finally {
+      setVisitorLoading(false);
+    }
+  };
+
+  // Save Visitor Settings & Adjustments
+  const handleSaveVisitorSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setVisitorSaving(true);
+    try {
+      const res = await fetch('/api/admin/visitors/settings', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          isEnabled: editVisitorEnabled,
+          displayMode: editVisitorDisplayMode,
+          todayAdjustment: Number(editVisitorTodayAdj) || 0,
+          totalAdjustment: Number(editVisitorTotalAdj) || 0,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save settings');
+      showNotification('Visitor counter display settings saved successfully!');
+      fetchVisitorAnalytics();
+    } catch (err: any) {
+      showNotification(err.message || 'Failed to save settings', true);
+    } finally {
+      setVisitorSaving(false);
+    }
+  };
+
+  // Reset Adjustments to 0 (1-Click Restore Actual Tracking)
+  const handleResetVisitorAdjustments = async () => {
+    if (!window.confirm('Restore actual analytics? This will reset public display adjustments (+/-) back to 0 so the public counter directly reflects true tracked visitors.')) return;
+    setVisitorResetting(true);
+    try {
+      const res = await fetch('/api/admin/visitors/reset-adjustments', {
+        method: 'POST',
+        headers: authHeaders,
+      });
+      if (!res.ok) throw new Error('Failed to reset adjustments');
+      setEditVisitorTodayAdj(0);
+      setEditVisitorTotalAdj(0);
+      showNotification('Adjustments reset to 0! Public counter now reflects real actual visits.');
+      fetchVisitorAnalytics();
+    } catch (err: any) {
+      showNotification(err.message || 'Failed to reset adjustments', true);
+    } finally {
+      setVisitorResetting(false);
+    }
+  };
+
+  // Fetch Master Key info
+  const fetchMasterKeyInfo = async () => {
+    try {
+      const res = await fetch('/api/admin/master-key-info', { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setMasterKeyInfo(data);
+      }
+    } catch (e) {
+      console.error('Failed to load master key info', e);
+    }
+  };
+
+  // Reset Master Key to Default (NasirMobileDubai2026!)
+  const handleResetMasterKeyToDefault = async () => {
+    const password = window.prompt('Enter your current Owner Password or Master Key to authorize resetting to the default factory key (NasirMobileDubai2026!):');
+    if (!password) return;
+    setMasterKeyLoading(true);
+    setMasterKeyError(null);
+    setMasterKeySuccess(null);
+    try {
+      const res = await fetch('/api/admin/reset-master-key', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({ currentPassword: password, resetToDefault: true }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to reset Master Key');
+      setMasterKeySuccess(data.message || 'Master Key restored to default!');
+      showNotification('Master Key restored to default (NasirMobileDubai2026!)');
+      fetchMasterKeyInfo();
+    } catch (err: any) {
+      setMasterKeyError(err.message || 'Failed to reset Master Key');
+    } finally {
+      setMasterKeyLoading(false);
+    }
+  };
+
+  // Change Master Key to a New Custom Key
+  const handleChangeMasterKey = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMasterKeyError(null);
+    setMasterKeySuccess(null);
+    if (!masterKeyVerifyPassword) {
+      setMasterKeyError('Owner Password verification is required to authorize Master Key change.');
+      return;
+    }
+    if (newMasterKeyInput.length < 6) {
+      setMasterKeyError('New Master Key must be at least 6 characters long.');
+      return;
+    }
+    if (newMasterKeyInput !== confirmMasterKeyInput) {
+      setMasterKeyError('New Master Keys do not match. Please re-enter.');
+      return;
+    }
+    setMasterKeyLoading(true);
+    try {
+      const res = await fetch('/api/admin/reset-master-key', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          currentPassword: masterKeyVerifyPassword,
+          newMasterKey: newMasterKeyInput.trim(),
+          resetToDefault: false,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update Master Key');
+      setMasterKeySuccess('Master Key updated successfully! Your team can now log in using the new Master Key.');
+      setNewMasterKeyInput('');
+      setConfirmMasterKeyInput('');
+      setMasterKeyVerifyPassword('');
+      showNotification('Master Key updated successfully!');
+      fetchMasterKeyInfo();
+    } catch (err: any) {
+      setMasterKeyError(err.message || 'Failed to update Master Key');
+    } finally {
+      setMasterKeyLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchOverview();
     fetchCategories();
     fetchBrands();
     fetchWhatsappSettings();
     fetchSiteContent();
+    fetchVisitorAnalytics();
+    fetchMasterKeyInfo();
   }, []);
 
   useEffect(() => {
     if (activeTab === 'products') fetchProducts();
     if (activeTab === 'overview') fetchOverview();
     if (activeTab === 'audit') fetchAuditLogs();
+    if (activeTab === 'visitors') fetchVisitorAnalytics();
+    if (activeTab === 'security') fetchMasterKeyInfo();
   }, [activeTab, productStatusFilter, productCategoryFilter, productBrandFilter, productConditionFilter]);
 
   // Open Add Product
@@ -1094,6 +1275,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <Clock className="w-4 h-4" />
             <span>Audit Logs</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('visitors')}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'visitors'
+                ? 'bg-[#922CB5] text-white shadow-md'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Activity className="w-4 h-4 text-[#B7F34B]" />
+            <span>Visitor Analytics</span>
+            {visitorAnalytics && (
+              <span className="ml-auto bg-black/40 px-2 py-0.5 rounded-full text-[10px] font-mono text-[#B7F34B]">
+                {visitorAnalytics.displayTodayVisitors}
+              </span>
+            )}
           </button>
 
           <button
@@ -2434,8 +2632,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </div>
 
                     <div className="flex items-center justify-between p-3 rounded-xl bg-[#151419] border border-white/5">
-                      <span className="text-zinc-400">Master Setup Key:</span>
-                      <span className="font-mono text-emerald-400 font-bold">NasirMobileDubai2026!</span>
+                      <span className="text-zinc-400">Master Setup Key Status:</span>
+                      <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold ${
+                          masterKeyInfo?.hasCustomKey
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        }`}>
+                          {masterKeyInfo?.hasCustomKey ? 'Custom Master Key Active' : 'Factory Default Active'}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -2551,6 +2757,679 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </button>
                   </div>
                 </form>
+              </div>
+
+              {/* Master Key Management & Reset Section */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-[#242129] border border-white/5 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#922CB5] to-[#B7F34B] p-[1px] flex-shrink-0">
+                      <div className="w-full h-full rounded-2xl bg-[#151419] flex items-center justify-center text-[#B7F34B]">
+                        <Key className="w-5 h-5" />
+                      </div>
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h3 className="text-base font-black text-white uppercase tracking-tight">
+                          Master Key Management & Reset
+                        </h3>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
+                          masterKeyInfo?.hasCustomKey
+                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                        }`}>
+                          {masterKeyInfo?.hasCustomKey ? 'Custom Key Active' : 'Default Factory Key Active'}
+                        </span>
+                      </div>
+                      <p className="text-xs text-zinc-400 mt-1">
+                        The Master Key provides direct access for the store owner and authorized team. You can change it to a custom key or reset it back to factory default at any time.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 1-Click Reset to Default Button */}
+                  <button
+                    type="button"
+                    onClick={handleResetMasterKeyToDefault}
+                    disabled={masterKeyLoading}
+                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-red-200 text-xs font-bold transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto disabled:opacity-50"
+                  >
+                    <RotateCcw className={`w-3.5 h-3.5 ${masterKeyLoading ? 'animate-spin' : ''}`} />
+                    <span>Reset Master Key to Default</span>
+                  </button>
+                </div>
+
+                {/* Status & Masked Preview */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="p-4 rounded-2xl bg-[#151419] border border-white/5 space-y-1.5">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+                      Current Master Key Status
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                      <span className="text-sm font-bold text-white">
+                        {masterKeyInfo?.hasCustomKey ? 'Custom Master Key Configured' : 'Factory Default (NasirMobileDubai2026!)'}
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                      Masked preview: <span className="font-mono text-zinc-300 font-bold">{masterKeyInfo?.maskedKey || '••••••••'}</span>
+                    </p>
+                  </div>
+
+                  <div className="p-4 rounded-2xl bg-[#151419] border border-white/5 space-y-1.5">
+                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
+                      Self-Service Recovery
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-[#B7F34B]" />
+                      <span className="text-sm font-bold text-white">
+                        Reset from Anywhere
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                      If ever forgotten or compromised, authorized owners can reset it here or directly from the Admin Login screen using Owner Account credentials.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Feedback notifications */}
+                {masterKeySuccess && (
+                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 text-xs text-emerald-300">
+                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
+                    <span>{masterKeySuccess}</span>
+                  </div>
+                )}
+                {masterKeyError && (
+                  <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-xs text-red-300">
+                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                    <span>{masterKeyError}</span>
+                  </div>
+                )}
+
+                {/* Set New Custom Master Key Form */}
+                <form onSubmit={handleChangeMasterKey} className="space-y-4 max-w-lg pt-2">
+                  <div className="border-t border-white/5 pt-4">
+                    <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-1">
+                      Set New Custom Master Key
+                    </h4>
+                    <p className="text-[11px] text-zinc-400 mb-4">
+                      Create a strong custom secret key for your team. Minimum 6 characters.
+                    </p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                      New Master Key *
+                    </label>
+                    <input
+                      type="password"
+                      value={newMasterKeyInput}
+                      onChange={(e) => setNewMasterKeyInput(e.target.value)}
+                      placeholder="Enter new master key (min. 6 characters)"
+                      className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                      Confirm New Master Key *
+                    </label>
+                    <input
+                      type="password"
+                      value={confirmMasterKeyInput}
+                      onChange={(e) => setConfirmMasterKeyInput(e.target.value)}
+                      placeholder="Re-enter new master key"
+                      className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                      Verify Current Owner Password or Current Master Key *
+                    </label>
+                    <input
+                      type="password"
+                      value={masterKeyVerifyPassword}
+                      onChange={(e) => setMasterKeyVerifyPassword(e.target.value)}
+                      placeholder="Enter your owner password to authorize change"
+                      className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                      required
+                    />
+                  </div>
+
+                  <div className="pt-2 flex flex-wrap items-center gap-3">
+                    <button
+                      type="submit"
+                      disabled={masterKeyLoading}
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#922CB5] to-[#B7F34B] hover:opacity-95 text-[#151419] text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(183,243,75,0.2)] disabled:opacity-50 cursor-pointer"
+                    >
+                      {masterKeyLoading ? 'Updating Master Key...' : 'Save New Master Key'}
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleResetMasterKeyToDefault}
+                      disabled={masterKeyLoading}
+                      className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
+                    >
+                      Reset to Default
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 8: VISITOR ANALYTICS & COUNTER CONTROL */}
+          {activeTab === 'visitors' && (
+            <div className="space-y-8">
+              {/* Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-2">
+                    <Activity className="w-3.5 h-3.5" />
+                    <span>Real-Time Analytics & Control</span>
+                  </div>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                    Website Visitor Analytics
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Live unique traffic tracking for Nasir Mobile Dubai (Asia/Dubai midnight reset). Manage public display adjustments without altering actual analytics.
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={fetchVisitorAnalytics}
+                  disabled={visitorLoading}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-zinc-300 hover:text-white transition-all cursor-pointer self-start sm:self-auto"
+                >
+                  <RotateCcw className={`w-3.5 h-3.5 text-[#B7F34B] ${visitorLoading ? 'animate-spin' : ''}`} />
+                  <span>Refresh Traffic</span>
+                </button>
+              </div>
+
+              {/* 4 Metric Cards: Actual Analytics vs Displayed Public Counts */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Card 1: Today's Unique Visitors */}
+                <div className="p-5 rounded-2xl bg-[#242129] border border-white/5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      Today's Visitors
+                    </span>
+                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                  </div>
+
+                  <div className="my-3">
+                    <div className="text-3xl font-black text-[#B7F34B] font-mono">
+                      {(visitorAnalytics?.displayTodayVisitors ?? 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-[11px]">
+                      <span className="text-zinc-400">Actual Tracked:</span>
+                      <span className="font-mono font-bold text-white">
+                        {(visitorAnalytics?.actualTodayVisitors ?? 0).toLocaleString()}
+                      </span>
+                      {visitorAnalytics?.todayAdjustment !== 0 && (
+                        <span className={`px-1.5 py-0.2 rounded font-mono text-[10px] font-bold ${
+                          (visitorAnalytics?.todayAdjustment ?? 0) > 0
+                            ? 'bg-emerald-500/20 text-emerald-300'
+                            : 'bg-rose-500/20 text-rose-300'
+                        }`}>
+                          {(visitorAnalytics?.todayAdjustment ?? 0) > 0 ? '+' : ''}
+                          {visitorAnalytics?.todayAdjustment}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-zinc-500">
+                    Unique devices today • Resets at 00:00 GST
+                  </span>
+                </div>
+
+                {/* Card 2: Total Unique Visitors */}
+                <div className="p-5 rounded-2xl bg-[#242129] border border-white/5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      Total Visitors
+                    </span>
+                    <Users className="w-4 h-4 text-[#922CB5]" />
+                  </div>
+
+                  <div className="my-3">
+                    <div className="text-3xl font-black text-white font-mono">
+                      {(visitorAnalytics?.displayTotalVisitors ?? 0).toLocaleString()}
+                    </div>
+                    <div className="flex items-center gap-2 mt-1 text-[11px]">
+                      <span className="text-zinc-400">Actual Tracked:</span>
+                      <span className="font-mono font-bold text-white">
+                        {(visitorAnalytics?.actualTotalVisitors ?? 0).toLocaleString()}
+                      </span>
+                      {visitorAnalytics?.totalAdjustment !== 0 && (
+                        <span className={`px-1.5 py-0.2 rounded font-mono text-[10px] font-bold ${
+                          (visitorAnalytics?.totalAdjustment ?? 0) > 0
+                            ? 'bg-emerald-500/20 text-emerald-300'
+                            : 'bg-rose-500/20 text-rose-300'
+                        }`}>
+                          {(visitorAnalytics?.totalAdjustment ?? 0) > 0 ? '+' : ''}
+                          {visitorAnalytics?.totalAdjustment}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-zinc-500">
+                    Lifetime cumulative unique visitors
+                  </span>
+                </div>
+
+                {/* Card 3: Today's Page Views */}
+                <div className="p-5 rounded-2xl bg-[#242129] border border-white/5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      Today's Page Views
+                    </span>
+                    <TrendingUp className="w-4 h-4 text-amber-400" />
+                  </div>
+
+                  <div className="my-3">
+                    <div className="text-3xl font-black text-amber-400 font-mono">
+                      {(visitorAnalytics?.actualTodayPageViews ?? 0).toLocaleString()}
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-1">
+                      Avg{' '}
+                      <span className="font-mono font-bold text-white">
+                        {visitorAnalytics?.actualTodayVisitors
+                          ? (
+                              (visitorAnalytics.actualTodayPageViews || 0) /
+                              Math.max(1, visitorAnalytics.actualTodayVisitors)
+                            ).toFixed(1)
+                          : '1.0'}
+                      </span>{' '}
+                      views per visitor
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-zinc-500">
+                    Catalogue hits • Automated bots filtered
+                  </span>
+                </div>
+
+                {/* Card 4: Public Status */}
+                <div className="p-5 rounded-2xl bg-[#242129] border border-white/5 flex flex-col justify-between">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                      Public Counter
+                    </span>
+                    <BarChart3 className="w-4 h-4 text-cyan-400" />
+                  </div>
+
+                  <div className="my-3">
+                    <div className="flex items-center gap-2">
+                      <span className={`w-3 h-3 rounded-full ${editVisitorEnabled ? 'bg-emerald-400' : 'bg-zinc-600'}`} />
+                      <span className="text-xl font-black text-white uppercase">
+                        {editVisitorEnabled ? 'Visible' : 'Hidden'}
+                      </span>
+                    </div>
+                    <div className="text-[11px] text-zinc-400 mt-1 capitalize font-medium">
+                      Mode: <span className="text-white font-bold">{editVisitorDisplayMode} stats</span>
+                    </div>
+                  </div>
+
+                  <span className="text-[10px] text-zinc-500">
+                    Renders above website footer
+                  </span>
+                </div>
+              </div>
+
+              {/* Display Adjustments & Control Panel */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-[#242129] border border-white/5 space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                  <div>
+                    <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
+                      <SlidersHorizontal className="w-4 h-4 text-[#B7F34B]" />
+                      <span>Public Counter Display Adjustments</span>
+                    </h3>
+                    <p className="text-xs text-zinc-400 mt-0.5">
+                      Fine-tune displayed numbers for public view. Underlying database analytics records remain 100% accurate and untouched.
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={handleResetVisitorAdjustments}
+                    disabled={visitorResetting}
+                    className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-rose-950/60 hover:bg-rose-900/70 border border-rose-500/40 text-xs font-bold text-rose-200 transition-all cursor-pointer self-start sm:self-auto"
+                    title="Reset all display adjustments to 0 so the public counter directly matches real tracked analytics"
+                  >
+                    <RotateCcw className={`w-3.5 h-3.5 ${visitorResetting ? 'animate-spin' : ''}`} />
+                    <span>Restore Real Analytics</span>
+                  </button>
+                </div>
+
+                <form onSubmit={handleSaveVisitorSettings} className="space-y-6">
+                  {/* Master Visibility & Display Mode */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    {/* Toggle Visibility */}
+                    <div className="p-4 rounded-2xl bg-[#151419] border border-white/5 space-y-2">
+                      <label className="flex items-center justify-between cursor-pointer">
+                        <div>
+                          <span className="text-xs font-bold text-white block">
+                            Show Visitor Counter on Website
+                          </span>
+                          <span className="text-[11px] text-zinc-400">
+                            Toggle public badge visibility above the footer.
+                          </span>
+                        </div>
+                        <input
+                          type="checkbox"
+                          checked={editVisitorEnabled}
+                          onChange={(e) => setEditVisitorEnabled(e.target.checked)}
+                          className="w-5 h-5 accent-[#922CB5] rounded cursor-pointer"
+                        />
+                      </label>
+                    </div>
+
+                    {/* Display Mode Selector */}
+                    <div className="p-4 rounded-2xl bg-[#151419] border border-white/5 space-y-2">
+                      <label className="block text-xs font-bold text-white">
+                        Display Mode
+                      </label>
+                      <div className="grid grid-cols-3 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setEditVisitorDisplayMode('both')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            editVisitorDisplayMode === 'both'
+                              ? 'bg-[#922CB5] text-white shadow-md'
+                              : 'bg-white/5 text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          Both Stats
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditVisitorDisplayMode('today')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            editVisitorDisplayMode === 'today'
+                              ? 'bg-[#922CB5] text-white shadow-md'
+                              : 'bg-white/5 text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          Today Only
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setEditVisitorDisplayMode('total')}
+                          className={`py-2 px-3 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                            editVisitorDisplayMode === 'total'
+                              ? 'bg-[#922CB5] text-white shadow-md'
+                              : 'bg-white/5 text-zinc-400 hover:text-white'
+                          }`}
+                        >
+                          Total Only
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Number Adjustments */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                        Today's Visitors Adjustment (+ or -)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={editVisitorTodayAdj}
+                          onChange={(e) => setEditVisitorTodayAdj(parseInt(e.target.value, 10) || 0)}
+                          placeholder="0"
+                          className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs font-mono text-white focus:outline-none focus:border-[#922CB5]"
+                        />
+                      </div>
+                      <span className="text-[11px] text-zinc-500 mt-1 block">
+                        Resulting display: <span className="font-mono text-[#B7F34B] font-bold">
+                          {Math.max(0, (visitorAnalytics?.actualTodayVisitors ?? 0) + Number(editVisitorTodayAdj)).toLocaleString()}
+                        </span>
+                      </span>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
+                        Total Visitors Adjustment (+ or -)
+                      </label>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={editVisitorTotalAdj}
+                          onChange={(e) => setEditVisitorTotalAdj(parseInt(e.target.value, 10) || 0)}
+                          placeholder="0"
+                          className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs font-mono text-white focus:outline-none focus:border-[#922CB5]"
+                        />
+                      </div>
+                      <span className="text-[11px] text-zinc-500 mt-1 block">
+                        Resulting display: <span className="font-mono text-white font-bold">
+                          {Math.max(0, (visitorAnalytics?.actualTotalVisitors ?? 0) + Number(editVisitorTotalAdj)).toLocaleString()}
+                        </span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Live Preview Box */}
+                  <div className="p-5 rounded-2xl bg-black/40 border border-white/10 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                        Customer Live Preview (How it looks on store)
+                      </span>
+                      <span className="text-[10px] text-zinc-500">Live preview of changes</span>
+                    </div>
+
+                    {editVisitorEnabled ? (
+                      <div className="flex justify-center py-2">
+                        <div className="inline-flex items-center gap-3 px-4 py-2 rounded-2xl bg-[#1b1920]/90 border border-white/10 shadow-lg">
+                          <div className="flex items-center gap-1.5">
+                            <span className="relative flex h-2.5 w-2.5">
+                              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#B7F34B] opacity-75" />
+                              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#B7F34B]" />
+                            </span>
+                            <span className="text-[11px] font-bold text-zinc-300">Live</span>
+                          </div>
+
+                          <div className="h-4 w-px bg-white/10" />
+
+                          {(editVisitorDisplayMode === 'both' || editVisitorDisplayMode === 'today') && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <span className="text-zinc-400 font-medium">Today:</span>
+                              <span className="font-black text-[#B7F34B] font-mono">
+                                {Math.max(0, (visitorAnalytics?.actualTodayVisitors ?? 0) + Number(editVisitorTodayAdj)).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+
+                          {editVisitorDisplayMode === 'both' && (
+                            <div className="h-3 w-px bg-white/10" />
+                          )}
+
+                          {(editVisitorDisplayMode === 'both' || editVisitorDisplayMode === 'total') && (
+                            <div className="flex items-center gap-1.5 text-xs">
+                              <span className="text-zinc-400 font-medium">Total:</span>
+                              <span className="font-black text-white font-mono">
+                                {Math.max(0, (visitorAnalytics?.actualTotalVisitors ?? 0) + Number(editVisitorTotalAdj)).toLocaleString()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="py-4 text-center text-xs text-zinc-500 italic">
+                        Counter is currently set to HIDDEN. It will not be shown to customers.
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Submit Button */}
+                  <div className="flex items-center justify-end gap-3 pt-2">
+                    <button
+                      type="submit"
+                      disabled={visitorSaving}
+                      className="flex items-center gap-2 px-6 py-3 rounded-xl bg-[#922CB5] hover:bg-[#8023a0] text-white text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(146,44,181,0.35)] disabled:opacity-50 cursor-pointer"
+                    >
+                      <Check className="w-4 h-4" />
+                      <span>{visitorSaving ? 'Saving Changes...' : 'Save Display Settings'}</span>
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Visual Daily Traffic Chart (Recent 14 Days) */}
+              <div className="p-6 sm:p-8 rounded-3xl bg-[#242129] border border-white/5 space-y-6">
+                <div>
+                  <h3 className="text-base font-black text-white uppercase tracking-tight flex items-center gap-2">
+                    <BarChart3 className="w-4 h-4 text-[#B7F34B]" />
+                    <span>Daily Traffic Trends (Recent Activity)</span>
+                  </h3>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Real daily unique visitors and page views recorded over time.
+                  </p>
+                </div>
+
+                {(() => {
+                  const statsList = visitorAnalytics?.recentDailyStats || [];
+                  const displayStats = [...statsList].reverse().slice(-14);
+                  const maxVal = Math.max(10, ...displayStats.map((s) => Math.max(s.uniqueVisitors, s.pageViews)));
+
+                  if (displayStats.length === 0) {
+                    return (
+                      <div className="py-12 text-center text-xs text-zinc-500 italic">
+                        No traffic history recorded yet. Stats will populate as visitors browse your catalogue.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-4">
+                      {/* Bar columns */}
+                      <div className="h-48 flex items-end gap-2 pt-6 pb-2 px-2 border-b border-white/10">
+                        {displayStats.map((item, idx) => {
+                          const visitorHeight = Math.max(8, (item.uniqueVisitors / maxVal) * 100);
+                          const viewsHeight = Math.max(8, (item.pageViews / maxVal) * 100);
+                          const dateObj = new Date(item.date + 'T12:00:00Z');
+                          const dayName = dateObj.toLocaleDateString('en-US', { weekday: 'short' });
+                          const dayNum = item.date.split('-').slice(1).join('/');
+
+                          return (
+                            <div key={idx} className="flex-1 flex flex-col items-center gap-1 h-full justify-end group relative">
+                              {/* Hover Tooltip */}
+                              <div className="absolute -top-12 opacity-0 group-hover:opacity-100 transition-opacity bg-black/90 border border-white/20 rounded-lg px-2.5 py-1 text-[10px] font-mono text-zinc-200 pointer-events-none whitespace-nowrap z-20 shadow-xl">
+                                <div>{item.date}</div>
+                                <div className="text-[#B7F34B]">{item.uniqueVisitors} unique</div>
+                                <div className="text-amber-300">{item.pageViews} views</div>
+                              </div>
+
+                              {/* Bars container */}
+                              <div className="w-full flex items-end justify-center gap-1 h-full">
+                                {/* Visitors bar */}
+                                <div
+                                  style={{ height: `${visitorHeight}%` }}
+                                  className="w-1/2 bg-gradient-to-t from-[#922CB5] to-[#B7F34B] rounded-t-sm transition-all group-hover:brightness-125"
+                                  title={`${item.uniqueVisitors} unique visitors`}
+                                />
+                                {/* Page views bar */}
+                                <div
+                                  style={{ height: `${viewsHeight}%` }}
+                                  className="w-1/2 bg-gradient-to-t from-zinc-700 to-amber-400 rounded-t-sm transition-all group-hover:brightness-125 opacity-70"
+                                  title={`${item.pageViews} page views`}
+                                />
+                              </div>
+
+                              {/* X Axis Label */}
+                              <span className="text-[10px] font-mono text-zinc-400 group-hover:text-white shrink-0 mt-1">
+                                {dayName}
+                              </span>
+                              <span className="text-[9px] font-mono text-zinc-500 shrink-0">
+                                {dayNum}
+                              </span>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Legend */}
+                      <div className="flex items-center justify-center gap-6 text-xs text-zinc-400 pt-2">
+                        <div className="flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-sm bg-[#B7F34B]" />
+                          <span>Unique Visitors</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-3 h-3 rounded-sm bg-amber-400" />
+                          <span>Page Views</span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Historical Daily Table */}
+              <div className="rounded-2xl bg-[#242129] border border-white/5 overflow-hidden">
+                <div className="p-4 bg-[#18161d] border-b border-white/5 flex items-center justify-between">
+                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                    Historical Daily Records
+                  </h4>
+                  <span className="text-[11px] text-zinc-400 font-mono">
+                    Timezone: Asia/Dubai (GST)
+                  </span>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left text-xs">
+                    <thead className="bg-[#18161d]/50 text-zinc-400 uppercase tracking-wider font-bold border-b border-white/5">
+                      <tr>
+                        <th className="p-3.5">Date (GST)</th>
+                        <th className="p-3.5">Unique Visitors</th>
+                        <th className="p-3.5">Page Views</th>
+                        <th className="p-3.5">Engagement Ratio</th>
+                        <th className="p-3.5 text-right">Status</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-white/5 font-mono">
+                      {(visitorAnalytics?.recentDailyStats || []).map((row, idx) => {
+                        const isToday = idx === 0;
+                        const ratio = row.uniqueVisitors > 0 ? (row.pageViews / row.uniqueVisitors).toFixed(1) : '1.0';
+
+                        return (
+                          <tr key={row.date} className="hover:bg-white/[0.02]">
+                            <td className="p-3.5 flex items-center gap-2">
+                              {isToday && (
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-bold uppercase">
+                                  Today
+                                </span>
+                              )}
+                              <span className="text-white font-bold">{row.date}</span>
+                            </td>
+                            <td className="p-3.5 text-[#B7F34B] font-bold">
+                              {row.uniqueVisitors.toLocaleString()}
+                            </td>
+                            <td className="p-3.5 text-zinc-300">
+                              {row.pageViews.toLocaleString()}
+                            </td>
+                            <td className="p-3.5 text-zinc-400 text-[11px]">
+                              {ratio} views / visitor
+                            </td>
+                            <td className="p-3.5 text-right">
+                              <span className="text-emerald-400 text-[11px] font-bold">Recorded</span>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           )}

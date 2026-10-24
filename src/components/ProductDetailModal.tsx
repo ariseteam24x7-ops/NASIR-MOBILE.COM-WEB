@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Product, WhatsAppSettings } from '../types/index.ts';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { buildWhatsAppUrl } from '../lib/whatsapp.ts';
@@ -12,7 +12,12 @@ import {
   Sparkles,
   Info,
   ChevronRight,
+  ChevronLeft,
   Share2,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Maximize2,
 } from 'lucide-react';
 
 interface ProductDetailModalProps {
@@ -36,6 +41,13 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const [copied, setCopied] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [customNote, setCustomNote] = useState('');
+
+  // Lightbox / Zoom State
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [pan, setPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStartRef = useRef({ x: 0, y: 0 });
 
   if (!product) return null;
 
@@ -70,6 +82,63 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
     }
   };
 
+  // Keyboard navigation for lightbox
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!lightboxOpen) return;
+      if (e.key === 'Escape') {
+        setLightboxOpen(false);
+        setZoomScale(1);
+        setPan({ x: 0, y: 0 });
+      } else if (e.key === 'ArrowRight' && images.length > 1) {
+        setSelectedImageIndex((prev) => (prev + 1) % images.length);
+        setZoomScale(1);
+        setPan({ x: 0, y: 0 });
+      } else if (e.key === 'ArrowLeft' && images.length > 1) {
+        setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
+        setZoomScale(1);
+        setPan({ x: 0, y: 0 });
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [lightboxOpen, images.length]);
+
+  const handleZoomIn = () => {
+    setZoomScale((prev) => Math.min(prev + 0.5, 3.5));
+  };
+
+  const handleZoomOut = () => {
+    setZoomScale((prev) => {
+      const next = Math.max(prev - 0.5, 1);
+      if (next === 1) setPan({ x: 0, y: 0 });
+      return next;
+    });
+  };
+
+  const handleResetZoom = () => {
+    setZoomScale(1);
+    setPan({ x: 0, y: 0 });
+  };
+
+  const handleMouseDown = (e: React.MouseEvent) => {
+    if (zoomScale <= 1) return;
+    setIsDragging(true);
+    dragStartRef.current = { x: e.clientX - pan.x, y: e.clientY - pan.y };
+  };
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging || zoomScale <= 1) return;
+    setPan({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
       <div className="relative w-full max-w-4xl bg-[#1b1920] border border-white/10 rounded-3xl shadow-2xl overflow-hidden my-auto">
@@ -84,14 +153,30 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 max-h-[85vh] overflow-y-auto">
           {/* Left Column: Visual Gallery */}
           <div className="bg-[#151419] p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5">
-            {/* Main Image Stage */}
-            <div className="relative aspect-square w-full rounded-2xl bg-[#242129]/60 flex items-center justify-center p-6 overflow-hidden">
+            {/* Main Image Stage (Click to Zoom) */}
+            <div
+              onClick={() => {
+                if (activeImage) {
+                  setZoomScale(1);
+                  setPan({ x: 0, y: 0 });
+                  setLightboxOpen(true);
+                }
+              }}
+              className="relative aspect-square w-full rounded-2xl bg-[#242129]/60 flex items-center justify-center p-6 overflow-hidden group cursor-zoom-in border border-white/5 hover:border-[#B7F34B]/30 transition-colors"
+            >
               {activeImage ? (
-                <img
-                  src={activeImage}
-                  alt={title}
-                  className="w-full h-full object-contain transition-all duration-300"
-                />
+                <>
+                  <img
+                    src={activeImage}
+                    alt={title}
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                  />
+                  {/* Subtle Zoom Badge */}
+                  <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md border border-white/10 text-zinc-300 group-hover:text-[#B7F34B] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                    <ZoomIn className="w-3.5 h-3.5" />
+                    <span>{language === 'ar' ? 'انقر للتكبير' : 'Click to Zoom'}</span>
+                  </div>
+                </>
               ) : (
                 <div className="flex flex-col items-center text-zinc-600">
                   <Smartphone className="w-24 h-24 stroke-[1] mb-2" />
@@ -102,7 +187,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               )}
 
               {/* Condition Badge */}
-              <div className="absolute top-4 left-4">
+              <div className="absolute top-4 left-4 pointer-events-none">
                 <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#B7F34B] text-[#151419] shadow-[0_0_15px_rgba(183,243,75,0.4)]">
                   {product.condition === 'New'
                     ? t('cond_new')
@@ -159,40 +244,45 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 {title}
               </h2>
 
-              {/* Category Pill */}
+              {/* Category pill */}
               {categoryName && (
-                <div className="inline-block px-2.5 py-1 rounded-full bg-white/5 text-zinc-300 text-xs font-medium mb-4">
+                <div className="inline-block bg-white/5 text-zinc-300 text-xs font-bold px-3 py-1 rounded-full mb-4">
                   {categoryName}
                 </div>
               )}
 
+              {/* Description */}
+              <p className="text-sm text-zinc-300 leading-relaxed mb-6 whitespace-pre-line">
+                {description}
+              </p>
+
               {/* Variants Selector */}
               {product.variants && product.variants.length > 0 && (
-                <div className="space-y-4 my-4 p-4 rounded-2xl bg-[#242129] border border-white/5">
-                  <h4 className="text-xs font-bold text-zinc-200 uppercase tracking-wider">
-                    {t('select_variant')}
+                <div className="space-y-4 mb-6 p-4 rounded-2xl bg-[#151419] border border-white/5">
+                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    {language === 'ar' ? 'خيارات الجهاز والمواصفات' : 'Available Options & Configurations'}
                   </h4>
                   {product.variants.map((v, vIdx) => {
-                    const varName = language === 'ar' ? v.nameAr || v.nameEn : v.nameEn;
+                    const variantName = language === 'ar' ? v.nameAr || v.nameEn : v.nameEn;
                     return (
                       <div key={vIdx} className="space-y-2">
-                        <span className="text-xs text-zinc-400 font-semibold">{varName}:</span>
+                        <label className="text-xs font-semibold text-zinc-300">{variantName}</label>
                         <div className="flex flex-wrap gap-2">
                           {v.options.map((opt, oIdx) => {
-                            const isSelected = selectedVariants[varName] === opt;
+                            const isSelected = selectedVariants[variantName] === opt;
                             return (
                               <button
                                 key={oIdx}
                                 onClick={() =>
                                   setSelectedVariants((prev) => ({
                                     ...prev,
-                                    [varName]: opt,
+                                    [variantName]: opt,
                                   }))
                                 }
                                 className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                   isSelected
-                                    ? 'bg-[#922CB5] text-white border border-[#B7F34B]'
-                                    : 'bg-[#151419] text-zinc-300 border border-white/5 hover:border-white/20'
+                                    ? 'bg-[#B7F34B] text-[#151419] shadow-[0_0_15px_rgba(183,243,75,0.3)]'
+                                    : 'bg-[#242129] text-zinc-300 hover:text-white border border-white/5'
                                 }`}
                               >
                                 {opt}
@@ -206,87 +296,76 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                 </div>
               )}
 
-              {/* Description */}
-              {description && (
-                <div className="my-4">
-                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                    {t('description')}
+              {/* Technical Specifications */}
+              {product.specifications && product.specifications.length > 0 && (
+                <div className="space-y-2.5 mb-6">
+                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                    {t('specs_title')}
                   </h4>
-                  <p className="text-sm text-zinc-300 leading-relaxed whitespace-pre-line">
-                    {description}
-                  </p>
-                </div>
-              )}
-
-              {/* Specifications Table */}
-              <div className="my-4">
-                <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-2">
-                  {t('specifications')}
-                </h4>
-                {product.specifications && product.specifications.length > 0 ? (
-                  <div className="divide-y divide-white/5 rounded-xl border border-white/5 bg-[#151419] overflow-hidden text-xs">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                     {product.specifications.map((spec, sIdx) => {
-                      const keyLabel = language === 'ar' ? spec.keyAr || spec.keyEn : spec.keyEn;
-                      const valLabel = language === 'ar' ? spec.valueAr || spec.valueEn : spec.valueEn;
+                      const specKey = language === 'ar' ? spec.keyAr || spec.keyEn : spec.keyEn;
+                      const specVal = language === 'ar' ? spec.valueAr || spec.valueEn : spec.valueEn;
                       return (
-                        <div key={sIdx} className="grid grid-cols-3 p-2.5">
-                          <span className="font-semibold text-zinc-400 col-span-1">{keyLabel}</span>
-                          <span className="text-white col-span-2 font-medium">{valLabel}</span>
+                        <div
+                          key={sIdx}
+                          className="p-2.5 rounded-xl bg-[#151419] border border-white/5 flex flex-col justify-between"
+                        >
+                          <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                            {specKey}
+                          </span>
+                          <span className="text-xs font-semibold text-white mt-0.5">{specVal}</span>
                         </div>
                       );
                     })}
                   </div>
-                ) : (
-                  <p className="text-xs text-zinc-500 italic">{t('no_specs_listed')}</p>
-                )}
-              </div>
-            </div>
+                </div>
+              )}
 
-            {/* Bottom Actions & Privacy Safeguard */}
-            <div className="pt-4 border-t border-white/10 space-y-3">
-              {/* Frequently Asked Questions Quick Reply Selector */}
-              {whatsAppSettings?.isEnabled !== false && (
+              {/* WhatsApp Quick Reply Inquiries */}
+              <div className="mb-6">
                 <WhatsAppQuickReplySelector
                   selectedQuestions={selectedQuestions}
                   onChangeQuestions={setSelectedQuestions}
                   customNote={customNote}
                   onChangeCustomNote={setCustomNote}
-                  compact={false}
                 />
-              )}
-
-              {/* WhatsApp Enquiry Button */}
-              {whatsAppSettings?.isEnabled !== false && (
-                <a
-                  href={whatsappUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-center justify-center gap-2.5 w-full py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-sm uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:shadow-[0_0_35px_rgba(16,185,129,0.6)] hover:scale-101 active:scale-99 cursor-pointer"
-                >
-                  <MessageCircle className="w-5 h-5 fill-current" />
-                  <span>{t('enquire_whatsapp')}</span>
-                </a>
-              )}
-
-              <div className="flex items-center justify-between text-[11px] text-zinc-400 px-1">
-                <span className="flex items-center gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-[#B7F34B]" />
-                  <span>{t('privacy_notice')}</span>
-                </span>
-
-                <button
-                  onClick={handleShare}
-                  className="flex items-center gap-1 hover:text-white transition-colors cursor-pointer"
-                >
-                  <Share2 className="w-3.5 h-3.5" />
-                  <span>{copied ? (language === 'ar' ? 'تم النسخ!' : 'Copied!') : (language === 'ar' ? 'مشاركة' : 'Share')}</span>
-                </button>
               </div>
+            </div>
+
+            {/* Actions Bar */}
+            <div className="space-y-3 pt-4 border-t border-white/5">
+              <a
+                href={whatsappUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-[#151419] font-black text-sm uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(37,211,102,0.4)] hover:scale-102 active:scale-98 cursor-pointer"
+              >
+                <MessageCircle className="w-5 h-5 fill-current" />
+                <span>{t('inquire_whatsapp')}</span>
+              </a>
+
+              <button
+                onClick={handleShare}
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 text-[#B7F34B]" />
+                    <span>{language === 'ar' ? 'تم نسخ الرابط!' : 'Link Copied to Clipboard!'}</span>
+                  </>
+                ) : (
+                  <>
+                    <Share2 className="w-4 h-4" />
+                    <span>{t('share_product')}</span>
+                  </>
+                )}
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Related Products Bar if available */}
+        {/* Related Products Footer */}
         {relatedProducts && relatedProducts.length > 0 && (
           <div className="p-6 bg-[#151419] border-t border-white/5">
             <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">
@@ -322,6 +401,178 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           </div>
         )}
       </div>
+
+      {/* ======================================================== */}
+      {/* FULLSCREEN IMAGE LIGHTBOX WITH ZOOM & PAN EFFECT */}
+      {/* ======================================================== */}
+      {lightboxOpen && activeImage && (
+        <div
+          className="fixed inset-0 z-[60] bg-black/95 backdrop-blur-xl flex flex-col justify-between select-none animate-in fade-in duration-200"
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseUp}
+        >
+          {/* Top Bar: Title, Counter & Controls */}
+          <div className="flex items-center justify-between p-4 sm:p-6 bg-gradient-to-b from-black/80 to-transparent z-20">
+            <div className="flex items-center gap-3">
+              <div>
+                <h3 className="text-sm sm:text-base font-bold text-white truncate max-w-xs sm:max-w-md">
+                  {title}
+                </h3>
+                <span className="text-xs text-zinc-400 font-mono">
+                  {images.length > 1
+                    ? `${selectedImageIndex + 1} / ${images.length}`
+                    : product.sku}
+                </span>
+              </div>
+            </div>
+
+            {/* Zoom Controls & Close Button */}
+            <div className="flex items-center gap-2 sm:gap-3 bg-[#242129]/90 border border-white/10 rounded-2xl p-1.5 shadow-2xl backdrop-blur-md">
+              <button
+                type="button"
+                onClick={handleZoomIn}
+                disabled={zoomScale >= 3.5}
+                title="Zoom In (+)"
+                className="p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+
+              <span className="text-xs font-mono font-bold text-[#B7F34B] px-1 min-w-[3rem] text-center">
+                {Math.round(zoomScale * 100)}%
+              </span>
+
+              <button
+                type="button"
+                onClick={handleZoomOut}
+                disabled={zoomScale <= 1}
+                title="Zoom Out (-)"
+                className="p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetZoom}
+                disabled={zoomScale === 1 && pan.x === 0 && pan.y === 0}
+                title="Reset Zoom"
+                className="p-2 rounded-xl text-zinc-300 hover:text-white hover:bg-white/10 disabled:opacity-30 transition-colors cursor-pointer"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+
+              <div className="w-px h-5 bg-white/10 mx-1" />
+
+              <button
+                type="button"
+                onClick={() => {
+                  setLightboxOpen(false);
+                  setZoomScale(1);
+                  setPan({ x: 0, y: 0 });
+                }}
+                title="Close (Esc)"
+                className="p-2 rounded-xl bg-white/5 text-zinc-300 hover:text-white hover:bg-red-500/20 hover:border-red-500/30 transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Middle Stage: Image Display with Drag & Pan */}
+          <div
+            className={`flex-1 relative flex items-center justify-center overflow-hidden p-4 sm:p-12 ${
+              zoomScale > 1
+                ? isDragging
+                  ? 'cursor-grabbing'
+                  : 'cursor-grab'
+                : 'cursor-zoom-in'
+            }`}
+            onMouseDown={handleMouseDown}
+            onMouseMove={handleMouseMove}
+            onClick={(e) => {
+              // Toggle 2x zoom on click if not dragging
+              if (!isDragging && zoomScale === 1) {
+                setZoomScale(2);
+              }
+            }}
+          >
+            <div
+              style={{
+                transform: `translate(${pan.x}px, ${pan.y}px) scale(${zoomScale})`,
+                transition: isDragging ? 'none' : 'transform 0.2s cubic-bezier(0.2, 0, 0, 1)',
+              }}
+              className="max-w-full max-h-full flex items-center justify-center"
+            >
+              <img
+                src={activeImage}
+                alt={title}
+                draggable={false}
+                className="max-h-[75vh] max-w-[85vw] object-contain select-none pointer-events-none drop-shadow-[0_10px_35px_rgba(0,0,0,0.8)]"
+              />
+            </div>
+
+            {/* Left Navigation Arrow */}
+            {images.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex((prev) => (prev - 1 + images.length) % images.length);
+                  setZoomScale(1);
+                  setPan({ x: 0, y: 0 });
+                }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#242129]/80 hover:bg-[#922CB5] border border-white/10 text-white flex items-center justify-center transition-all shadow-xl hover:scale-105 cursor-pointer z-30"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+            )}
+
+            {/* Right Navigation Arrow */}
+            {images.length > 1 && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSelectedImageIndex((prev) => (prev + 1) % images.length);
+                  setZoomScale(1);
+                  setPan({ x: 0, y: 0 });
+                }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 rounded-full bg-[#242129]/80 hover:bg-[#922CB5] border border-white/10 text-white flex items-center justify-center transition-all shadow-xl hover:scale-105 cursor-pointer z-30"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            )}
+          </div>
+
+          {/* Bottom Bar: Thumbnail Strip */}
+          {images.length > 1 && (
+            <div className="p-4 bg-gradient-to-t from-black/90 to-transparent flex justify-center z-20">
+              <div className="flex gap-2.5 overflow-x-auto max-w-full p-2 bg-[#242129]/70 backdrop-blur-md border border-white/10 rounded-2xl">
+                {images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedImageIndex(idx);
+                      setZoomScale(1);
+                      setPan({ x: 0, y: 0 });
+                    }}
+                    className={`relative w-14 h-14 rounded-xl border-2 overflow-hidden bg-[#151419] p-1 transition-all cursor-pointer shrink-0 ${
+                      selectedImageIndex === idx
+                        ? 'border-[#B7F34B] scale-105 ring-2 ring-[#B7F34B]/40'
+                        : 'border-transparent opacity-50 hover:opacity-100'
+                    }`}
+                  >
+                    <img src={img} alt="" className="w-full h-full object-contain" />
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

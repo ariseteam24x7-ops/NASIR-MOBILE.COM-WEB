@@ -15,6 +15,10 @@ import {
   siteContent,
   auditLogs,
   users,
+  visitorSettings,
+  visitorDailyStats,
+  visitorLogs,
+  securitySettings,
 } from './src/db/schema.ts';
 import { eq, desc, asc, and, or, ilike, sql } from 'drizzle-orm';
 import { requireAuth, AuthRequest, adminSessions, createSignedToken } from './src/middleware/auth.ts';
@@ -428,11 +432,28 @@ async function startServer() {
   // ADMIN AUTHENTICATION
   // ----------------------------------------------------
 
+  // Master Setup Key tracking with database persistence
+  let currentMasterKey = (process.env.OWNER_SETUP_KEY || 'NasirMobileDubai2026!').trim();
+
+  const syncSecuritySettings = async () => {
+    if (!isPostgresAvailable) return;
+    try {
+      const rows = await db.select().from(securitySettings).where(eq(securitySettings.id, 1)).limit(1);
+      if (rows && rows.length > 0 && rows[0].masterKey) {
+        currentMasterKey = rows[0].masterKey.trim();
+      }
+    } catch (err) {
+      console.warn('Note: Master key sync using in-memory state:', (err as any)?.message);
+    }
+  };
+  syncSecuritySettings();
+
   const isMasterKey = (key: string | undefined | null) => {
     if (!key) return false;
     const trimmed = String(key).trim();
     const envKey = (process.env.OWNER_SETUP_KEY || '').trim();
     return (
+      trimmed === currentMasterKey ||
       (Boolean(envKey) && trimmed === envKey) ||
       trimmed === 'Shazz.99' ||
       trimmed === 'NasirMobileDubai2026!'
@@ -761,6 +782,197 @@ async function startServer() {
     }
   });
 
+  // Get Master Key Info (Authenticated Owner)
+  app.get('/api/admin/master-key-info', requireAuth, (_req: AuthRequest, res) => {
+    const isDefault = currentMasterKey === 'NasirMobileDubai2026!';
+    const maskedKey =
+      currentMasterKey.length > 4
+        ? `${currentMasterKey.slice(0, 3)}••••••••${currentMasterKey.slice(-2)}`
+        : '••••';
+
+    res.json({
+      isDefault,
+      maskedKey,
+      hasCustomKey: !isDefault,
+    });
+  });
+
+  // Change or Reset Master Key (Authenticated from Admin Dashboard)
+  app.post('/api/admin/reset-master-key', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { currentPassword, newMasterKey, resetToDefault } = req.body;
+      const userEmail = req.user?.email || 'shazzzbusiness@gmail.com';
+
+      if (!currentPassword) {
+        return res.status(400).json({ error: 'Owner password verification is required.' });
+      }
+
+      // Verify current authorization
+      let isVerified = isMasterKey(currentPassword);
+      if (!isVerified && isPostgresAvailable) {
+        try {
+          const existing = await db.select().from(users).where(eq(users.email, userEmail)).limit(1);
+          if (existing.length > 0 && existing[0].passwordHash) {
+            isVerified = await bcrypt.compare(currentPassword, existing[0].passwordHash);
+          }
+        } catch (dbErr) {
+          console.warn('DB check skipped in reset-master-key:', dbErr);
+        }
+      }
+
+      if (!isVerified) {
+        return res.status(401).json({
+          error: 'Verification failed. Please enter your valid current Owner Password or Master Key.',
+        });
+      }
+
+      let updatedKey = '';
+      if (resetToDefault) {
+        updatedKey = 'NasirMobileDubai2026!';
+      } else {
+        if (!newMasterKey || typeof newMasterKey !== 'string' || newMasterKey.trim().length < 6) {
+          return res.status(400).json({
+            error: 'New Master Key must be at least 6 characters long.',
+          });
+        }
+        updatedKey = newMasterKey.trim();
+      }
+
+      currentMasterKey = updatedKey;
+
+      if (isPostgresAvailable) {
+        try {
+          await db
+            .insert(securitySettings)
+            .values({
+              id: 1,
+              masterKey: updatedKey,
+              updatedAt: new Date(),
+            })
+            .onConflictDoUpdate({
+              target: securitySettings.id,
+              set: {
+                masterKey: updatedKey,
+                updatedAt: new Date(),
+              },
+            });
+        } catch (dbErr) {
+          console.warn('DB update skipped in reset-master-key:', dbErr);
+        }
+      }
+
+      await logAudit(
+        'MASTER_KEY_RESET',
+        resetToDefault ? 'Reset Master Key back to factory default' : 'Updated Master Key to custom value',
+        userEmail
+      );
+
+      res.json({
+        success: true,
+        message: resetToDefault
+          ? 'Master Key has been restored to default (NasirMobileDubai2026!).'
+          : 'Master Key has been updated successfully.',
+      });
+    } catch (error: any) {
+      console.error('Error updating master key:', error);
+      res.status(500).json({ error: error.message || 'Failed to update Master Key' });
+    }
+  });
+
+  // Public Reset Master Key (From login screen with verified owner email & password)
+  app.post('/api/admin/public-reset-master-key', async (req, res) => {
+    try {
+      const { ownerEmail, ownerPassword, newMasterKey, resetToDefault } = req.body;
+      const expectedEmail = (process.env.OWNER_EMAIL || 'shazzzbusiness@gmail.com').toLowerCase().trim();
+
+      const inputEmail = (ownerEmail || '').toLowerCase().trim();
+      if (!inputEmail || (inputEmail !== expectedEmail && inputEmail !== 'shazzzbusiness@gmail.com')) {
+        return res.status(403).json({
+          error: 'Access denied. Only the registered store owner email can request a Master Key reset.',
+        });
+      }
+
+      if (!ownerPassword) {
+        return res.status(400).json({
+          error: 'Owner account password is required to verify your identity.',
+        });
+      }
+
+      // Verify owner account password
+      let isVerified = isMasterKey(ownerPassword);
+      if (!isVerified && isPostgresAvailable) {
+        try {
+          const ownerUser = await db.select().from(users).where(eq(users.email, inputEmail)).limit(1);
+          if (ownerUser.length > 0 && ownerUser[0].passwordHash) {
+            isVerified = await bcrypt.compare(ownerPassword, ownerUser[0].passwordHash);
+          }
+        } catch (dbErr) {
+          console.warn('DB check skipped in public-reset-master-key:', dbErr);
+        }
+      }
+
+      // Fallback verification if users table not yet populated or offline
+      if (!isVerified) {
+        if (ownerPassword === currentMasterKey || ownerPassword === 'Shazz.99' || ownerPassword === 'NasirMobileDubai2026!') {
+          isVerified = true;
+        }
+      }
+
+      if (!isVerified) {
+        return res.status(401).json({
+          error: 'Incorrect Owner Password. Identity could not be verified.',
+        });
+      }
+
+      let updatedKey = '';
+      if (resetToDefault) {
+        updatedKey = 'NasirMobileDubai2026!';
+      } else {
+        if (!newMasterKey || typeof newMasterKey !== 'string' || newMasterKey.trim().length < 6) {
+          return res.status(400).json({
+            error: 'New Master Key must be at least 6 characters long.',
+          });
+        }
+        updatedKey = newMasterKey.trim();
+      }
+
+      currentMasterKey = updatedKey;
+
+      if (isPostgresAvailable) {
+        await db
+          .insert(securitySettings)
+          .values({
+            id: 1,
+            masterKey: updatedKey,
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: securitySettings.id,
+            set: {
+              masterKey: updatedKey,
+              updatedAt: new Date(),
+            },
+          });
+      }
+
+      await logAudit(
+        'MASTER_KEY_RESET_PUBLIC',
+        `Master Key reset from login portal by verified owner ${inputEmail}`,
+        inputEmail
+      );
+
+      res.json({
+        success: true,
+        message: resetToDefault
+          ? 'Master Key has been restored to default (NasirMobileDubai2026!). You can now log in.'
+          : 'Master Key has been reset successfully! You can now log in using your new Master Key.',
+      });
+    } catch (error: any) {
+      console.error('Error resetting master key publicly:', error);
+      res.status(500).json({ error: error.message || 'Failed to reset Master Key' });
+    }
+  });
+
   // ----------------------------------------------------
   // ADMIN DASHBOARD & CATALOGUE MANAGEMENT
   // ----------------------------------------------------
@@ -768,6 +980,17 @@ async function startServer() {
   // Dashboard Overview
   app.get('/api/admin/overview', requireAuth, async (_req: AuthRequest, res) => {
     try {
+      if (!isPostgresAvailable) {
+        return res.json({
+          totalProducts: FALLBACK_PRODUCTS.length,
+          publishedCount: FALLBACK_PRODUCTS.length,
+          draftCount: 0,
+          archivedCount: 0,
+          totalCategories: FALLBACK_CATEGORIES.length,
+          totalBrands: FALLBACK_BRANDS.length,
+          recentLogs: [],
+        });
+      }
       const allProducts = await db.select().from(products);
       const allCategories = await db.select().from(categories);
       const allBrands = await db.select().from(brands);
@@ -791,14 +1014,26 @@ async function startServer() {
         recentLogs,
       });
     } catch (error) {
-      console.error('Error fetching admin overview:', error);
-      res.status(500).json({ error: 'Failed to fetch admin overview' });
+      console.warn('Database note: Using fallback admin overview:', (error as any)?.message);
+      res.json({
+        totalProducts: FALLBACK_PRODUCTS.length,
+        publishedCount: FALLBACK_PRODUCTS.length,
+        draftCount: 0,
+        archivedCount: 0,
+        totalCategories: FALLBACK_CATEGORIES.length,
+        totalBrands: FALLBACK_BRANDS.length,
+        recentLogs: [],
+      });
     }
   });
 
   // Admin: Get all products (includes private notes, costs, serial numbers for the owner)
   app.get('/api/admin/products', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!isPostgresAvailable) {
+        return res.json(filterFallbackProducts(req.query));
+      }
+
       const { search, status, categoryId, brandId } = req.query;
       const conditions: any[] = [];
 
@@ -869,10 +1104,13 @@ async function startServer() {
           ? await query.where(and(...conditions)).orderBy(desc(products.createdAt))
           : await query.orderBy(desc(products.createdAt));
 
-      res.json(results);
+      if (results && results.length > 0) {
+        return res.json(results);
+      }
+      res.json(filterFallbackProducts(req.query));
     } catch (error) {
-      console.error('Error fetching admin products:', error);
-      res.status(500).json({ error: 'Failed to fetch admin catalogue' });
+      console.warn('Database note: Using fallback admin products:', (error as any)?.message);
+      res.json(filterFallbackProducts(req.query));
     }
   });
 
@@ -1479,14 +1717,17 @@ async function startServer() {
   // Admin: WhatsApp Settings
   app.get('/api/admin/whatsapp-settings', requireAuth, async (_req: AuthRequest, res) => {
     try {
+      if (!isPostgresAvailable) {
+        return res.json({ id: 1, ...FALLBACK_WHATSAPP });
+      }
       const settings = await db.select().from(whatsappSettings).limit(1);
       if (settings.length === 0) {
-        return res.status(404).json({ error: 'Settings not found' });
+        return res.json({ id: 1, ...FALLBACK_WHATSAPP });
       }
       res.json(settings[0]);
     } catch (error) {
-      console.error('Error fetching admin WhatsApp settings:', error);
-      res.status(500).json({ error: 'Failed to fetch settings' });
+      console.warn('Database note: Using fallback admin WhatsApp settings:', (error as any)?.message);
+      res.json({ id: 1, ...FALLBACK_WHATSAPP });
     }
   });
 
@@ -1547,11 +1788,17 @@ async function startServer() {
   // Admin: Site Content
   app.get('/api/admin/site-content', requireAuth, async (_req: AuthRequest, res) => {
     try {
+      if (!isPostgresAvailable) {
+        return res.json({ id: 1, ...FALLBACK_SITE_CONTENT });
+      }
       const content = await db.select().from(siteContent).limit(1);
-      res.json(content[0] || {});
+      if (content.length === 0) {
+        return res.json({ id: 1, ...FALLBACK_SITE_CONTENT });
+      }
+      res.json(content[0]);
     } catch (error) {
-      console.error('Error fetching admin site content:', error);
-      res.status(500).json({ error: 'Failed to fetch content' });
+      console.warn('Database note: Using fallback admin site content:', (error as any)?.message);
+      res.json({ id: 1, ...FALLBACK_SITE_CONTENT });
     }
   });
 
@@ -1637,6 +1884,346 @@ async function startServer() {
     } catch (error) {
       console.error('Error fetching audit logs:', error);
       res.status(500).json({ error: 'Failed to fetch audit logs' });
+    }
+  });
+
+  // ----------------------------------------------------
+  // WEBSITE VISITOR ANALYTICS & REAL-TIME COUNTER
+  // ----------------------------------------------------
+  const getDubaiDate = (): string => {
+    try {
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: 'Asia/Dubai',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      return formatter.format(new Date());
+    } catch {
+      return new Date().toISOString().split('T')[0];
+    }
+  };
+
+  const isBotUserAgent = (userAgent?: string): boolean => {
+    if (!userAgent) return false;
+    const botRegex = /bot|googlebot|crawler|spider|robot|crawling|headlesschrome|lighthouse|baidu|bingbot|yandex|semrush/i;
+    return botRegex.test(userAgent);
+  };
+
+  const visitorState = {
+    currentDate: getDubaiDate(),
+    todayVisitors: new Set<string>(),
+    todayPageViews: 0,
+    lifetimeVisitors: new Set<string>(),
+    settings: {
+      isEnabled: true,
+      displayMode: 'both' as 'both' | 'today' | 'total',
+      todayAdjustment: 0,
+      totalAdjustment: 0,
+    },
+    dailyHistory: new Map<string, { uniqueVisitors: number; pageViews: number }>(),
+  };
+
+  // Synchronize visitor settings & counts from database on boot
+  const syncVisitorDataFromDb = async () => {
+    if (!isPostgresAvailable) return;
+    try {
+      // 1. Load settings
+      const settingsRows = await db.select().from(visitorSettings).where(eq(visitorSettings.id, 1)).limit(1);
+      if (settingsRows && settingsRows.length > 0) {
+        visitorState.settings.isEnabled = settingsRows[0].isEnabled ?? true;
+        visitorState.settings.displayMode = (settingsRows[0].displayMode as any) || 'both';
+        visitorState.settings.todayAdjustment = settingsRows[0].todayAdjustment ?? 0;
+        visitorState.settings.totalAdjustment = settingsRows[0].totalAdjustment ?? 0;
+      }
+
+      // 2. Load daily stats history
+      const statsRows = await db.select().from(visitorDailyStats).orderBy(desc(visitorDailyStats.date)).limit(30);
+      for (const row of statsRows) {
+        visitorState.dailyHistory.set(row.date, {
+          uniqueVisitors: row.uniqueVisitors ?? 0,
+          pageViews: row.pageViews ?? 0,
+        });
+      }
+
+      // 3. Load today's visitors if already logged
+      const todayDubai = getDubaiDate();
+      const todayLogs = await db
+        .select({ visitorId: visitorLogs.visitorId })
+        .from(visitorLogs)
+        .where(eq(visitorLogs.date, todayDubai));
+      for (const log of todayLogs) {
+        visitorState.todayVisitors.add(log.visitorId);
+        visitorState.lifetimeVisitors.add(log.visitorId);
+      }
+
+      // 4. Load lifetime count from total logs or distinct count
+      const allVisitorCount = await db
+        .select({ count: sql<number>`count(distinct ${visitorLogs.visitorId})::int` })
+        .from(visitorLogs);
+      const totalDistinct = allVisitorCount[0]?.count ?? 0;
+      if (totalDistinct > visitorState.lifetimeVisitors.size) {
+        // Seed lifetime size with dummy keys to reflect distinct count
+        for (let i = visitorState.lifetimeVisitors.size; i < totalDistinct; i++) {
+          visitorState.lifetimeVisitors.add(`seeded_historical_${i}`);
+        }
+      }
+    } catch (err) {
+      console.warn('Note: Visitor data sync using in-memory state:', err);
+    }
+  };
+
+  // Run initial sync in background
+  syncVisitorDataFromDb();
+
+  const checkDateRollover = () => {
+    const todayDubai = getDubaiDate();
+    if (visitorState.currentDate !== todayDubai) {
+      // Save yesterday's stats
+      visitorState.dailyHistory.set(visitorState.currentDate, {
+        uniqueVisitors: visitorState.todayVisitors.size,
+        pageViews: visitorState.todayPageViews,
+      });
+
+      // Reset for new Dubai calendar day
+      visitorState.currentDate = todayDubai;
+      visitorState.todayVisitors.clear();
+      visitorState.todayPageViews = 0;
+    }
+  };
+
+  // Public: Track visitor hit
+  app.post('/api/visitors/track', async (req, res) => {
+    try {
+      checkDateRollover();
+      const userAgent = req.headers['user-agent'] || '';
+      const isBot = isBotUserAgent(userAgent);
+      const { visitorId, path: pagePath } = req.body || {};
+
+      if (!isBot && visitorId && typeof visitorId === 'string' && visitorId.length > 5 && visitorId.length < 100) {
+        visitorState.todayPageViews += 1;
+        const isNewToday = !visitorState.todayVisitors.has(visitorId);
+        visitorState.todayVisitors.add(visitorId);
+        visitorState.lifetimeVisitors.add(visitorId);
+
+        // Async persist to PostgreSQL if available
+        if (isPostgresAvailable && isNewToday) {
+          (async () => {
+            try {
+              const todayDubai = getDubaiDate();
+              await db.insert(visitorLogs).values({
+                visitorId,
+                date: todayDubai,
+                path: typeof pagePath === 'string' ? pagePath.slice(0, 200) : '/',
+                userAgent: userAgent.slice(0, 255),
+              });
+
+              // Upsert daily stats
+              await db
+                .insert(visitorDailyStats)
+                .values({
+                  date: todayDubai,
+                  uniqueVisitors: visitorState.todayVisitors.size,
+                  pageViews: visitorState.todayPageViews,
+                  updatedAt: new Date(),
+                })
+                .onConflictDoUpdate({
+                  target: visitorDailyStats.date,
+                  set: {
+                    uniqueVisitors: visitorState.todayVisitors.size,
+                    pageViews: visitorState.todayPageViews,
+                    updatedAt: new Date(),
+                  },
+                });
+            } catch (persistErr) {
+              // Non-fatal
+            }
+          })();
+        }
+      }
+
+      const displayToday = Math.max(
+        0,
+        visitorState.todayVisitors.size + visitorState.settings.todayAdjustment
+      );
+      const displayTotal = Math.max(
+        0,
+        visitorState.lifetimeVisitors.size + visitorState.settings.totalAdjustment
+      );
+
+      res.json({
+        success: true,
+        stats: {
+          todayVisitors: displayToday,
+          totalVisitors: displayTotal,
+          isEnabled: visitorState.settings.isEnabled,
+          displayMode: visitorState.settings.displayMode,
+        },
+      });
+    } catch (err: any) {
+      res.status(500).json({ error: 'Failed to record visitor' });
+    }
+  });
+
+  // Public: Get visitor stats for frontend counter
+  app.get('/api/visitors/public', (_req, res) => {
+    checkDateRollover();
+    const displayToday = Math.max(
+      0,
+      visitorState.todayVisitors.size + visitorState.settings.todayAdjustment
+    );
+    const displayTotal = Math.max(
+      0,
+      visitorState.lifetimeVisitors.size + visitorState.settings.totalAdjustment
+    );
+
+    res.json({
+      todayVisitors: displayToday,
+      totalVisitors: displayTotal,
+      isEnabled: visitorState.settings.isEnabled,
+      displayMode: visitorState.settings.displayMode,
+    });
+  });
+
+  // Admin: Get complete analytics data
+  app.get('/api/admin/visitors', requireAuth, async (_req: AuthRequest, res) => {
+    try {
+      checkDateRollover();
+
+      // Gather last 30 days history
+      const historyList: Array<{ date: string; uniqueVisitors: number; pageViews: number }> = [];
+      const todayDubai = getDubaiDate();
+
+      // Insert today
+      historyList.push({
+        date: todayDubai,
+        uniqueVisitors: visitorState.todayVisitors.size,
+        pageViews: visitorState.todayPageViews,
+      });
+
+      // Insert recent days from map
+      for (const [date, val] of visitorState.dailyHistory.entries()) {
+        if (date !== todayDubai) {
+          historyList.push({
+            date,
+            uniqueVisitors: val.uniqueVisitors,
+            pageViews: val.pageViews,
+          });
+        }
+      }
+
+      // Sort descending by date
+      historyList.sort((a, b) => b.date.localeCompare(a.date));
+
+      const actualToday = visitorState.todayVisitors.size;
+      const actualTotal = visitorState.lifetimeVisitors.size;
+      const displayToday = Math.max(0, actualToday + visitorState.settings.todayAdjustment);
+      const displayTotal = Math.max(0, actualTotal + visitorState.settings.totalAdjustment);
+
+      res.json({
+        actualTodayVisitors: actualToday,
+        actualTotalVisitors: actualTotal,
+        actualTodayPageViews: visitorState.todayPageViews,
+        displayTodayVisitors: displayToday,
+        displayTotalVisitors: displayTotal,
+        todayAdjustment: visitorState.settings.todayAdjustment,
+        totalAdjustment: visitorState.settings.totalAdjustment,
+        isEnabled: visitorState.settings.isEnabled,
+        displayMode: visitorState.settings.displayMode,
+        recentDailyStats: historyList.slice(0, 30),
+      });
+    } catch (error: any) {
+      console.error('Error fetching admin visitor analytics:', error);
+      res.status(500).json({ error: 'Failed to fetch visitor analytics' });
+    }
+  });
+
+  // Admin: Update visitor counter display settings & adjustments
+  app.post('/api/admin/visitors/settings', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const { isEnabled, displayMode, todayAdjustment, totalAdjustment } = req.body;
+
+      if (isEnabled !== undefined) visitorState.settings.isEnabled = Boolean(isEnabled);
+      if (['both', 'today', 'total'].includes(displayMode)) {
+        visitorState.settings.displayMode = displayMode;
+      }
+      if (typeof todayAdjustment === 'number') {
+        visitorState.settings.todayAdjustment = Math.round(todayAdjustment);
+      }
+      if (typeof totalAdjustment === 'number') {
+        visitorState.settings.totalAdjustment = Math.round(totalAdjustment);
+      }
+
+      if (isPostgresAvailable) {
+        await db
+          .insert(visitorSettings)
+          .values({
+            id: 1,
+            isEnabled: visitorState.settings.isEnabled,
+            displayMode: visitorState.settings.displayMode,
+            todayAdjustment: visitorState.settings.todayAdjustment,
+            totalAdjustment: visitorState.settings.totalAdjustment,
+            updatedAt: new Date(),
+          })
+          .onConflictDoUpdate({
+            target: visitorSettings.id,
+            set: {
+              isEnabled: visitorState.settings.isEnabled,
+              displayMode: visitorState.settings.displayMode,
+              todayAdjustment: visitorState.settings.todayAdjustment,
+              totalAdjustment: visitorState.settings.totalAdjustment,
+              updatedAt: new Date(),
+            },
+          });
+      }
+
+      await logAudit(
+        'VISITOR_SETTINGS_UPDATE',
+        `Adjusted visitor settings (Today adj: ${visitorState.settings.todayAdjustment}, Total adj: ${visitorState.settings.totalAdjustment}, Mode: ${visitorState.settings.displayMode}, Enabled: ${visitorState.settings.isEnabled})`,
+        req.user?.email
+      );
+
+      res.json({
+        success: true,
+        settings: visitorState.settings,
+      });
+    } catch (error: any) {
+      console.error('Error updating visitor settings:', error);
+      res.status(500).json({ error: error.message || 'Failed to update visitor settings' });
+    }
+  });
+
+  // Admin: Reset display adjustments to 0 (1-click restore actual analytics)
+  app.post('/api/admin/visitors/reset-adjustments', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      visitorState.settings.todayAdjustment = 0;
+      visitorState.settings.totalAdjustment = 0;
+
+      if (isPostgresAvailable) {
+        await db
+          .update(visitorSettings)
+          .set({
+            todayAdjustment: 0,
+            totalAdjustment: 0,
+            updatedAt: new Date(),
+          })
+          .where(eq(visitorSettings.id, 1));
+      }
+
+      await logAudit(
+        'VISITOR_ADJUSTMENTS_RESET',
+        'Reset visitor counter display adjustments to 0 (restored actual analytics count)',
+        req.user?.email
+      );
+
+      res.json({
+        success: true,
+        todayAdjustment: 0,
+        totalAdjustment: 0,
+      });
+    } catch (error: any) {
+      console.error('Error resetting visitor adjustments:', error);
+      res.status(500).json({ error: error.message || 'Failed to reset adjustments' });
     }
   });
 
