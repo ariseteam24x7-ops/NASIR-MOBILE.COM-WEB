@@ -2053,6 +2053,10 @@ async function startServer() {
 
       res.json({
         success: true,
+        todayVisitors: displayToday,
+        totalVisitors: displayTotal,
+        isEnabled: visitorState.settings.isEnabled,
+        displayMode: visitorState.settings.displayMode,
         stats: {
           todayVisitors: displayToday,
           totalVisitors: displayTotal,
@@ -2082,6 +2086,12 @@ async function startServer() {
       totalVisitors: displayTotal,
       isEnabled: visitorState.settings.isEnabled,
       displayMode: visitorState.settings.displayMode,
+      stats: {
+        todayVisitors: displayToday,
+        totalVisitors: displayTotal,
+        isEnabled: visitorState.settings.isEnabled,
+        displayMode: visitorState.settings.displayMode,
+      },
     });
   });
 

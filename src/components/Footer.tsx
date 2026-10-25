@@ -72,6 +72,12 @@ export const Footer: React.FC<FooterProps> = ({
                   {t('contact')}
                 </a>
               </li>
+              <li>
+                <a href="#visitor-counter" className="hover:text-[#B7F34B] transition-colors flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#B7F34B] animate-ping" />
+                  <span>{language === 'ar' ? 'إحصائيات الزوار' : 'Live Visitors'}</span>
+                </a>
+              </li>
             </ul>
           </div>
 

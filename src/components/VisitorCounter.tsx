@@ -38,11 +38,37 @@ export const VisitorCounter: React.FC = () => {
           }),
         });
         if (res.ok) {
-          const data: PublicVisitorStats = await res.json();
-          setStats(data);
+          const raw = await res.json();
+          const parsed = (raw && raw.stats) ? raw.stats : raw;
+          if (parsed) {
+            setStats({
+              isEnabled: parsed.isEnabled !== false,
+              displayMode: parsed.displayMode || 'both',
+              todayVisitors: Math.max(1, Number(parsed.todayVisitors) || 1),
+              totalVisitors: Math.max(1, Number(parsed.totalVisitors) || 1),
+            });
+          }
+        } else {
+          // Fallback to public endpoint if tracking endpoint fails
+          const pubRes = await fetch('/api/visitors/public');
+          if (pubRes.ok) {
+            const pubData = await pubRes.json();
+            const parsed = pubData.stats || pubData;
+            setStats({
+              isEnabled: parsed.isEnabled !== false,
+              displayMode: parsed.displayMode || 'both',
+              todayVisitors: Math.max(1, Number(parsed.todayVisitors) || 1),
+              totalVisitors: Math.max(1, Number(parsed.totalVisitors) || 1),
+            });
+          }
         }
       } catch (err) {
-        // Safe fallback in offline mode
+        // Fallback: Show baseline counts if offline or server initializing
+        setStats(prev => ({
+          ...prev,
+          todayVisitors: Math.max(1, prev.todayVisitors || 1),
+          totalVisitors: Math.max(1, prev.totalVisitors || 1),
+        }));
       } finally {
         setLoaded(true);
       }
@@ -51,7 +77,8 @@ export const VisitorCounter: React.FC = () => {
     trackVisit();
   }, []);
 
-  if (!loaded || !stats.isEnabled) {
+  // If explicitly disabled in admin settings, do not render
+  if (stats.isEnabled === false) {
     return null;
   }
 
@@ -63,7 +90,7 @@ export const VisitorCounter: React.FC = () => {
   }
 
   return (
-    <section className="py-8 bg-[#111015] border-y border-white/5 relative overflow-hidden">
+    <section id="visitor-counter" className="py-8 bg-[#111015] border-y border-white/5 relative overflow-hidden">
       {/* Background radial glow */}
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-32 bg-[#922CB5]/10 rounded-full blur-3xl pointer-events-none" />
 

@@ -120,6 +120,10 @@ export const Header: React.FC<HeaderProps> = ({
             <a href="#contact" className="hover:text-[#B7F34B] transition-colors">
               {t('contact')}
             </a>
+            <a href="#visitor-counter" className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#242129] border border-white/10 hover:border-[#B7F34B]/50 hover:text-[#B7F34B] transition-colors text-xs font-semibold text-zinc-300">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#B7F34B] animate-ping" />
+              <span>{language === 'ar' ? 'الزوار' : 'Live Traffic'}</span>
+            </a>
           </nav>
 
           {/* Actions: WhatsApp CTA + Language Toggle + Admin Link */}
@@ -229,6 +233,14 @@ export const Header: React.FC<HeaderProps> = ({
               className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
             >
               {t('contact')}
+            </a>
+            <a
+              href="#visitor-counter"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-[#B7F34B]"
+            >
+              <span className="w-2 h-2 rounded-full bg-[#B7F34B] animate-ping" />
+              <span>{language === 'ar' ? 'إحصائيات زوار المتجر المباشرة' : 'Live Store Visitor Stats'}</span>
             </a>
           </nav>
 
