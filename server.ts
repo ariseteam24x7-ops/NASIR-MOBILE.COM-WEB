@@ -94,9 +94,6 @@ async function startServer() {
 
   // Public Brands
   app.get('/api/brands', async (_req, res) => {
-    if (!isPostgresAvailable) {
-      return res.json(FALLBACK_BRANDS);
-    }
     try {
       const allBrands = await db
         .select({
@@ -111,7 +108,8 @@ async function startServer() {
         return res.json(allBrands);
       }
       res.json(FALLBACK_BRANDS);
-    } catch {
+    } catch (err) {
+      console.warn('Brands query fallback:', (err as any)?.message);
       res.json(FALLBACK_BRANDS);
     }
   });
@@ -1643,18 +1641,54 @@ async function startServer() {
   });
 
   // Admin: Brands Management
+  app.get('/api/admin/brands', requireAuth, async (_req: AuthRequest, res) => {
+    try {
+      const allBrands = await db
+        .select({
+          id: brands.id,
+          slug: brands.slug,
+          name: brands.name,
+          logoUrl: brands.logoUrl,
+          createdAt: brands.createdAt,
+        })
+        .from(brands)
+        .orderBy(asc(brands.name));
+      res.json(allBrands);
+    } catch (error: any) {
+      console.error('Error fetching admin brands:', error);
+      res.status(500).json({ error: error.message || 'Failed to fetch brands' });
+    }
+  });
+
   app.post('/api/admin/brands', requireAuth, async (req: AuthRequest, res) => {
     try {
       const { name, logoUrl } = req.body;
-      if (!name) return res.status(400).json({ error: 'Brand name is required' });
+      if (!name || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'Brand name is required' });
+      }
 
-      let baseSlug = makeSlug(name);
+      let baseSlug = makeSlug(name.trim());
+      if (!baseSlug) {
+        baseSlug = `brand-${Date.now().toString(36)}`;
+      }
       let finalSlug = baseSlug;
       let counter = 1;
-      while (true) {
-        const check = await db.select().from(brands).where(eq(brands.slug, finalSlug)).limit(1);
-        if (check.length === 0) break;
-        finalSlug = `${baseSlug}-${counter++}`;
+
+      // Safe collision check loop (capped at 50 to prevent infinite loops)
+      while (counter <= 50) {
+        try {
+          const check = await db
+            .select({ id: brands.id })
+            .from(brands)
+            .where(eq(brands.slug, finalSlug))
+            .limit(1);
+          if (check.length === 0) break;
+          finalSlug = `${baseSlug}-${counter++}`;
+        } catch (slugErr) {
+          console.warn('Brands slug collision check warning:', slugErr);
+          finalSlug = `${baseSlug}-${Date.now().toString(36)}`;
+          break;
+        }
       }
 
       const br = await db
@@ -1662,11 +1696,11 @@ async function startServer() {
         .values({
           slug: finalSlug,
           name: name.trim(),
-          logoUrl: logoUrl || '',
+          logoUrl: (logoUrl || '').trim(),
         })
         .returning();
 
-      await logAudit('BRAND_CREATE', `Created brand "${name}"`, req.user?.email);
+      await logAudit('BRAND_CREATE', `Created brand "${name.trim()}" (slug: ${finalSlug})`, req.user?.email);
       res.status(201).json(br[0]);
     } catch (error: any) {
       console.error('Error creating brand:', error);

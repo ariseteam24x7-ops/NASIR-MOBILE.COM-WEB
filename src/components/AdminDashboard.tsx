@@ -2107,15 +2107,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
               {/* Add / Edit Brand Form with Image Uploader */}
               <form onSubmit={handleAddBrand} className="p-6 rounded-3xl bg-[#242129] border border-white/5 space-y-6">
-                <div className="flex items-center gap-3 pb-3 border-b border-white/5">
-                  <div className="w-9 h-9 rounded-xl bg-[#B7F34B]/20 border border-[#B7F34B]/40 flex items-center justify-center text-[#B7F34B]">
-                    <Sparkles className="w-4 h-4" />
+                <div className="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-white/5">
+                  <div className="flex items-center gap-3">
+                    <div className="w-9 h-9 rounded-xl bg-[#B7F34B]/20 border border-[#B7F34B]/40 flex items-center justify-center text-[#B7F34B]">
+                      <Sparkles className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-white uppercase tracking-wider">
+                        {editingBrand ? `Edit Brand: ${editingBrand.name}` : 'Add New Brand'}
+                      </h3>
+                      <p className="text-[11px] text-zinc-400">Upload or select a distinctive circular brand emblem</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-bold text-white uppercase tracking-wider">
-                      {editingBrand ? `Edit Brand: ${editingBrand.name}` : 'Add New Brand'}
-                    </h3>
-                    <p className="text-[11px] text-zinc-400">Upload or select a distinctive circular brand emblem</p>
+
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#B7F34B]/10 border border-[#B7F34B]/30 text-[#B7F34B]">
+                    <span className="text-[10px] font-black uppercase tracking-wider">Recommended Ratio: 1:1 Square (500×500 px or 400×400 px)</span>
                   </div>
                 </div>
 

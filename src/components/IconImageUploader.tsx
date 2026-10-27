@@ -354,7 +354,7 @@ export const IconImageUploader: React.FC<IconImageUploaderProps> = ({
                 : 'Click to select or drag & drop icon image here'}
             </span>
             <span className="text-[10px] text-zinc-400 mt-0.5 block">
-              Supports PNG, JPG, WebP, or SVG (Max 8MB) • Stored permanently in PostgreSQL
+              <strong className="text-[#B7F34B]">Recommended: 1:1 Square Ratio</strong> (e.g., 500×500 px or 400×400 px) • Supports PNG (transparent), SVG, WebP, or JPG (Max 8MB)
             </span>
           </div>
         </div>
