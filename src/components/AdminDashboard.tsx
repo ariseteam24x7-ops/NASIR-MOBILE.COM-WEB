@@ -2000,7 +2000,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 {/* Category Icon / Image Uploader with Presets and Drag-and-Drop */}
-                <div className="pt-3 border-t border-white/5">
+                <div className="pt-3 border-t border-white/5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                      Category Icon / Graphic
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#B7F34B]/15 text-[#B7F34B] border border-[#B7F34B]/30">
+                      1:1 Ratio (Square • 500×500 px)
+                    </span>
+                  </div>
                   <IconImageUploader
                     type="category"
                     name={catNameEn}
@@ -2141,7 +2149,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 {/* Brand Logo & Emblem Uploader with Presets and Drag-and-Drop */}
-                <div className="pt-2 border-t border-white/5">
+                <div className="pt-2 border-t border-white/5 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-bold text-zinc-300 uppercase tracking-wider">
+                      Brand Logo & Emblem Graphic
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase bg-[#B7F34B]/15 text-[#B7F34B] border border-[#B7F34B]/30">
+                      1:1 Ratio (Square • 500×500 px)
+                    </span>
+                  </div>
                   <IconImageUploader
                     type="brand"
                     name={brandName}
