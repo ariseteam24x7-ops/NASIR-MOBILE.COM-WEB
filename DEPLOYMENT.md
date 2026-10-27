@@ -62,14 +62,45 @@ In the **Owner Admin Panel > WhatsApp Settings**:
 
 ---
 
-## 5. Domain Connection ("nasirmobile.com")
-To connect `nasirmobile.com` on Vercel:
+## 5. Hostinger (hPanel) Deployment & 503 Error Resolution
+
+`nasirmobile.com` is hosted on **Hostinger with LiteSpeed and Node.js**.
+If Hostinger displays:
+`503 Service Unavailable — The server is temporarily busy, try again later!`
+it means the Hostinger Node.js process is stopped, crashed, or needs to restart with the compiled `server.js` and `dist` assets.
+
+### Quick Fix Steps in Hostinger hPanel:
+1. Log into **Hostinger hPanel** -> Go to **Websites** -> Select **nasirmobile.com**.
+2. Under the left menu, search for or click **Node.js**:
+   - **Node.js version**: Choose **Node 20.x** or **Node 22.x** (LTS).
+   - **Application mode**: `Production`
+   - **Application root**: Leave as default or `/home/u.../domains/nasirmobile.com/public_html`
+   - **Application startup file**: `server.js` (Must be `server.js`, NOT `server.ts`).
+3. Click **Run NPM Install** to ensure all required dependencies are installed.
+4. Click **Restart Application** (or if status is "Stopped", click **Start Application**).
+5. Ensure your `.env` contains the required database and owner configuration:
+   ```env
+   PORT=3000
+   NODE_ENV=production
+   OWNER_EMAIL="shazzzbusiness@gmail.com"
+   OWNER_SETUP_KEY="NasirMobileDubai2026!"
+   SQL_HOST="your-db-host"
+   SQL_DB_NAME="your-db-name"
+   SQL_USER="your-db-user"
+   SQL_PASSWORD="your-db-password"
+   SQL_SSL="false"
+   ```
+6. Visit `https://nasirmobile.com` or `https://nasirmobile.com/api/health` to confirm the green `200 OK` status!
+
+---
+
+## 6. Vercel Alternative Setup
+If you ever deploy frontend on Vercel:
 1. Go to your project settings in Vercel > **Domains**.
 2. Enter `nasirmobile.com` and `www.nasirmobile.com`.
-3. In your DNS registrar (e.g. GoDaddy, Namecheap, Cloudflare), set up the following records:
-   - **Type A**: `@` -> `76.76.21.21` (or Vercel Anycast IP)
+3. In DNS records:
+   - **Type A**: `@` -> `76.76.21.21`
    - **Type CNAME**: `www` -> `cname.vercel-dns.com`
-4. Once verified, Vercel automatically provisions free SSL/TLS certificates.
 
 ---
 

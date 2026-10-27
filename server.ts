@@ -32,20 +32,31 @@ import {
   FALLBACK_PRODUCTS,
 } from './src/db/fallbacks.ts';
 
+// Global error handlers to prevent unexpected process crashes
+process.on('uncaughtException', (err) => {
+  console.warn('Uncaught server exception handled safely:', err?.message || err);
+});
+process.on('unhandledRejection', (reason) => {
+  console.warn('Unhandled server promise rejection handled safely:', (reason as any)?.message || reason);
+});
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 async function startServer() {
-  // Automatically ensure database tables exist (safely catch without crashing server)
-  try {
-    await initDatabase();
-  } catch (dbErr) {
-    console.warn('Initial database sync note (non-fatal):', dbErr);
-  }
-
   const app = express();
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+  // Health check endpoints for host reverse proxies and uptime monitors
+  app.get(['/health', '/api/health'], (_req, res) => {
+    res.status(200).json({ status: 'ok', server: 'Nasir Mobile Dubai', timestamp: new Date().toISOString() });
+  });
+
+  // Automatically ensure database tables exist (run in background without blocking server startup)
+  initDatabase().catch((dbErr) => {
+    console.warn('Initial database sync note (non-fatal):', dbErr?.message || dbErr);
+  });
 
   // Helper to log audit actions
   const logAudit = async (action: string, details: string, email: string = 'system') => {
@@ -2327,32 +2338,36 @@ async function startServer() {
   }
 
   // ----------------------------------------------------
-  // PORT & PASSENGER SOCKET BINDING
+  // PORT & PASSENGER SOCKET BINDING (Hostinger / Cloud / AI Studio)
   // ----------------------------------------------------
   const rawPort = process.env.PORT;
   let portToListen: any = 3000;
 
-  if (rawPort) {
+  if (typeof (global as any).PhusionPassenger !== 'undefined') {
+    portToListen = 'passenger';
+  } else if (process.env.DEFAULT_APP_PORT) {
+    // In AI Studio container environment: Nginx listens on 8080 and proxies to 3000
+    portToListen = Number(process.env.DEFAULT_APP_PORT) || 3000;
+  } else if (rawPort) {
     if (isNaN(Number(rawPort))) {
-      // Unix domain socket (Hostinger/Passenger socket)
+      // Unix domain socket (Hostinger/Passenger socket or named pipe)
       portToListen = rawPort;
-    } else if (Number(rawPort) === 8080) {
-      // AI Studio preview environment
-      portToListen = 3000;
     } else {
       portToListen = Number(rawPort);
     }
   }
 
-  if (typeof portToListen === 'string') {
-    app.listen(portToListen, () => {
-      console.log(`Nasir Mobile server listening on socket: ${portToListen}`);
-    });
-  } else {
-    app.listen(portToListen, '0.0.0.0', () => {
-      console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${portToListen}`);
-    });
-  }
+  const server = typeof portToListen === 'string'
+    ? app.listen(portToListen, () => {
+        console.log(`Nasir Mobile server listening on socket: ${portToListen}`);
+      })
+    : app.listen(portToListen, '0.0.0.0', () => {
+        console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${portToListen}`);
+      });
+
+  server.on('error', (err: any) => {
+    console.error('Server listen error:', err?.message || err);
+  });
 }
 
 startServer().catch((err) => {
