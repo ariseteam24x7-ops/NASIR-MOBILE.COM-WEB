@@ -3,13 +3,13 @@
   "categories": [],
   "products": [
     {
-      "id": 6,
-      "slug": "tp-link-archer-ax55-pro-gigabit-wi-fi-6-router",
-      "sku": "TP-ARCHER-AX55-1793173174137",
-      "nameEn": "TP-Link Archer AX55 Pro Gigabit Wi-Fi 6 Router",
-      "nameAr": "راوتر آرتشر AX55 برو واي فاي 6 جيجابيت",
-      "descriptionEn": "Multi-Gigabit Wi-Fi 6 Router with high performance.",
-      "descriptionAr": "",
+      "id": 10,
+      "slug": "tp-link-archer-air-e5-ultra-thin-wi-fi-6-extender",
+      "sku": "ARCHER-AIR-E5",
+      "nameEn": "TP-Link Archer Air E5 Ultra-Thin Wi-Fi 6 Extender",
+      "nameAr": "موسع شبكة واي فاي 6 رفيع للغاية آرتشر إير E5",
+      "descriptionEn": "Ultra-thin and minimalist design with AX3000 Wi-Fi 6 speeds, smart antennas, and seamless EasyMesh support.",
+      "descriptionAr": "تصميم فائق النحافة والأناقة مع سرعات واي فاي 6 AX3000 وهوائيات ذكية ودعم EasyMesh السلس.",
       "condition": "New",
       "categoryId": 12,
       "brandId": 17,
@@ -19,11 +19,11 @@
       "specifications": [],
       "variants": [
         {
-          "name": "Standard",
-          "price": 349,
+          "name": "Standard Pack",
+          "price": 280,
           "isDefault": true,
-          "originalPrice": 399,
-          "stockQuantity": 25
+          "originalPrice": 320,
+          "stockQuantity": 15
         }
       ],
       "images": [
@@ -33,13 +33,17 @@
       "purchaseCost": "",
       "stockQuantity": 0,
       "imeiSerialNumbers": [],
-      "createdAt": "2026-10-28T07:39:34.170Z",
-      "updatedAt": "2026-10-28T07:39:34.170Z",
+      "createdAt": "2026-10-28T08:03:06.157Z",
+      "updatedAt": "2026-10-28T08:03:06.157Z",
       "categoryNameEn": "Routers & Wi-Fi",
       "categoryNameAr": "راوترات وواي فاي",
       "categorySlug": "routers-wi-fi",
       "brandName": "TP - LINK",
       "brandSlug": "tp-link-2"
     }
+  ],
+  "deletedProductIds": [
+    8,
+    9
   ]
 }

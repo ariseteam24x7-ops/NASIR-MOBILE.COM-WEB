@@ -89,6 +89,7 @@ async function startServer() {
     createdAt?: string;
   }> = [];
   let customProducts: any[] = [];
+  let deletedProductIds: number[] = [];
 
   try {
     if (fs.existsSync(DATA_STORE_FILE)) {
@@ -97,6 +98,7 @@ async function startServer() {
       if (Array.isArray(parsed.brands)) customBrands = parsed.brands;
       if (Array.isArray(parsed.categories)) customCategories = parsed.categories;
       if (Array.isArray(parsed.products)) customProducts = parsed.products;
+      if (Array.isArray(parsed.deletedProductIds)) deletedProductIds = parsed.deletedProductIds.map(Number).filter((n: number) => !isNaN(n));
     }
   } catch (err) {
     console.warn('Note: Could not read data-store.json:', err);
@@ -106,7 +108,16 @@ async function startServer() {
     try {
       fs.writeFileSync(
         DATA_STORE_FILE,
-        JSON.stringify({ brands: customBrands, categories: customCategories, products: customProducts }, null, 2),
+        JSON.stringify(
+          {
+            brands: customBrands,
+            categories: customCategories,
+            products: customProducts,
+            deletedProductIds: deletedProductIds,
+          },
+          null,
+          2
+        ),
         'utf-8'
       );
     } catch (err) {
@@ -183,10 +194,12 @@ async function startServer() {
     res.json(merged);
   });
 
-  // Helper for in-memory fallback product filtering (includes custom saved products)
+  // Helper for in-memory fallback product filtering (includes custom saved products, excludes deleted products)
   const filterFallbackProducts = (query: any, isPublic = true) => {
     const { category, brand, condition, featured, newArrival, search, sort, status, categoryId, brandId } = query;
-    let allMerged = [...FALLBACK_PRODUCTS, ...customProducts];
+    const activeFallbacks = FALLBACK_PRODUCTS.filter((p) => !deletedProductIds.includes(p.id));
+    const activeCustom = customProducts.filter((p) => !deletedProductIds.includes(p.id));
+    let allMerged = [...activeFallbacks, ...activeCustom];
 
     if (isPublic) {
       allMerged = allMerged.filter((p) => !p.status || p.status === 'published');
@@ -356,9 +369,9 @@ async function startServer() {
       }
 
       const results = await query;
-      const finalProducts = [...(results || [])];
+      const finalProducts = (results || []).filter((p: any) => !deletedProductIds.includes(p.id));
       for (const cp of customProducts) {
-        if (!cp.status || cp.status === 'published') {
+        if (!deletedProductIds.includes(cp.id) && (!cp.status || cp.status === 'published')) {
           if (!finalProducts.some((p: any) => p.id === cp.id || (p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase()))) {
             finalProducts.unshift({
               id: cp.id,
@@ -390,6 +403,9 @@ async function startServer() {
       if (finalProducts.length > 0) {
         return res.json(finalProducts);
       }
+      if (deletedProductIds.length > 0 || (results && Array.isArray(results))) {
+        return res.json([]);
+      }
       res.json(filterFallbackProducts(req.query));
     } catch {
       res.json(filterFallbackProducts(req.query));
@@ -399,7 +415,7 @@ async function startServer() {
   // Public Single Product by Slug
   app.get('/api/products/:slug', async (req, res) => {
     const slug = req.params.slug;
-    const allFallbackItems = [...customProducts, ...FALLBACK_PRODUCTS];
+    const allFallbackItems = [...customProducts, ...FALLBACK_PRODUCTS].filter((p) => !deletedProductIds.includes(p.id));
 
     if (!isPostgresAvailable) {
       const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
@@ -1295,15 +1311,20 @@ async function startServer() {
           ? await query.where(and(...conditions)).orderBy(desc(products.createdAt))
           : await query.orderBy(desc(products.createdAt));
 
-      const finalProducts = [...(results || [])];
+      const finalProducts = (results || []).filter((p: any) => !deletedProductIds.includes(p.id));
       for (const cp of customProducts) {
-        if (!finalProducts.some((p: any) => p.id === cp.id || (p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase()))) {
-          finalProducts.unshift(cp);
+        if (!deletedProductIds.includes(cp.id)) {
+          if (!finalProducts.some((p: any) => p.id === cp.id || (p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase()))) {
+            finalProducts.unshift(cp);
+          }
         }
       }
 
       if (finalProducts.length > 0) {
         return res.json(finalProducts);
+      }
+      if (deletedProductIds.length > 0 || (results && Array.isArray(results))) {
+        return res.json([]);
       }
       res.json(filterFallbackProducts(req.query, false));
     } catch (error) {
@@ -1763,7 +1784,15 @@ async function startServer() {
         }
       }
 
+      // 2. Remove from customProducts and track in deletedProductIds
+      const foundCustom = customProducts.find((p) => p.id === id);
+      if (foundCustom) {
+        prodName = foundCustom.nameEn;
+      }
       customProducts = customProducts.filter((p) => p.id !== id);
+      if (!deletedProductIds.includes(id)) {
+        deletedProductIds.push(id);
+      }
       persistDataStore();
 
       await logAudit(
@@ -1772,7 +1801,7 @@ async function startServer() {
         req.user?.email
       );
 
-      res.json({ success: true, message: 'Product deleted' });
+      res.json({ success: true, message: 'Product deleted', id });
     } catch (error: any) {
       res.json({ success: true, message: 'Product deleted' });
     }
@@ -1858,17 +1887,35 @@ async function startServer() {
         return res.status(400).json({ error: 'Invalid status' });
       }
 
-      for (const id of ids) {
-        await db.update(products).set({ status, updatedAt: new Date() }).where(eq(products.id, id));
+      const numIds = ids.map((id: any) => parseInt(String(id), 10)).filter((n) => !isNaN(n));
+
+      // 1. Update in PostgreSQL
+      if (isPostgresAvailable) {
+        try {
+          for (const id of numIds) {
+            await db.update(products).set({ status, updatedAt: new Date() }).where(eq(products.id, id));
+          }
+        } catch (dbErr) {
+          console.warn('PostgreSQL bulk status update note:', dbErr);
+        }
       }
+
+      // 2. Update in customProducts
+      for (const id of numIds) {
+        const idx = customProducts.findIndex((p) => p.id === id);
+        if (idx !== -1) {
+          customProducts[idx] = { ...customProducts[idx], status, updatedAt: new Date().toISOString() };
+        }
+      }
+      persistDataStore();
 
       await logAudit(
         'PRODUCT_BULK_STATUS',
-        `Changed status of ${ids.length} products to ${status}`,
+        `Changed status of ${numIds.length} products to ${status}`,
         req.user?.email
       );
 
-      res.json({ success: true, count: ids.length, status });
+      res.json({ success: true, count: numIds.length, status });
     } catch (error: any) {
       console.error('Error updating bulk status:', error);
       res.status(500).json({ error: error.message || 'Failed to update bulk status' });
@@ -1883,12 +1930,30 @@ async function startServer() {
         return res.status(400).json({ error: 'No product IDs provided' });
       }
 
-      for (const id of ids) {
-        await db.delete(products).where(eq(products.id, id));
+      const numIds = ids.map((id: any) => parseInt(String(id), 10)).filter((n) => !isNaN(n));
+
+      // 1. Delete in PostgreSQL
+      if (isPostgresAvailable) {
+        try {
+          for (const id of numIds) {
+            await db.delete(products).where(eq(products.id, id));
+          }
+        } catch (dbErr) {
+          console.warn('PostgreSQL bulk delete note:', dbErr);
+        }
       }
 
-      await logAudit('PRODUCT_BULK_DELETE', `Deleted ${ids.length} products`, req.user?.email);
-      res.json({ success: true, count: ids.length });
+      // 2. Delete from customProducts and track in deletedProductIds
+      customProducts = customProducts.filter((p) => !numIds.includes(p.id));
+      for (const id of numIds) {
+        if (!deletedProductIds.includes(id)) {
+          deletedProductIds.push(id);
+        }
+      }
+      persistDataStore();
+
+      await logAudit('PRODUCT_BULK_DELETE', `Deleted ${numIds.length} products`, req.user?.email);
+      res.json({ success: true, count: numIds.length });
     } catch (error: any) {
       console.error('Error deleting bulk products:', error);
       res.status(500).json({ error: error.message || 'Failed to delete bulk products' });

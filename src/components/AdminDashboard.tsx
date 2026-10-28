@@ -53,6 +53,7 @@ import {
   TrendingUp,
   BarChart3,
   Users,
+  Archive,
 } from 'lucide-react';
 import { ProductMultiImageUploader, ImageAspectRatio, ImageFitMode } from './ProductMultiImageUploader.tsx';
 import { IconImageUploader } from './IconImageUploader.tsx';
@@ -133,6 +134,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Modals & Forms
   const [productModalOpen, setProductModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteConfirmDialog, setDeleteConfirmDialog] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    onConfirm: () => void;
+  } | null>(null);
 
   // Form State for Product
   const [formSku, setFormSku] = useState('');
@@ -569,48 +576,73 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Bulk status update
   const handleBulkStatus = async (status: ProductStatus) => {
     if (selectedProductIds.length === 0) return;
+    const targetIds = [...selectedProductIds];
     try {
       setLoading(true);
+
+      // Optimistically update product statuses in UI
+      setProductsList((prev) =>
+        prev.map((p) => (targetIds.includes(p.id) ? { ...p, status } : p))
+      );
+
       const res = await fetch('/api/admin/products/bulk-status', {
         method: 'POST',
         headers: authHeaders,
-        body: JSON.stringify({ ids: selectedProductIds, status }),
+        body: JSON.stringify({ ids: targetIds, status }),
       });
-      if (res.ok) {
-        showNotification(`Updated ${selectedProductIds.length} products to "${status}"`);
-        setSelectedProductIds([]);
-        fetchProducts();
-        fetchOverview();
-      }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to update bulk status');
+
+      showNotification(`Updated ${targetIds.length} product(s) to "${status}"`);
+      setSelectedProductIds([]);
+      fetchProducts();
+      fetchOverview();
     } catch (e: any) {
       showNotification(e.message, true);
+      fetchProducts();
     } finally {
       setLoading(false);
     }
   };
 
-  // Bulk delete
-  const handleBulkDelete = async () => {
+  // Bulk delete with in-app confirmation dialog
+  const handleBulkDelete = () => {
     if (selectedProductIds.length === 0) return;
-    if (!window.confirm(`Are you sure you want to permanently delete ${selectedProductIds.length} selected products?`)) return;
-    try {
-      setLoading(true);
-      const res = await fetch('/api/admin/products/bulk-delete', {
-        method: 'POST',
-        headers: authHeaders,
-        body: JSON.stringify({ ids: selectedProductIds }),
-      });
-      if (res.ok) {
-        showNotification(`Deleted ${selectedProductIds.length} products`);
-        setSelectedProductIds([]);
-        fetchProducts();
-        fetchOverview();
-      }
-    } catch (e: any) {
-      showNotification(e.message, true);
-    } finally {
-      setLoading(false);
-    }
+    const count = selectedProductIds.length;
+    const targetIds = [...selectedProductIds];
+
+    setDeleteConfirmDialog({
+      isOpen: true,
+      title: 'Bulk Delete Products',
+      message: `Are you sure you want to permanently delete ${count} selected product(s)? This will remove them immediately from the store and inventory database.`,
+      onConfirm: async () => {
+        setDeleteConfirmDialog(null);
+        try {
+          setLoading(true);
+
+          // Optimistically remove from products list
+          setProductsList((prev) => prev.filter((p) => !targetIds.includes(p.id)));
+          setSelectedProductIds([]);
+
+          const res = await fetch('/api/admin/products/bulk-delete', {
+            method: 'POST',
+            headers: authHeaders,
+            body: JSON.stringify({ ids: targetIds }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Failed to delete products');
+
+          showNotification(`Successfully deleted ${count} product(s)`);
+          fetchProducts();
+          fetchOverview();
+        } catch (e: any) {
+          showNotification(e.message, true);
+          fetchProducts();
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   const handleToggleSelectProduct = (id: number) => {
@@ -647,27 +679,40 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Delete Product
-  const handleDeleteProduct = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to permanently delete "${name}"?`)) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/products/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders,
-      });
-      if (!res.ok) {
-        const data = await res.json();
-        throw new Error(data.error || 'Failed to delete');
-      }
-      showNotification(`Deleted product "${name}"`);
-      fetchProducts();
-      fetchOverview();
-    } catch (e: any) {
-      showNotification(e.message, true);
-    } finally {
-      setLoading(false);
-    }
+  // Delete Product with in-app confirmation modal (bypasses window.confirm in iframe)
+  const handleDeleteProduct = (id: number, name: string) => {
+    setDeleteConfirmDialog({
+      isOpen: true,
+      title: 'Delete Product',
+      message: `Are you sure you want to permanently delete "${name}"? This action cannot be undone.`,
+      onConfirm: async () => {
+        setDeleteConfirmDialog(null);
+        try {
+          setLoading(true);
+
+          // Optimistically remove from products list
+          setProductsList((prev) => prev.filter((p) => p.id !== id));
+          setSelectedProductIds((prev) => prev.filter((item) => item !== id));
+
+          const res = await fetch(`/api/admin/products/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders,
+          });
+          if (!res.ok) {
+            const data = await res.json();
+            throw new Error(data.error || 'Failed to delete');
+          }
+          showNotification(`Deleted product "${name}"`);
+          fetchProducts();
+          fetchOverview();
+        } catch (e: any) {
+          showNotification(e.message, true);
+          fetchProducts();
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   // Toggle status
@@ -1616,36 +1661,49 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span className="text-xs text-zinc-300">Choose a bulk action for selected devices:</span>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2.5">
                     <button
+                      type="button"
                       onClick={() => handleBulkStatus('published')}
-                      className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white text-xs font-black uppercase tracking-wider shadow-sm hover:shadow-emerald-900/30 active:scale-95 transition-all cursor-pointer border border-emerald-400/30"
+                      title="Publish selected products immediately to the live store"
                     >
-                      Publish Selected
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Publish Selected</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleBulkStatus('draft')}
-                      className="px-3 py-1.5 rounded-xl bg-yellow-600 hover:bg-yellow-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-500 hover:to-amber-400 text-white text-xs font-black uppercase tracking-wider shadow-sm hover:shadow-amber-900/30 active:scale-95 transition-all cursor-pointer border border-amber-400/30"
+                      title="Set selected products to draft (hidden from public catalogue)"
                     >
-                      Draft Selected
+                      <Edit className="w-3.5 h-3.5" />
+                      <span>Draft Selected</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => handleBulkStatus('archived')}
-                      className="px-3 py-1.5 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-zinc-700 to-zinc-600 hover:from-zinc-600 hover:to-zinc-500 text-zinc-100 text-xs font-black uppercase tracking-wider shadow-sm hover:shadow-zinc-900/30 active:scale-95 transition-all cursor-pointer border border-white/10"
+                      title="Archive selected products"
                     >
-                      Archive Selected
+                      <Archive className="w-3.5 h-3.5" />
+                      <span>Archive Selected</span>
                     </button>
                     <button
+                      type="button"
                       onClick={handleBulkDelete}
-                      className="px-3 py-1.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold transition-colors cursor-pointer"
+                      className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-black uppercase tracking-wider shadow-sm hover:shadow-rose-900/30 active:scale-95 transition-all cursor-pointer border border-rose-400/30"
+                      title="Permanently delete selected products"
                     >
-                      Delete Selected
+                      <Trash2 className="w-3.5 h-3.5" />
+                      <span>Delete Selected</span>
                     </button>
                     <button
+                      type="button"
                       onClick={() => setSelectedProductIds([])}
-                      className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 text-xs font-semibold cursor-pointer"
+                      className="inline-flex items-center gap-1 px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 hover:text-white text-xs font-semibold cursor-pointer active:scale-95 transition-all"
                     >
-                      Deselect
+                      <span>Deselect</span>
                     </button>
                   </div>
                 </div>
@@ -3960,6 +4018,48 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-zinc-300 text-xs font-semibold cursor-pointer"
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Custom In-App Confirmation Modal (Bypasses iFrame window.confirm block) */}
+      {deleteConfirmDialog && deleteConfirmDialog.isOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in">
+          <div className="w-full max-w-md rounded-2xl bg-[#1c1a22] border border-white/10 p-6 shadow-2xl space-y-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-rose-950/80 border border-rose-500/40 flex items-center justify-center text-rose-400 shrink-0">
+                <AlertCircle className="w-5 h-5" />
+              </div>
+              <div>
+                <h3 className="text-base font-black text-white uppercase tracking-tight">
+                  {deleteConfirmDialog.title}
+                </h3>
+                <p className="text-xs text-zinc-400 mt-0.5">
+                  Confirm action
+                </p>
+              </div>
+            </div>
+
+            <p className="text-xs text-zinc-300 leading-relaxed bg-[#151419] p-3 rounded-xl border border-white/5">
+              {deleteConfirmDialog.message}
+            </p>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmDialog(null)}
+                className="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/15 text-zinc-300 hover:text-white text-xs font-semibold cursor-pointer transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={deleteConfirmDialog.onConfirm}
+                className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-rose-900/30 cursor-pointer active:scale-95 transition-all"
+              >
+                Confirm Delete
               </button>
             </div>
           </div>
