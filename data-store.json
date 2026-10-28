@@ -1,6 +1,252 @@
 {
-  "brands": [],
-  "categories": [],
+  "brands": [
+    {
+      "id": 1,
+      "slug": "apple",
+      "name": "Apple",
+      "logoUrl": "/src/assets/images/apple_brand_icon_1792330702744.jpg",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 2,
+      "slug": "samsung",
+      "name": "Samsung",
+      "logoUrl": "/src/assets/images/samsung_brand_icon_1792330702562.jpg",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 3,
+      "slug": "google",
+      "name": "Google Pixel",
+      "logoUrl": "/src/assets/images/pixel_brand_icon_1792330703295.jpg",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 4,
+      "slug": "xiaomi",
+      "name": "Xiaomi",
+      "logoUrl": "/src/assets/images/xiaomi_brand_icon_1792330703614.jpg",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 5,
+      "slug": "huawei",
+      "name": "Huawei",
+      "logoUrl": "",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 6,
+      "slug": "sony",
+      "name": "Sony",
+      "logoUrl": "",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 7,
+      "slug": "anker",
+      "name": "Anker",
+      "logoUrl": "",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 8,
+      "slug": "jbl",
+      "name": "JBL",
+      "logoUrl": "",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 9,
+      "slug": "oneplus",
+      "name": "OnePlus",
+      "logoUrl": "/src/assets/images/oneplus_brand_icon_1792330704300.jpg",
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 10,
+      "slug": "playstation",
+      "name": "playstation",
+      "logoUrl": "",
+      "createdAt": "2026-10-18T13:38:33.384Z"
+    },
+    {
+      "id": 11,
+      "slug": "tp-link",
+      "name": "TP Link",
+      "logoUrl": "https://kommodo.ai/i/i5yB9eczSjRtrWw6VM7h",
+      "createdAt": "2026-10-27T16:54:13.972Z"
+    },
+    {
+      "id": 13,
+      "slug": "motorola",
+      "name": "Motorola",
+      "logoUrl": "/api/images/8",
+      "createdAt": "2026-10-27T18:14:47.783Z"
+    },
+    {
+      "id": 14,
+      "slug": "test-slug-1793125563382",
+      "name": "Test Brand",
+      "logoUrl": "",
+      "createdAt": "2026-10-27T18:26:03.469Z"
+    },
+    {
+      "id": 15,
+      "slug": "tp-link-mvr0gbjt",
+      "name": "TP - LINK",
+      "logoUrl": "/api/images/50001",
+      "createdAt": "2026-10-27T18:26:19.555Z"
+    },
+    {
+      "id": 16,
+      "slug": "tp-link-1",
+      "name": "TP - LINK",
+      "logoUrl": "/api/images/50001",
+      "createdAt": "2026-10-27T18:30:11.695Z"
+    },
+    {
+      "id": 17,
+      "slug": "tp-link-2",
+      "name": "TP - LINK",
+      "logoUrl": "/api/images/50001",
+      "createdAt": "2026-10-28T07:39:22.344Z"
+    }
+  ],
+  "categories": [
+    {
+      "id": 1,
+      "slug": "mobile-phones",
+      "nameEn": "Mobile Phones",
+      "nameAr": "الهواتف المتحركة",
+      "descriptionEn": "Flagship smartphones, 5G devices, and the latest releases.",
+      "descriptionAr": "أحدث الهواتف الذكية والأجهزة الرائدة وتقنيات الجيل الخامس.",
+      "icon": "Smartphone",
+      "displayOrder": 1,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 2,
+      "slug": "used-refurbished-phones",
+      "nameEn": "Used & Refurbished Phones",
+      "nameAr": "الهواتف المستعملة والمجددة",
+      "descriptionEn": "Certified pre-owned and refurbished phones tested for top performance.",
+      "descriptionAr": "هواتف مستعملة ومجددة ومفحوصة بدقة لضمان أعلى أداء.",
+      "icon": "RefreshCw",
+      "displayOrder": 2,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 3,
+      "slug": "accessories",
+      "nameEn": "Accessories",
+      "nameAr": "الإكسسوارات",
+      "descriptionEn": "Protective cases, screen guards, camera protectors, and mounts.",
+      "descriptionAr": "أغطية حماية، واقيات شاشة، ملحقات كاميرا، وحوامل الهواتف.",
+      "icon": "ShieldCheck",
+      "displayOrder": 3,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 4,
+      "slug": "chargers-cables",
+      "nameEn": "Chargers & Cables",
+      "nameAr": "الشواحن والكابلات",
+      "descriptionEn": "High-speed PD power adapters, braided cables, and wireless docks.",
+      "descriptionAr": "محولات شحن سريع PD، كابلات متينة، وقواعد شحن لاسلكي.",
+      "icon": "Zap",
+      "displayOrder": 4,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 5,
+      "slug": "earbuds-audio",
+      "nameEn": "Earbuds & Audio",
+      "nameAr": "سماعات الأذن والصوتيات",
+      "descriptionEn": "Wireless earbuds, noise-canceling headphones, and portable speakers.",
+      "descriptionAr": "سماعات أذن لاسلكية، سماعات رأس عازلة للضوضاء ومكبرات صوت.",
+      "icon": "Headphones",
+      "displayOrder": 5,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 6,
+      "slug": "smartwatches",
+      "nameEn": "Smartwatches",
+      "nameAr": "الساعات الذكية",
+      "descriptionEn": "Advanced fitness trackers, cellular watches, and smart wearables.",
+      "descriptionAr": "ساعات ذكية للياقة والاتصال ومتابعة الصحة.",
+      "icon": "Watch",
+      "displayOrder": 6,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 7,
+      "slug": "tablets-laptops",
+      "nameEn": "Tablets & Laptops",
+      "nameAr": "الأجهزة اللوحية والمحمولة",
+      "descriptionEn": "Pro tablets, ultrabooks, styluses, and keyboard accessories.",
+      "descriptionAr": "أجهزة لوحية متقدمة، أجهزة محمولة، وأقلام ذكية.",
+      "icon": "Tablet",
+      "displayOrder": 7,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 8,
+      "slug": "other-electronics",
+      "nameEn": "Other Electronics",
+      "nameAr": "إلكترونيات أخرى",
+      "descriptionEn": "Power banks, gaming gadgets, automotive tech, and smart life.",
+      "descriptionAr": "بنوك طاقة، ملحقات ألعاب، وتقنيات إلكترونية ذكية.",
+      "icon": "Cpu",
+      "displayOrder": 8,
+      "createdAt": "2026-10-14T15:32:58.226Z"
+    },
+    {
+      "id": 9,
+      "slug": "xxxxxxxx",
+      "nameEn": "xxxxxxxx",
+      "nameAr": "xxxxxxxxx",
+      "descriptionEn": "",
+      "descriptionAr": "",
+      "icon": "Smartphone",
+      "displayOrder": 0,
+      "createdAt": "2026-10-18T13:32:55.544Z"
+    },
+    {
+      "id": 10,
+      "slug": "smart-audio",
+      "nameEn": "Smart Audio",
+      "nameAr": "الصوتيات الذكية",
+      "descriptionEn": "",
+      "descriptionAr": "",
+      "icon": "/api/images/8",
+      "displayOrder": 0,
+      "createdAt": "2026-10-27T18:14:53.775Z"
+    },
+    {
+      "id": 11,
+      "slug": "networking-wi-fi",
+      "nameEn": "Networking & Wi-Fi",
+      "nameAr": "الشبكات والواي فاي",
+      "descriptionEn": "",
+      "descriptionAr": "",
+      "icon": "/api/images/50001",
+      "displayOrder": 0,
+      "createdAt": "2026-10-27T18:30:19.056Z"
+    },
+    {
+      "id": 12,
+      "slug": "routers-wi-fi",
+      "nameEn": "Routers & Wi-Fi",
+      "nameAr": "راوترات وواي فاي",
+      "descriptionEn": "",
+      "descriptionAr": "",
+      "icon": "Smartphone",
+      "displayOrder": 0,
+      "createdAt": "2026-10-28T07:39:22.370Z"
+    }
+  ],
   "products": [
     {
       "id": 10,

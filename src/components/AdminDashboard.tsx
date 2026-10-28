@@ -478,6 +478,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
   useEffect(() => {
     if (activeTab === 'products') fetchProducts();
+    if (activeTab === 'categories') fetchCategories();
+    if (activeTab === 'brands') fetchBrands();
     if (activeTab === 'overview') fetchOverview();
     if (activeTab === 'audit') fetchAuditLogs();
     if (activeTab === 'visitors') fetchVisitorAnalytics();
@@ -1018,9 +1020,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }),
         });
       }
+      const savedCatData = await res.json();
       if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error || 'Failed to save category');
+        throw new Error(savedCatData.error || 'Failed to save category');
+      }
+      if (editingCategory) {
+        setCategoriesList((prev) => prev.map((c) => (c.id === savedCatData.id ? { ...c, ...savedCatData } : c)));
+      } else {
+        setCategoriesList((prev) => [...prev.filter((c) => c.id !== savedCatData.id), savedCatData]);
       }
       showNotification(editingCategory ? `Updated category "${catNameEn}"` : `Added category "${catNameEn}"`);
       setCatNameEn('');
@@ -1036,27 +1043,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Delete Category
-  const handleDeleteCategory = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete category "${name}"?`)) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/categories/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders,
-      });
-      if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error || 'Failed to delete category');
-      }
-      showNotification(`Category "${name}" deleted`);
-      fetchCategories();
-      fetchOverview();
-    } catch (e: any) {
-      showNotification(e.message, true);
-    } finally {
-      setLoading(false);
-    }
+  // Delete Category with in-app confirmation modal
+  const handleDeleteCategory = (id: number, name: string) => {
+    setDeleteConfirmDialog({
+      isOpen: true,
+      title: 'Delete Category',
+      message: `Are you sure you want to delete category "${name}"?`,
+      onConfirm: async () => {
+        setDeleteConfirmDialog(null);
+        try {
+          setLoading(true);
+          setCategoriesList((prev) => prev.filter((c) => c.id !== id));
+          const res = await fetch(`/api/admin/categories/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders,
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.error || 'Failed to delete category');
+          }
+          showNotification(`Category "${name}" deleted`);
+          fetchCategories();
+          fetchOverview();
+        } catch (e: any) {
+          showNotification(e.message, true);
+          fetchCategories();
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   // Add / Update Brand
@@ -1085,9 +1101,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           }),
         });
       }
+      const savedBrandData = await res.json();
       if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error || 'Failed to save brand');
+        throw new Error(savedBrandData.error || 'Failed to save brand');
+      }
+      if (editingBrand) {
+        setBrandsList((prev) => prev.map((b) => (b.id === savedBrandData.id ? { ...b, ...savedBrandData } : b)));
+      } else {
+        setBrandsList((prev) => [...prev.filter((b) => b.id !== savedBrandData.id), savedBrandData]);
       }
       showNotification(editingBrand ? `Updated brand "${brandName}"` : `Added brand "${brandName}"`);
       setBrandName('');
@@ -1102,27 +1123,36 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Delete Brand
-  const handleDeleteBrand = async (id: number, name: string) => {
-    if (!window.confirm(`Are you sure you want to delete brand "${name}"?`)) return;
-    try {
-      setLoading(true);
-      const res = await fetch(`/api/admin/brands/${id}`, {
-        method: 'DELETE',
-        headers: authHeaders,
-      });
-      if (!res.ok) {
-        const d = await res.json();
-        throw new Error(d.error || 'Failed to delete brand');
-      }
-      showNotification(`Brand "${name}" deleted`);
-      fetchBrands();
-      fetchOverview();
-    } catch (e: any) {
-      showNotification(e.message, true);
-    } finally {
-      setLoading(false);
-    }
+  // Delete Brand with in-app confirmation modal
+  const handleDeleteBrand = (id: number, name: string) => {
+    setDeleteConfirmDialog({
+      isOpen: true,
+      title: 'Delete Brand',
+      message: `Are you sure you want to delete brand "${name}"?`,
+      onConfirm: async () => {
+        setDeleteConfirmDialog(null);
+        try {
+          setLoading(true);
+          setBrandsList((prev) => prev.filter((b) => b.id !== id));
+          const res = await fetch(`/api/admin/brands/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders,
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.error || 'Failed to delete brand');
+          }
+          showNotification(`Brand "${name}" deleted`);
+          fetchBrands();
+          fetchOverview();
+        } catch (e: any) {
+          showNotification(e.message, true);
+          fetchBrands();
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
   };
 
   // Change Owner Password

@@ -685,10 +685,57 @@ async function startServer() {
       console.warn("Note: Could not write data-store.json:", err);
     }
   };
+  const reconcileStores = async () => {
+    if (!isPostgresAvailable) return;
+    try {
+      const pgBrands = await db.select({
+        id: brands.id,
+        slug: brands.slug,
+        name: brands.name,
+        logoUrl: brands.logoUrl,
+        createdAt: brands.createdAt
+      }).from(brands);
+      for (const b of pgBrands) {
+        const idx = customBrands.findIndex((cb) => cb.id === b.id || cb.slug === b.slug);
+        if (idx !== -1) {
+          customBrands[idx] = { ...customBrands[idx], ...b };
+        } else {
+          customBrands.push(b);
+        }
+      }
+      const pgCats = await db.select({
+        id: categories.id,
+        slug: categories.slug,
+        nameEn: categories.nameEn,
+        nameAr: categories.nameAr,
+        descriptionEn: categories.descriptionEn,
+        descriptionAr: categories.descriptionAr,
+        icon: categories.icon,
+        displayOrder: categories.displayOrder
+      }).from(categories);
+      for (const c of pgCats) {
+        const idx = customCategories.findIndex((cc) => cc.id === c.id || cc.slug === c.slug);
+        if (idx !== -1) {
+          customCategories[idx] = { ...customCategories[idx], ...c };
+        } else {
+          customCategories.push(c);
+        }
+      }
+      persistDataStore();
+      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories`);
+    } catch (e) {
+      console.warn("Store reconciliation note:", e?.message || e);
+    }
+  };
+  initDatabase().then(() => {
+    reconcileStores();
+  }).catch(() => {
+  });
   app.get("/api/categories", async (_req, res) => {
+    let dbCategories = [];
     if (isPostgresAvailable) {
       try {
-        const allCategories = await db.select({
+        dbCategories = await db.select({
           id: categories.id,
           slug: categories.slug,
           nameEn: categories.nameEn,
@@ -698,42 +745,47 @@ async function startServer() {
           icon: categories.icon,
           displayOrder: categories.displayOrder
         }).from(categories).orderBy(asc(categories.displayOrder), asc(categories.nameEn));
-        if (allCategories && allCategories.length > 0) {
-          return res.json(allCategories);
-        }
       } catch (err) {
-        console.warn("PostgreSQL categories query failed, serving fallback store:", err);
+        console.warn("PostgreSQL categories query failed, serving persistent store:", err);
       }
     }
-    const merged = [...FALLBACK_CATEGORIES];
+    const merged = [...dbCategories];
     for (const c of customCategories) {
-      if (!merged.some((m) => m.slug === c.slug)) {
+      if (!merged.some((m) => m.slug === c.slug || m.id === c.id)) {
         merged.push(c);
+      }
+    }
+    if (merged.length === 0) {
+      for (const fc of FALLBACK_CATEGORIES) {
+        merged.push(fc);
       }
     }
     res.json(merged);
   });
   app.get(["/api/brands", "/api/admin/brands"], async (_req, res) => {
+    let dbBrands = [];
     if (isPostgresAvailable) {
       try {
-        const allBrands = await db.select({
+        dbBrands = await db.select({
           id: brands.id,
           slug: brands.slug,
           name: brands.name,
           logoUrl: brands.logoUrl,
           createdAt: brands.createdAt
         }).from(brands).orderBy(asc(brands.name));
-        if (allBrands && allBrands.length > 0) {
-          return res.json(allBrands);
-        }
       } catch (err) {
         console.warn("Brands query fallback, serving persistent store:", err?.message);
       }
     }
-    const merged = [...FALLBACK_BRANDS];
+    const merged = [...dbBrands];
     for (const b of customBrands) {
-      if (!merged.some((m) => m.slug === b.slug)) {
+      if (!merged.some((m) => m.slug === b.slug || m.id === b.id)) {
         merged.push(b);
+      }
+    }
+    if (merged.length === 0) {
+      for (const fb of FALLBACK_BRANDS) {
+        merged.push(fb);
       }
     }
     res.json(merged);
@@ -2318,9 +2370,14 @@ async function startServer() {
           displayOrder: displayOrder ? parseInt(displayOrder, 10) : 0,
           createdAt: (/* @__PURE__ */ new Date()).toISOString()
         };
-        customCategories.push(savedCat);
-        persistDataStore();
       }
+      const existCatIdx = customCategories.findIndex((c) => c.id === savedCat.id || c.slug === savedCat.slug);
+      if (existCatIdx !== -1) {
+        customCategories[existCatIdx] = savedCat;
+      } else {
+        customCategories.push(savedCat);
+      }
+      persistDataStore();
       await logAudit("CATEGORY_CREATE", `Created category "${nameEn}"`, req.user?.email);
       res.status(201).json(savedCat);
     } catch (error) {
@@ -2361,8 +2418,8 @@ async function startServer() {
           console.warn("DB category update note:", dbErr);
         }
       }
+      const idx = customCategories.findIndex((c) => c.id === id);
       if (!updatedCat) {
-        const idx = customCategories.findIndex((c) => c.id === id);
         if (idx !== -1) {
           if (nameEn) customCategories[idx].nameEn = nameEn.trim();
           if (nameAr) customCategories[idx].nameAr = nameAr.trim();
@@ -2375,6 +2432,13 @@ async function startServer() {
           customCategories.push(updatedCat);
           persistDataStore();
         }
+      } else {
+        if (idx !== -1) {
+          customCategories[idx] = { ...customCategories[idx], ...updatedCat };
+        } else {
+          customCategories.push(updatedCat);
+        }
+        persistDataStore();
       }
       await logAudit("CATEGORY_UPDATE", `Updated category "${nameEn || id}"`, req.user?.email);
       res.json(updatedCat);
@@ -2448,9 +2512,14 @@ async function startServer() {
           logoUrl: (logoUrl || "").trim(),
           createdAt: (/* @__PURE__ */ new Date()).toISOString()
         };
-        customBrands.push(savedBrand);
-        persistDataStore();
       }
+      const existBrandIdx = customBrands.findIndex((b) => b.id === savedBrand.id || b.slug === savedBrand.slug);
+      if (existBrandIdx !== -1) {
+        customBrands[existBrandIdx] = savedBrand;
+      } else {
+        customBrands.push(savedBrand);
+      }
+      persistDataStore();
       await logAudit("BRAND_CREATE", `Created brand "${name.trim()}" (slug: ${finalSlug})`, req.user?.email);
       res.status(201).json(savedBrand);
     } catch (error) {
@@ -2485,8 +2554,8 @@ async function startServer() {
           console.warn("DB brand update note:", dbErr);
         }
       }
+      const idx = customBrands.findIndex((b) => b.id === id);
       if (!updatedBrand) {
-        const idx = customBrands.findIndex((b) => b.id === id);
         if (idx !== -1) {
           if (name) customBrands[idx].name = name.trim();
           if (logoUrl !== void 0) customBrands[idx].logoUrl = logoUrl.trim();
@@ -2497,6 +2566,13 @@ async function startServer() {
           customBrands.push(updatedBrand);
           persistDataStore();
         }
+      } else {
+        if (idx !== -1) {
+          customBrands[idx] = { ...customBrands[idx], ...updatedBrand };
+        } else {
+          customBrands.push(updatedBrand);
+        }
+        persistDataStore();
       }
       await logAudit("BRAND_UPDATE", `Updated brand "${name || id}"`, req.user?.email);
       res.json(updatedBrand);

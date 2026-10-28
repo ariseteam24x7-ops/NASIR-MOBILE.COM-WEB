@@ -125,15 +125,75 @@ async function startServer() {
     }
   };
 
+  // Reconcile and mirror database entities into persistent store so nothing ever vanishes
+  const reconcileStores = async () => {
+    if (!isPostgresAvailable) return;
+    try {
+      // 1. Sync PostgreSQL brands -> customBrands
+      const pgBrands = await db
+        .select({
+          id: brands.id,
+          slug: brands.slug,
+          name: brands.name,
+          logoUrl: brands.logoUrl,
+          createdAt: brands.createdAt,
+        })
+        .from(brands);
+
+      for (const b of pgBrands) {
+        const idx = customBrands.findIndex((cb) => cb.id === b.id || cb.slug === b.slug);
+        if (idx !== -1) {
+          customBrands[idx] = { ...customBrands[idx], ...b };
+        } else {
+          customBrands.push(b as any);
+        }
+      }
+
+      // 2. Sync PostgreSQL categories -> customCategories
+      const pgCats = await db
+        .select({
+          id: categories.id,
+          slug: categories.slug,
+          nameEn: categories.nameEn,
+          nameAr: categories.nameAr,
+          descriptionEn: categories.descriptionEn,
+          descriptionAr: categories.descriptionAr,
+          icon: categories.icon,
+          displayOrder: categories.displayOrder,
+        })
+        .from(categories);
+
+      for (const c of pgCats) {
+        const idx = customCategories.findIndex((cc) => cc.id === c.id || cc.slug === c.slug);
+        if (idx !== -1) {
+          customCategories[idx] = { ...customCategories[idx], ...c };
+        } else {
+          customCategories.push(c as any);
+        }
+      }
+
+      persistDataStore();
+      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories`);
+    } catch (e: any) {
+      console.warn('Store reconciliation note:', e?.message || e);
+    }
+  };
+
+  // Run reconciliation once DB is ready
+  initDatabase().then(() => {
+    reconcileStores();
+  }).catch(() => {});
+
   // ----------------------------------------------------
   // PUBLIC APIS (ABSOLUTE PRIVACY: NO COSTS, STOCK, IMEIS, ETC.)
   // ----------------------------------------------------
 
-  // Public Categories
+  // Public Categories (Merged PostgreSQL + Data-Store so no category ever vanishes)
   app.get('/api/categories', async (_req, res) => {
+    let dbCategories: any[] = [];
     if (isPostgresAvailable) {
       try {
-        const allCategories = await db
+        dbCategories = await db
           .select({
             id: categories.id,
             slug: categories.slug,
@@ -146,28 +206,33 @@ async function startServer() {
           })
           .from(categories)
           .orderBy(asc(categories.displayOrder), asc(categories.nameEn));
-        if (allCategories && allCategories.length > 0) {
-          return res.json(allCategories);
-        }
       } catch (err) {
-        console.warn('PostgreSQL categories query failed, serving fallback store:', err);
+        console.warn('PostgreSQL categories query failed, serving persistent store:', err);
       }
     }
 
-    const merged = [...FALLBACK_CATEGORIES];
+    const merged = [...dbCategories];
     for (const c of customCategories) {
-      if (!merged.some((m) => m.slug === c.slug)) {
+      if (!merged.some((m) => m.slug === c.slug || m.id === c.id)) {
         merged.push(c as any);
       }
     }
+
+    if (merged.length === 0) {
+      for (const fc of FALLBACK_CATEGORIES) {
+        merged.push(fc as any);
+      }
+    }
+
     res.json(merged);
   });
 
-  // Public & Admin Brands
+  // Public & Admin Brands (Merged PostgreSQL + Data-Store so no brand ever vanishes)
   app.get(['/api/brands', '/api/admin/brands'], async (_req, res) => {
+    let dbBrands: any[] = [];
     if (isPostgresAvailable) {
       try {
-        const allBrands = await db
+        dbBrands = await db
           .select({
             id: brands.id,
             slug: brands.slug,
@@ -177,20 +242,24 @@ async function startServer() {
           })
           .from(brands)
           .orderBy(asc(brands.name));
-        if (allBrands && allBrands.length > 0) {
-          return res.json(allBrands);
-        }
       } catch (err) {
         console.warn('Brands query fallback, serving persistent store:', (err as any)?.message);
       }
     }
 
-    const merged = [...FALLBACK_BRANDS];
+    const merged = [...dbBrands];
     for (const b of customBrands) {
-      if (!merged.some((m) => m.slug === b.slug)) {
+      if (!merged.some((m) => m.slug === b.slug || m.id === b.id)) {
         merged.push(b as any);
       }
     }
+
+    if (merged.length === 0) {
+      for (const fb of FALLBACK_BRANDS) {
+        merged.push(fb as any);
+      }
+    }
+
     res.json(merged);
   });
 
@@ -2143,10 +2212,16 @@ async function startServer() {
           displayOrder: displayOrder ? parseInt(displayOrder, 10) : 0,
           createdAt: new Date().toISOString(),
         };
-
-        customCategories.push(savedCat);
-        persistDataStore();
       }
+
+      // ALWAYS mirror to customCategories and persistDataStore
+      const existCatIdx = customCategories.findIndex((c) => c.id === savedCat.id || c.slug === savedCat.slug);
+      if (existCatIdx !== -1) {
+        customCategories[existCatIdx] = savedCat;
+      } else {
+        customCategories.push(savedCat);
+      }
+      persistDataStore();
 
       await logAudit('CATEGORY_CREATE', `Created category "${nameEn}"`, req.user?.email);
       res.status(201).json(savedCat);
@@ -2196,8 +2271,8 @@ async function startServer() {
         }
       }
 
+      const idx = customCategories.findIndex((c) => c.id === id);
       if (!updatedCat) {
-        const idx = customCategories.findIndex((c) => c.id === id);
         if (idx !== -1) {
           if (nameEn) customCategories[idx].nameEn = nameEn.trim();
           if (nameAr) customCategories[idx].nameAr = nameAr.trim();
@@ -2210,6 +2285,13 @@ async function startServer() {
           customCategories.push(updatedCat);
           persistDataStore();
         }
+      } else {
+        if (idx !== -1) {
+          customCategories[idx] = { ...customCategories[idx], ...updatedCat };
+        } else {
+          customCategories.push(updatedCat);
+        }
+        persistDataStore();
       }
 
       await logAudit('CATEGORY_UPDATE', `Updated category "${nameEn || id}"`, req.user?.email);
@@ -2305,10 +2387,16 @@ async function startServer() {
           logoUrl: (logoUrl || '').trim(),
           createdAt: new Date().toISOString(),
         };
-
-        customBrands.push(savedBrand);
-        persistDataStore();
       }
+
+      // ALWAYS mirror to customBrands and persistDataStore
+      const existBrandIdx = customBrands.findIndex((b) => b.id === savedBrand.id || b.slug === savedBrand.slug);
+      if (existBrandIdx !== -1) {
+        customBrands[existBrandIdx] = savedBrand;
+      } else {
+        customBrands.push(savedBrand);
+      }
+      persistDataStore();
 
       await logAudit('BRAND_CREATE', `Created brand "${name.trim()}" (slug: ${finalSlug})`, req.user?.email);
       res.status(201).json(savedBrand);
@@ -2352,8 +2440,8 @@ async function startServer() {
         }
       }
 
+      const idx = customBrands.findIndex((b) => b.id === id);
       if (!updatedBrand) {
-        const idx = customBrands.findIndex((b) => b.id === id);
         if (idx !== -1) {
           if (name) customBrands[idx].name = name.trim();
           if (logoUrl !== undefined) customBrands[idx].logoUrl = logoUrl.trim();
@@ -2364,6 +2452,13 @@ async function startServer() {
           customBrands.push(updatedBrand);
           persistDataStore();
         }
+      } else {
+        if (idx !== -1) {
+          customBrands[idx] = { ...customBrands[idx], ...updatedBrand };
+        } else {
+          customBrands.push(updatedBrand);
+        }
+        persistDataStore();
       }
 
       await logAudit('BRAND_UPDATE', `Updated brand "${name || id}"`, req.user?.email);
