@@ -869,8 +869,39 @@ async function startServer() {
         query = query.orderBy(desc(products.createdAt));
       }
       const results = await query;
-      if (results && results.length > 0) {
-        return res.json(results);
+      const finalProducts = [...results || []];
+      for (const cp of customProducts) {
+        if (!cp.status || cp.status === "published") {
+          if (!finalProducts.some((p) => p.id === cp.id || p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase())) {
+            finalProducts.unshift({
+              id: cp.id,
+              slug: cp.slug,
+              sku: cp.sku,
+              nameEn: cp.nameEn,
+              nameAr: cp.nameAr,
+              descriptionEn: cp.descriptionEn || "",
+              descriptionAr: cp.descriptionAr || "",
+              condition: cp.condition || "New",
+              categoryId: cp.categoryId,
+              brandId: cp.brandId,
+              categoryNameEn: cp.categoryNameEn || "General",
+              categoryNameAr: cp.categoryNameAr || "\u0639\u0627\u0645",
+              categorySlug: cp.categorySlug,
+              brandName: cp.brandName || "",
+              brandSlug: cp.brandSlug,
+              brandLogoUrl: cp.brandLogoUrl,
+              isFeatured: Boolean(cp.isFeatured),
+              isNewArrival: Boolean(cp.isNewArrival),
+              specifications: cp.specifications || [],
+              variants: cp.variants || [],
+              images: cp.images || [],
+              inStock: (cp.stockQuantity ?? 1) > 0
+            });
+          }
+        }
+      }
+      if (finalProducts.length > 0) {
+        return res.json(finalProducts);
       }
       res.json(filterFallbackProducts(req.query));
     } catch {
@@ -879,12 +910,13 @@ async function startServer() {
   });
   app.get("/api/products/:slug", async (req, res) => {
     const slug = req.params.slug;
+    const allFallbackItems = [...customProducts, ...FALLBACK_PRODUCTS];
     if (!isPostgresAvailable) {
-      const fallbackItem = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+      const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
       if (fallbackItem) {
         return res.json({
           product: fallbackItem,
-          related: FALLBACK_PRODUCTS.filter((p) => p.id !== fallbackItem.id).slice(0, 4)
+          related: allFallbackItems.filter((p) => p.id !== fallbackItem.id).slice(0, 4)
         });
       }
       return res.status(404).json({ error: "Product not found" });
@@ -941,20 +973,20 @@ async function startServer() {
           related
         });
       }
-      const fallbackItem = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+      const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
       if (fallbackItem) {
         return res.json({
           product: fallbackItem,
-          related: FALLBACK_PRODUCTS.filter((p) => p.id !== fallbackItem.id).slice(0, 4)
+          related: allFallbackItems.filter((p) => p.id !== fallbackItem.id).slice(0, 4)
         });
       }
       return res.status(404).json({ error: "Product not found" });
     } catch {
-      const fallbackItem = FALLBACK_PRODUCTS.find((p) => p.slug === slug);
+      const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
       if (fallbackItem) {
         return res.json({
           product: fallbackItem,
-          related: FALLBACK_PRODUCTS.filter((p) => p.id !== fallbackItem.id).slice(0, 4)
+          related: allFallbackItems.filter((p) => p.id !== fallbackItem.id).slice(0, 4)
         });
       }
       res.status(404).json({ error: "Product not found" });
@@ -1591,13 +1623,19 @@ async function startServer() {
         brandName: brands.name
       }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id));
       const results = conditions.length > 0 ? await query.where(and(...conditions)).orderBy(desc(products.createdAt)) : await query.orderBy(desc(products.createdAt));
-      if (results && results.length > 0) {
-        return res.json(results);
+      const finalProducts = [...results || []];
+      for (const cp of customProducts) {
+        if (!finalProducts.some((p) => p.id === cp.id || p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase())) {
+          finalProducts.unshift(cp);
+        }
       }
-      res.json(filterFallbackProducts(req.query));
+      if (finalProducts.length > 0) {
+        return res.json(finalProducts);
+      }
+      res.json(filterFallbackProducts(req.query, false));
     } catch (error) {
       console.warn("Database note: Using fallback admin products:", error?.message);
-      res.json(filterFallbackProducts(req.query));
+      res.json(filterFallbackProducts(req.query, false));
     }
   });
   const makeSlug = (text2) => {
@@ -1631,8 +1669,20 @@ async function startServer() {
       if (!nameEn || !nameEn.trim()) {
         return res.status(400).json({ error: "English product name is required." });
       }
-      const existingSku = await db.select().from(products).where(eq2(products.sku, sku.trim())).limit(1);
-      if (existingSku.length > 0) {
+      const cleanSku = sku.trim().toUpperCase();
+      let skuExistsInDb = false;
+      if (isPostgresAvailable) {
+        try {
+          const existingSku = await db.select().from(products).where(eq2(products.sku, cleanSku)).limit(1);
+          if (existingSku.length > 0) {
+            skuExistsInDb = true;
+          }
+        } catch (dbErr) {
+          console.warn("Database SKU check note:", dbErr);
+        }
+      }
+      const skuExistsInCustom = customProducts.some((p) => p.sku && p.sku.toUpperCase() === cleanSku);
+      if (skuExistsInDb || skuExistsInCustom) {
         return res.status(400).json({ error: `Product with SKU "${sku.trim()}" already exists.` });
       }
       let baseSlug = makeSlug(nameEn);
@@ -1640,37 +1690,154 @@ async function startServer() {
       let finalSlug = baseSlug;
       let counter = 1;
       while (true) {
-        const existingSlug = await db.select().from(products).where(eq2(products.slug, finalSlug)).limit(1);
-        if (existingSlug.length === 0) break;
+        let slugExists = customProducts.some((p) => p.slug === finalSlug) || FALLBACK_PRODUCTS.some((p) => p.slug === finalSlug);
+        if (!slugExists && isPostgresAvailable) {
+          try {
+            const existingSlug = await db.select().from(products).where(eq2(products.slug, finalSlug)).limit(1);
+            if (existingSlug.length > 0) {
+              slugExists = true;
+            }
+          } catch (dbErr) {
+            console.warn("Database slug check note:", dbErr);
+          }
+        }
+        if (!slugExists) break;
         finalSlug = `${baseSlug}-${counter++}`;
       }
-      const newProduct = await db.insert(products).values({
-        slug: finalSlug,
-        sku: sku.trim().toUpperCase(),
-        nameEn: nameEn.trim(),
-        nameAr: (nameAr || nameEn).trim(),
-        descriptionEn: descriptionEn || "",
-        descriptionAr: descriptionAr || "",
-        condition: condition || "New",
-        categoryId: categoryId ? parseInt(categoryId, 10) : null,
-        brandId: brandId ? parseInt(brandId, 10) : null,
-        isFeatured: Boolean(isFeatured),
-        isNewArrival: Boolean(isNewArrival),
-        status: status || "published",
-        specifications: specifications || [],
-        variants: variants || [],
-        images: productImages || [],
-        privateNotes: privateNotes || "",
-        purchaseCost: purchaseCost || "",
-        stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : 0,
-        imeiSerialNumbers: imeiSerialNumbers || []
-      }).returning();
+      let safeCategoryId = null;
+      let safeBrandId = null;
+      let catNameEn = "";
+      let catNameAr = "";
+      let catSlug = "";
+      let brandName = "";
+      let brandSlug = "";
+      const parsedCatId = categoryId ? parseInt(String(categoryId), 10) : null;
+      const parsedBrandId = brandId ? parseInt(String(brandId), 10) : null;
+      const foundCat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === parsedCatId || c.slug === categoryId);
+      if (foundCat) {
+        catNameEn = foundCat.nameEn;
+        catNameAr = foundCat.nameAr;
+        catSlug = foundCat.slug;
+      }
+      const foundBrand = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === parsedBrandId || b.slug === brandId);
+      if (foundBrand) {
+        brandName = foundBrand.name;
+        brandSlug = foundBrand.slug;
+      }
+      if (isPostgresAvailable && parsedCatId && !isNaN(parsedCatId)) {
+        try {
+          const dbCat = await db.select().from(categories).where(eq2(categories.id, parsedCatId)).limit(1);
+          if (dbCat.length > 0) {
+            safeCategoryId = dbCat[0].id;
+            catNameEn = dbCat[0].nameEn;
+            catNameAr = dbCat[0].nameAr;
+            catSlug = dbCat[0].slug;
+          }
+        } catch (catErr) {
+          console.warn("Database category verification note:", catErr);
+        }
+      }
+      if (isPostgresAvailable && parsedBrandId && !isNaN(parsedBrandId)) {
+        try {
+          const dbBrand = await db.select().from(brands).where(eq2(brands.id, parsedBrandId)).limit(1);
+          if (dbBrand.length > 0) {
+            safeBrandId = dbBrand[0].id;
+            brandName = dbBrand[0].name;
+            brandSlug = dbBrand[0].slug;
+          }
+        } catch (brandErr) {
+          console.warn("Database brand verification note:", brandErr);
+        }
+      }
+      let createdProduct = null;
+      if (isPostgresAvailable) {
+        try {
+          const newProduct = await db.insert(products).values({
+            slug: finalSlug,
+            sku: cleanSku,
+            nameEn: nameEn.trim(),
+            nameAr: (nameAr || nameEn).trim(),
+            descriptionEn: descriptionEn || "",
+            descriptionAr: descriptionAr || "",
+            condition: condition || "New",
+            categoryId: safeCategoryId,
+            brandId: safeBrandId,
+            isFeatured: Boolean(isFeatured),
+            isNewArrival: Boolean(isNewArrival),
+            status: status || "published",
+            specifications: specifications || [],
+            variants: variants || [],
+            images: productImages || [],
+            privateNotes: privateNotes || "",
+            purchaseCost: purchaseCost || "",
+            stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : 0,
+            imeiSerialNumbers: imeiSerialNumbers || []
+          }).returning();
+          if (newProduct && newProduct.length > 0) {
+            createdProduct = {
+              ...newProduct[0],
+              categoryId: parsedCatId || safeCategoryId,
+              brandId: parsedBrandId || safeBrandId,
+              categoryNameEn: catNameEn,
+              categoryNameAr: catNameAr,
+              categorySlug: catSlug,
+              brandName,
+              brandSlug
+            };
+          }
+        } catch (dbErr) {
+          console.warn("PostgreSQL insert product failed, persisting via high-reliability fallback:", dbErr?.message);
+        }
+      }
+      if (!createdProduct) {
+        const nextId = Math.max(
+          9e4,
+          ...customProducts.map((p) => Number(p.id) || 0),
+          ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0)
+        ) + 1;
+        createdProduct = {
+          id: nextId,
+          slug: finalSlug,
+          sku: cleanSku,
+          nameEn: nameEn.trim(),
+          nameAr: (nameAr || nameEn).trim(),
+          descriptionEn: descriptionEn || "",
+          descriptionAr: descriptionAr || "",
+          condition: condition || "New",
+          categoryId: parsedCatId,
+          brandId: parsedBrandId,
+          categoryNameEn: catNameEn || "General",
+          categoryNameAr: catNameAr || "\u0639\u0627\u0645",
+          categorySlug: catSlug,
+          brandName,
+          brandSlug,
+          isFeatured: Boolean(isFeatured),
+          isNewArrival: Boolean(isNewArrival),
+          status: status || "published",
+          specifications: specifications || [],
+          variants: variants || [],
+          images: productImages || [],
+          privateNotes: privateNotes || "",
+          purchaseCost: purchaseCost || "",
+          stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : 0,
+          imeiSerialNumbers: imeiSerialNumbers || [],
+          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      }
+      const existIdx = customProducts.findIndex((p) => p.id === createdProduct.id || p.sku === createdProduct.sku);
+      if (existIdx !== -1) {
+        customProducts[existIdx] = createdProduct;
+      } else {
+        customProducts.unshift(createdProduct);
+      }
+      persistDataStore();
       await logAudit(
         "PRODUCT_CREATE",
-        `Created product: "${nameEn}" [SKU: ${sku.trim().toUpperCase()}]`,
+        `Created product: "${nameEn}" [SKU: ${cleanSku}]`,
         req.user?.email
       );
-      res.status(201).json(newProduct[0]);
+      res.status(201).json(createdProduct);
     } catch (error) {
       console.error("Error creating product:", error);
       res.status(500).json({ error: error.message || "Failed to create product" });

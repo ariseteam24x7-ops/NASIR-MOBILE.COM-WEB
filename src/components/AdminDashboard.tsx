@@ -739,6 +739,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to save product');
 
+      // Optimistically update products list state immediately
+      if (editingProduct) {
+        setProductsList((prev) => prev.map((p) => (p.id === data.id ? { ...p, ...data } : p)));
+      } else {
+        setProductsList((prev) => [data, ...prev.filter((p) => p.id !== data.id && p.sku !== data.sku)]);
+      }
+
       showNotification(editingProduct ? 'Product updated successfully' : 'Product created successfully');
       setProductModalOpen(false);
       fetchProducts();

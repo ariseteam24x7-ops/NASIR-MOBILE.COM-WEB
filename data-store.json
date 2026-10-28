@@ -1,0 +1,45 @@
+{
+  "brands": [],
+  "categories": [],
+  "products": [
+    {
+      "id": 6,
+      "slug": "tp-link-archer-ax55-pro-gigabit-wi-fi-6-router",
+      "sku": "TP-ARCHER-AX55-1793173174137",
+      "nameEn": "TP-Link Archer AX55 Pro Gigabit Wi-Fi 6 Router",
+      "nameAr": "راوتر آرتشر AX55 برو واي فاي 6 جيجابيت",
+      "descriptionEn": "Multi-Gigabit Wi-Fi 6 Router with high performance.",
+      "descriptionAr": "",
+      "condition": "New",
+      "categoryId": 12,
+      "brandId": 17,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [],
+      "variants": [
+        {
+          "name": "Standard",
+          "price": 349,
+          "isDefault": true,
+          "originalPrice": 399,
+          "stockQuantity": 25
+        }
+      ],
+      "images": [
+        "/api/images/50001"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 0,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-28T07:39:34.170Z",
+      "updatedAt": "2026-10-28T07:39:34.170Z",
+      "categoryNameEn": "Routers & Wi-Fi",
+      "categoryNameAr": "راوترات وواي فاي",
+      "categorySlug": "routers-wi-fi",
+      "brandName": "TP - LINK",
+      "brandSlug": "tp-link-2"
+    }
+  ]
+}
