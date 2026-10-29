@@ -164,6 +164,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [formStockQuantity, setFormStockQuantity] = useState(0);
   const [formImeis, setFormImeis] = useState<string[]>([]);
   const [imeiInput, setImeiInput] = useState('');
+  const [stockInputs, setStockInputs] = useState<Record<number, string>>({});
 
   // Loading & Feedback
   const [loading, setLoading] = useState(false);
@@ -551,20 +552,47 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     updates: { isFeatured?: boolean; isNewArrival?: boolean; stockQuantity?: number; status?: ProductStatus }
   ) => {
     try {
+      // Optimistically update local state immediately for snappy response
+      setProductsList((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
+      );
+
       const res = await fetch(`/api/admin/products/${id}/quick-update`, {
         method: 'PATCH',
         headers: authHeaders,
         body: JSON.stringify(updates),
       });
-      if (res.ok) {
-        setProductsList((prev) =>
-          prev.map((p) => (p.id === id ? { ...p, ...updates } : p))
-        );
-        showNotification('Product updated instantly!');
-        fetchOverview();
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to update product');
       }
-    } catch (e) {
+      showNotification('Product updated instantly!');
+      fetchOverview();
+    } catch (e: any) {
       console.error(e);
+      showNotification(e.message || 'Failed to update product', true);
+      fetchProducts();
+    }
+  };
+
+  // Inline typing handlers for product stock
+  const handleStockInputChange = (productId: number, val: string) => {
+    setStockInputs((prev) => ({ ...prev, [productId]: val }));
+  };
+
+  const handleStockInputCommit = (p: Product) => {
+    const rawVal = stockInputs[p.id];
+    if (rawVal === undefined) return;
+    const parsed = parseInt(rawVal, 10);
+    const newStock = isNaN(parsed) ? 0 : Math.max(0, parsed);
+    // Clear the local draft override
+    setStockInputs((prev) => {
+      const next = { ...prev };
+      delete next[p.id];
+      return next;
+    });
+    if (newStock !== (p.stockQuantity ?? 0)) {
+      handleQuickUpdateProduct(p.id, { stockQuantity: newStock });
     }
   };
 
@@ -572,6 +600,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const handleStockIncrement = async (p: Product, delta: number) => {
     const currentStock = p.stockQuantity ?? 0;
     const newStock = Math.max(0, currentStock + delta);
+    setStockInputs((prev) => {
+      const next = { ...prev };
+      delete next[p.id];
+      return next;
+    });
     handleQuickUpdateProduct(p.id, { stockQuantity: newStock });
   };
 
@@ -671,6 +704,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Failed to duplicate product');
+      
+      // Optimistically prepend duplicated item to products list
+      if (data && data.id) {
+        setProductsList((prev) => [data, ...prev.filter((p) => p.id !== data.id)]);
+      }
+
       showNotification(`Product duplicated successfully as draft! SKU: ${data.sku}`);
       fetchProducts();
       fetchOverview();
@@ -1908,34 +1947,44 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                                   {/* Inline Stock Quantity Adjuster */}
                                   <td className="p-3.5 text-center">
-                                    <div className="inline-flex items-center gap-1.5 p-1 rounded-xl bg-[#151419] border border-white/10">
+                                    <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#151419] border border-white/10 shadow-inner">
                                       <button
                                         type="button"
                                         onClick={() => handleStockIncrement(p, -1)}
                                         disabled={stock <= 0}
-                                        className="w-5 h-5 rounded-lg bg-white/5 hover:bg-white/10 disabled:opacity-30 text-white flex items-center justify-center cursor-pointer transition-colors"
+                                        className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 disabled:opacity-30 text-white flex items-center justify-center cursor-pointer transition-all"
                                         title="Decrease Stock"
                                       >
-                                        <Minus className="w-2.5 h-2.5" />
+                                        <Minus className="w-3 h-3" />
                                       </button>
-                                      <span
-                                        className={`font-mono text-xs font-bold px-1.5 ${
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        value={stockInputs[p.id] !== undefined ? stockInputs[p.id] : stock}
+                                        onChange={(e) => handleStockInputChange(p.id, e.target.value)}
+                                        onBlur={() => handleStockInputCommit(p)}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') {
+                                            e.currentTarget.blur();
+                                          }
+                                        }}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className={`w-12 text-center bg-black/40 border border-white/10 rounded-lg py-0.5 font-mono text-xs font-bold focus:outline-none focus:border-[#B7F34B] focus:ring-1 focus:ring-[#B7F34B] transition-colors [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none ${
                                           stock === 0
                                             ? 'text-rose-400'
                                             : stock <= 2
                                             ? 'text-yellow-400'
                                             : 'text-emerald-400'
                                         }`}
-                                      >
-                                        {stock}
-                                      </span>
+                                        title="Type to change stock, press Enter or click away to save"
+                                      />
                                       <button
                                         type="button"
                                         onClick={() => handleStockIncrement(p, 1)}
-                                        className="w-5 h-5 rounded-lg bg-white/5 hover:bg-white/10 text-white flex items-center justify-center cursor-pointer transition-colors"
+                                        className="w-6 h-6 rounded-lg bg-white/5 hover:bg-white/10 active:scale-95 text-white flex items-center justify-center cursor-pointer transition-all"
                                         title="Increase Stock"
                                       >
-                                        <Plus className="w-2.5 h-2.5" />
+                                        <Plus className="w-3 h-3" />
                                       </button>
                                     </div>
                                     {p.purchaseCost && (

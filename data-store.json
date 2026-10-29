@@ -277,10 +277,10 @@
       ],
       "privateNotes": "",
       "purchaseCost": "",
-      "stockQuantity": 0,
+      "stockQuantity": 7,
       "imeiSerialNumbers": [],
       "createdAt": "2026-10-28T08:03:06.157Z",
-      "updatedAt": "2026-10-28T08:03:06.157Z",
+      "updatedAt": "2026-10-29T17:12:56.391Z",
       "categoryNameEn": "Routers & Wi-Fi",
       "categoryNameAr": "راوترات وواي فاي",
       "categorySlug": "routers-wi-fi",
@@ -290,6 +290,7 @@
   ],
   "deletedProductIds": [
     8,
-    9
+    9,
+    12
   ]
 }

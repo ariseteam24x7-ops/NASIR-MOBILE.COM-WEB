@@ -266,9 +266,11 @@ async function startServer() {
   // Helper for in-memory fallback product filtering (includes custom saved products, excludes deleted products)
   const filterFallbackProducts = (query: any, isPublic = true) => {
     const { category, brand, condition, featured, newArrival, search, sort, status, categoryId, brandId } = query;
-    const activeFallbacks = FALLBACK_PRODUCTS.filter((p) => !deletedProductIds.includes(p.id));
+    const activeFallbacks = FALLBACK_PRODUCTS.filter(
+      (p) => !deletedProductIds.includes(p.id) && !customProducts.some((cp) => cp.id === p.id)
+    );
     const activeCustom = customProducts.filter((p) => !deletedProductIds.includes(p.id));
-    let allMerged = [...activeFallbacks, ...activeCustom];
+    let allMerged = [...activeCustom, ...activeFallbacks];
 
     if (isPublic) {
       allMerged = allMerged.filter((p) => !p.status || p.status === 'published');
@@ -1380,7 +1382,14 @@ async function startServer() {
           ? await query.where(and(...conditions)).orderBy(desc(products.createdAt))
           : await query.orderBy(desc(products.createdAt));
 
-      const finalProducts = (results || []).filter((p: any) => !deletedProductIds.includes(p.id));
+      const finalProducts = (results || [])
+        .filter((p: any) => !deletedProductIds.includes(p.id))
+        .map((p: any) => {
+          const cp = customProducts.find(
+            (c) => c.id === p.id || (c.sku && p.sku && c.sku.toUpperCase() === p.sku.toUpperCase())
+          );
+          return cp ? { ...p, ...cp } : p;
+        });
       for (const cp of customProducts) {
         if (!deletedProductIds.includes(cp.id)) {
           if (!finalProducts.some((p: any) => p.id === cp.id || (p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase()))) {
@@ -1725,43 +1734,41 @@ async function startServer() {
         }
       }
 
-      // 2. Persistent store update fallback
-      if (!updatedProd) {
-        const idx = customProducts.findIndex((p) => p.id === id);
-        if (idx !== -1) {
-          customProducts[idx] = {
-            ...customProducts[idx],
-            ...(sku ? { sku: sku.trim().toUpperCase() } : {}),
-            ...(nameEn ? { nameEn: nameEn.trim() } : {}),
-            ...(nameAr ? { nameAr: nameAr.trim() } : {}),
-            ...(descriptionEn !== undefined ? { descriptionEn } : {}),
-            ...(descriptionAr !== undefined ? { descriptionAr } : {}),
-            ...(condition ? { condition } : {}),
-            ...(categoryId !== undefined ? { categoryId: categoryId ? parseInt(categoryId, 10) : null } : {}),
-            ...(brandId !== undefined ? { brandId: brandId ? parseInt(brandId, 10) : null } : {}),
-            ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
-            ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
-            ...(status ? { status } : {}),
-            ...(specifications !== undefined ? { specifications } : {}),
-            ...(variants !== undefined ? { variants } : {}),
-            ...(productImages !== undefined ? { images: productImages } : {}),
-            ...(privateNotes !== undefined ? { privateNotes } : {}),
-            ...(purchaseCost !== undefined ? { purchaseCost } : {}),
-            ...(stockQuantity !== undefined ? { stockQuantity: parseInt(stockQuantity, 10) } : {}),
-            ...(imeiSerialNumbers !== undefined ? { imeiSerialNumbers } : {}),
-            updatedAt: new Date().toISOString(),
-          };
-          updatedProd = customProducts[idx];
-          persistDataStore();
-        } else {
-          updatedProd = {
-            id,
-            sku: (sku || `SKU-${id}`).toUpperCase(),
-            nameEn: nameEn || 'Product',
-            nameAr: nameAr || nameEn || 'Product',
-            updatedAt: new Date().toISOString(),
-          };
-        }
+      // 2. Persistent store sync & fallback
+      const idx = customProducts.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        customProducts[idx] = {
+          ...customProducts[idx],
+          ...(sku ? { sku: sku.trim().toUpperCase() } : {}),
+          ...(nameEn ? { nameEn: nameEn.trim() } : {}),
+          ...(nameAr ? { nameAr: nameAr.trim() } : {}),
+          ...(descriptionEn !== undefined ? { descriptionEn } : {}),
+          ...(descriptionAr !== undefined ? { descriptionAr } : {}),
+          ...(condition ? { condition } : {}),
+          ...(categoryId !== undefined ? { categoryId: categoryId ? parseInt(categoryId, 10) : null } : {}),
+          ...(brandId !== undefined ? { brandId: brandId ? parseInt(brandId, 10) : null } : {}),
+          ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
+          ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
+          ...(status ? { status } : {}),
+          ...(specifications !== undefined ? { specifications } : {}),
+          ...(variants !== undefined ? { variants } : {}),
+          ...(productImages !== undefined ? { images: productImages } : {}),
+          ...(privateNotes !== undefined ? { privateNotes } : {}),
+          ...(purchaseCost !== undefined ? { purchaseCost } : {}),
+          ...(stockQuantity !== undefined ? { stockQuantity: parseInt(stockQuantity, 10) } : {}),
+          ...(imeiSerialNumbers !== undefined ? { imeiSerialNumbers } : {}),
+          updatedAt: new Date().toISOString(),
+        };
+        if (!updatedProd) updatedProd = customProducts[idx];
+        persistDataStore();
+      } else if (!updatedProd) {
+        updatedProd = {
+          id,
+          sku: (sku || `SKU-${id}`).toUpperCase(),
+          nameEn: nameEn || 'Product',
+          nameAr: nameAr || nameEn || 'Product',
+          updatedAt: new Date().toISOString(),
+        };
       }
 
       await logAudit(
@@ -1781,54 +1788,156 @@ async function startServer() {
   app.post('/api/admin/products/:id/duplicate', requireAuth, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const original = await db.select().from(products).where(eq(products.id, id)).limit(1);
-      if (original.length === 0) {
+      let prod: any = null;
+
+      // 1. Try PostgreSQL lookup
+      if (isPostgresAvailable) {
+        try {
+          const original = await db.select().from(products).where(eq(products.id, id)).limit(1);
+          if (original.length > 0) {
+            prod = original[0];
+          }
+        } catch (dbErr) {
+          console.warn('PostgreSQL duplicate lookup note:', dbErr);
+        }
+      }
+
+      // 2. Fallback to customProducts
+      if (!prod) {
+        prod = customProducts.find((p) => p.id === id);
+      }
+
+      // 3. Fallback to FALLBACK_PRODUCTS
+      if (!prod) {
+        prod = FALLBACK_PRODUCTS.find((p) => p.id === id);
+      }
+
+      if (!prod) {
         return res.status(404).json({ error: 'Original product not found' });
       }
 
-      const prod = original[0];
-      const newSku = `${prod.sku}-COPY-${Math.floor(1000 + Math.random() * 9000)}`;
-      const baseSlug = `${prod.slug}-copy`;
+      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+      const newSku = `${prod.sku || 'SKU'}-COPY-${randomSuffix}`;
+      const baseSlug = `${prod.slug || makeSlug(prod.nameEn || 'product')}-copy-${randomSuffix}`;
       let finalSlug = baseSlug;
-      let counter = 1;
-      while (true) {
-        const slugCheck = await db.select().from(products).where(eq(products.slug, finalSlug)).limit(1);
-        if (slugCheck.length === 0) break;
-        finalSlug = `${baseSlug}-${counter++}`;
+
+      // Safe foreign key resolution for PostgreSQL
+      let safeCategoryId: number | null = null;
+      let safeBrandId: number | null = null;
+      const parsedCatId = prod.categoryId ? parseInt(String(prod.categoryId), 10) : null;
+      const parsedBrandId = prod.brandId ? parseInt(String(prod.brandId), 10) : null;
+
+      if (isPostgresAvailable) {
+        if (parsedCatId && !isNaN(parsedCatId)) {
+          try {
+            const dbCat = await db.select().from(categories).where(eq(categories.id, parsedCatId)).limit(1);
+            if (dbCat.length > 0) safeCategoryId = dbCat[0].id;
+          } catch {}
+        }
+        if (parsedBrandId && !isNaN(parsedBrandId)) {
+          try {
+            const dbBrand = await db.select().from(brands).where(eq(brands.id, parsedBrandId)).limit(1);
+            if (dbBrand.length > 0) safeBrandId = dbBrand[0].id;
+          } catch {}
+        }
       }
 
-      const duplicated = await db
-        .insert(products)
-        .values({
+      let duplicatedProd: any = null;
+
+      // Insert into PostgreSQL if available
+      if (isPostgresAvailable) {
+        try {
+          const inserted = await db
+            .insert(products)
+            .values({
+              slug: finalSlug,
+              sku: newSku,
+              nameEn: `${prod.nameEn || 'Product'} (Copy)`,
+              nameAr: `${prod.nameAr || prod.nameEn || 'Product'} (نسخة)`,
+              descriptionEn: prod.descriptionEn || '',
+              descriptionAr: prod.descriptionAr || '',
+              condition: prod.condition || 'New',
+              categoryId: safeCategoryId,
+              brandId: safeBrandId,
+              isFeatured: false,
+              isNewArrival: false,
+              status: 'draft', // duplicated items start in draft mode
+              specifications: prod.specifications || [],
+              variants: prod.variants || [],
+              images: prod.images || [],
+              privateNotes: prod.privateNotes || '',
+              purchaseCost: prod.purchaseCost || '',
+              stockQuantity: 0,
+              imeiSerialNumbers: [],
+            })
+            .returning();
+
+          if (inserted && inserted.length > 0) {
+            duplicatedProd = {
+              ...inserted[0],
+              categoryId: parsedCatId || safeCategoryId,
+              brandId: parsedBrandId || safeBrandId,
+              categoryNameEn: prod.categoryNameEn,
+              categoryNameAr: prod.categoryNameAr,
+              brandName: prod.brandName,
+            };
+          }
+        } catch (dbErr: any) {
+          console.warn('PostgreSQL duplicate insert error, falling back to data-store:', dbErr?.message);
+        }
+      }
+
+      // If PostgreSQL failed or not available, assign ID from data-store
+      if (!duplicatedProd) {
+        const nextId =
+          Math.max(
+            90000,
+            ...customProducts.map((p) => Number(p.id) || 0),
+            ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0)
+          ) + 1;
+
+        duplicatedProd = {
+          id: nextId,
           slug: finalSlug,
           sku: newSku,
-          nameEn: `${prod.nameEn} (Copy)`,
-          nameAr: `${prod.nameAr} (نسخة)`,
-          descriptionEn: prod.descriptionEn,
-          descriptionAr: prod.descriptionAr,
-          condition: prod.condition,
-          categoryId: prod.categoryId,
-          brandId: prod.brandId,
+          nameEn: `${prod.nameEn || 'Product'} (Copy)`,
+          nameAr: `${prod.nameAr || prod.nameEn || 'Product'} (نسخة)`,
+          descriptionEn: prod.descriptionEn || '',
+          descriptionAr: prod.descriptionAr || '',
+          condition: prod.condition || 'New',
+          categoryId: parsedCatId,
+          brandId: parsedBrandId,
+          categoryNameEn: prod.categoryNameEn || '',
+          categoryNameAr: prod.categoryNameAr || '',
+          brandName: prod.brandName || '',
           isFeatured: false,
           isNewArrival: false,
-          status: 'draft', // duplicated items start in draft mode
-          specifications: prod.specifications,
-          variants: prod.variants,
-          images: prod.images,
-          privateNotes: prod.privateNotes,
-          purchaseCost: prod.purchaseCost,
+          status: 'draft',
+          specifications: prod.specifications || [],
+          variants: prod.variants || [],
+          images: prod.images || [],
+          privateNotes: prod.privateNotes || '',
+          purchaseCost: prod.purchaseCost || '',
           stockQuantity: 0,
           imeiSerialNumbers: [],
-        })
-        .returning();
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        };
+      }
+
+      // Always guarantee persistence in customProducts & data-store.json
+      if (!customProducts.some((p) => p.id === duplicatedProd.id)) {
+        customProducts.unshift(duplicatedProd);
+        persistDataStore();
+      }
 
       await logAudit(
         'PRODUCT_DUPLICATE',
-        `Duplicated product ID ${id} to "${duplicated[0].nameEn}" [SKU: ${newSku}]`,
+        `Duplicated product ID ${id} to "${duplicatedProd.nameEn}" [SKU: ${newSku}]`,
         req.user?.email
       );
 
-      res.status(201).json(duplicated[0]);
+      res.status(201).json(duplicatedProd);
     } catch (error: any) {
       console.error('Error duplicating product:', error);
       res.status(500).json({ error: error.message || 'Failed to duplicate product' });
@@ -1885,23 +1994,51 @@ async function startServer() {
         return res.status(400).json({ error: 'Invalid status' });
       }
 
-      const updated = await db
-        .update(products)
-        .set({ status, updatedAt: new Date() })
-        .where(eq(products.id, id))
-        .returning();
+      let updatedProd: any = null;
 
-      if (updated.length === 0) {
+      if (isPostgresAvailable) {
+        try {
+          const updated = await db
+            .update(products)
+            .set({ status, updatedAt: new Date() })
+            .where(eq(products.id, id))
+            .returning();
+
+          if (updated && updated.length > 0) {
+            updatedProd = updated[0];
+          }
+        } catch (dbErr) {
+          console.warn('PostgreSQL status update note:', dbErr);
+        }
+      }
+
+      const idx = customProducts.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        customProducts[idx] = { ...customProducts[idx], status, updatedAt: new Date().toISOString() };
+        if (!updatedProd) updatedProd = customProducts[idx];
+        persistDataStore();
+      } else {
+        const fallbackProd = FALLBACK_PRODUCTS.find((p) => p.id === id);
+        if (fallbackProd || updatedProd) {
+          const baseProd = updatedProd || fallbackProd;
+          const newCustomProd = { ...baseProd, status, updatedAt: new Date().toISOString() };
+          customProducts.push(newCustomProd);
+          if (!updatedProd) updatedProd = newCustomProd;
+          persistDataStore();
+        }
+      }
+
+      if (!updatedProd) {
         return res.status(404).json({ error: 'Product not found' });
       }
 
       await logAudit(
         'PRODUCT_STATUS_CHANGE',
-        `Changed status of "${updated[0].nameEn}" to ${status}`,
+        `Changed status of "${updatedProd.nameEn || `Product #${id}`}" to ${status}`,
         req.user?.email
       );
 
-      res.json(updated[0]);
+      res.json(updatedProd);
     } catch (error: any) {
       console.error('Error changing product status:', error);
       res.status(500).json({ error: error.message || 'Failed to update status' });
@@ -1917,28 +2054,75 @@ async function startServer() {
       const updateData: any = { updatedAt: new Date() };
       if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
       if (isNewArrival !== undefined) updateData.isNewArrival = Boolean(isNewArrival);
-      if (stockQuantity !== undefined) updateData.stockQuantity = Math.max(0, parseInt(stockQuantity, 10) || 0);
+      if (stockQuantity !== undefined) {
+        updateData.stockQuantity = Math.max(0, parseInt(String(stockQuantity), 10) || 0);
+      }
       if (status !== undefined && ['published', 'draft', 'archived'].includes(status)) {
         updateData.status = status;
       }
 
-      const updated = await db
-        .update(products)
-        .set(updateData)
-        .where(eq(products.id, id))
-        .returning();
+      let updatedProd: any = null;
 
-      if (updated.length === 0) {
+      // 1. Try PostgreSQL update
+      if (isPostgresAvailable) {
+        try {
+          const updated = await db
+            .update(products)
+            .set(updateData)
+            .where(eq(products.id, id))
+            .returning();
+
+          if (updated && updated.length > 0) {
+            updatedProd = updated[0];
+          }
+        } catch (dbErr) {
+          console.warn('PostgreSQL quick-update note:', dbErr);
+        }
+      }
+
+      // 2. Always sync with customProducts and data-store.json
+      const idx = customProducts.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        customProducts[idx] = {
+          ...customProducts[idx],
+          ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
+          ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
+          ...(stockQuantity !== undefined ? { stockQuantity: Math.max(0, parseInt(String(stockQuantity), 10) || 0) } : {}),
+          ...(status !== undefined && ['published', 'draft', 'archived'].includes(status) ? { status } : {}),
+          updatedAt: new Date().toISOString(),
+        };
+        if (!updatedProd) updatedProd = customProducts[idx];
+        persistDataStore();
+      } else {
+        // If not in customProducts, look in FALLBACK_PRODUCTS or use updatedProd from DB
+        const fallbackProd = FALLBACK_PRODUCTS.find((p) => p.id === id);
+        if (fallbackProd || updatedProd) {
+          const baseProd = updatedProd || fallbackProd;
+          const newCustomProd = {
+            ...baseProd,
+            ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
+            ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
+            ...(stockQuantity !== undefined ? { stockQuantity: Math.max(0, parseInt(String(stockQuantity), 10) || 0) } : {}),
+            ...(status !== undefined && ['published', 'draft', 'archived'].includes(status) ? { status } : {}),
+            updatedAt: new Date().toISOString(),
+          };
+          customProducts.push(newCustomProd);
+          if (!updatedProd) updatedProd = newCustomProd;
+          persistDataStore();
+        }
+      }
+
+      if (!updatedProd) {
         return res.status(404).json({ error: 'Product not found' });
       }
 
       await logAudit(
         'PRODUCT_QUICK_UPDATE',
-        `Quick updated "${updated[0].nameEn}" (stock: ${updated[0].stockQuantity}, featured: ${updated[0].isFeatured})`,
+        `Quick updated "${updatedProd.nameEn || `Product #${id}`}" (stock: ${updatedProd.stockQuantity ?? 0}, status: ${updatedProd.status})`,
         req.user?.email
       );
 
-      res.json(updated[0]);
+      res.json(updatedProd);
     } catch (error: any) {
       console.error('Error quick updating product:', error);
       res.status(500).json({ error: error.message || 'Failed to quick update product' });
