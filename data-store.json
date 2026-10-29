@@ -66,16 +66,23 @@
     {
       "id": 10,
       "slug": "playstation",
-      "name": "playstation",
+      "name": "PlayStation",
       "logoUrl": "",
       "createdAt": "2026-10-18T13:38:33.384Z"
     },
     {
       "id": 11,
       "slug": "tp-link",
-      "name": "TP Link",
+      "name": "TP-Link",
       "logoUrl": "https://kommodo.ai/i/i5yB9eczSjRtrWw6VM7h",
       "createdAt": "2026-10-27T16:54:13.972Z"
+    },
+    {
+      "id": 12,
+      "slug": "nothing-tech",
+      "name": "Nothing Tech",
+      "logoUrl": "",
+      "createdAt": "2026-10-29T18:05:21.434Z"
     },
     {
       "id": 13,
@@ -86,8 +93,8 @@
     },
     {
       "id": 14,
-      "slug": "test-slug-1793125563382",
-      "name": "Test Brand",
+      "slug": "razer",
+      "name": "Razer",
       "logoUrl": "",
       "createdAt": "2026-10-27T18:26:03.469Z"
     },
@@ -203,25 +210,14 @@
       "createdAt": "2026-10-14T15:32:58.226Z"
     },
     {
-      "id": 9,
-      "slug": "xxxxxxxx",
-      "nameEn": "xxxxxxxx",
-      "nameAr": "xxxxxxxxx",
-      "descriptionEn": "",
-      "descriptionAr": "",
-      "icon": "Smartphone",
-      "displayOrder": 0,
-      "createdAt": "2026-10-18T13:32:55.544Z"
-    },
-    {
       "id": 10,
       "slug": "smart-audio",
       "nameEn": "Smart Audio",
       "nameAr": "الصوتيات الذكية",
       "descriptionEn": "",
       "descriptionAr": "",
-      "icon": "/api/images/8",
-      "displayOrder": 0,
+      "icon": "Volume2",
+      "displayOrder": 9,
       "createdAt": "2026-10-27T18:14:53.775Z"
     },
     {
@@ -231,8 +227,8 @@
       "nameAr": "الشبكات والواي فاي",
       "descriptionEn": "",
       "descriptionAr": "",
-      "icon": "/api/images/50001",
-      "displayOrder": 0,
+      "icon": "Wifi",
+      "displayOrder": 10,
       "createdAt": "2026-10-27T18:30:19.056Z"
     },
     {
@@ -242,9 +238,30 @@
       "nameAr": "راوترات وواي فاي",
       "descriptionEn": "",
       "descriptionAr": "",
-      "icon": "Smartphone",
-      "displayOrder": 0,
+      "icon": "Radio",
+      "displayOrder": 11,
       "createdAt": "2026-10-28T07:39:22.370Z"
+    },
+    {
+      "id": 13,
+      "slug": "gaming-vr-tech",
+      "nameEn": "Gaming & VR Tech",
+      "nameAr": "أجهزة الألعاب والواقع الافتراضي",
+      "descriptionEn": "Next-gen gaming systems, controllers, VR headsets, and pro gaming gear.",
+      "descriptionAr": "أجهزة ألعاب الجيل القادم، أيادي تحكم، نظارات واقع افتراضي وملحقات قيمنق.",
+      "icon": "Gamepad2",
+      "displayOrder": 12,
+      "createdAt": "2026-10-28T09:44:24.000Z"
+    },
+    {
+      "id": 9,
+      "slug": "xxxxxxxx",
+      "nameEn": "xxxxxxxx",
+      "nameAr": "xxxxxxxxx",
+      "descriptionEn": "",
+      "descriptionAr": "",
+      "icon": "Smartphone",
+      "displayOrder": 0
     }
   ],
   "products": [
@@ -257,18 +274,64 @@
       "descriptionEn": "Ultra-thin and minimalist design with AX3000 Wi-Fi 6 speeds, smart antennas, and seamless EasyMesh support.",
       "descriptionAr": "تصميم فائق النحافة والأناقة مع سرعات واي فاي 6 AX3000 وهوائيات ذكية ودعم EasyMesh السلس.",
       "condition": "New",
-      "categoryId": 12,
-      "brandId": 17,
+      "categoryId": 11,
+      "brandId": 11,
       "isFeatured": true,
       "isNewArrival": true,
       "status": "published",
-      "specifications": [],
+      "specifications": [
+        {
+          "keyEn": "Wi-Fi Speeds",
+          "keyAr": "سرعات الواي فاي",
+          "valueEn": "AX3000 (2402 Mbps on 5GHz + 574 Mbps on 2.4GHz)",
+          "valueAr": "AX3000"
+        }
+      ],
       "variants": [
         {
           "name": "Standard Pack",
           "price": 280,
           "isDefault": true,
           "originalPrice": 320,
+          "stockQuantity": 7
+        }
+      ],
+      "images": [
+        "/api/images/50001"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "210 AED",
+      "stockQuantity": 7,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-28T08:03:06.157Z",
+      "updatedAt": "2026-10-29T17:12:56.391Z",
+      "categoryNameEn": "Networking & Wi-Fi",
+      "categoryNameAr": "الشبكات والواي فاي",
+      "categorySlug": "networking-wi-fi",
+      "brandName": "TP-Link",
+      "brandSlug": "tp-link"
+    },
+    {
+      "id": 11,
+      "slug": "tp-link-archer-ax73-dual-band-wi-fi-6-router",
+      "sku": "TP-ARCHER-AX73-1793174564980",
+      "nameEn": "TP-Link Archer AX73 Dual-Band Wi-Fi 6 Router",
+      "nameAr": "راوتر تي بي لينك آرتشر AX73 واي فاي 6 مزدوج النطاق",
+      "descriptionEn": "Gigabit Wi-Fi 6 router delivering up to 5400 Mbps speeds for 8K streaming, 6 high-gain antennas, and HomeShield security.",
+      "descriptionAr": "راوتر واي فاي 6 جيجابت بسرعات تصل إلى 5400 ميجابت لبث بدقة 8K مع 6 هوائيات وحماية HomeShield المتطورة.",
+      "condition": "New",
+      "categoryId": 12,
+      "brandId": 11,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [],
+      "variants": [
+        {
+          "name": "AX5400 Standard",
+          "price": 340,
+          "isDefault": true,
+          "originalPrice": 380,
           "stockQuantity": 15
         }
       ],
@@ -276,21 +339,1385 @@
         "/api/images/50001"
       ],
       "privateNotes": "",
-      "purchaseCost": "",
-      "stockQuantity": 7,
+      "purchaseCost": "260 AED",
+      "stockQuantity": 15,
       "imeiSerialNumbers": [],
-      "createdAt": "2026-10-28T08:03:06.157Z",
-      "updatedAt": "2026-10-29T17:12:56.391Z",
+      "createdAt": "2026-10-28T08:02:45.015Z",
+      "updatedAt": "2026-10-28T08:02:45.015Z",
       "categoryNameEn": "Routers & Wi-Fi",
       "categoryNameAr": "راوترات وواي فاي",
       "categorySlug": "routers-wi-fi",
-      "brandName": "TP - LINK",
-      "brandSlug": "tp-link-2"
+      "brandName": "TP-Link",
+      "brandSlug": "tp-link"
+    },
+    {
+      "id": 12,
+      "slug": "tp-link-archer-ax55-pro-gigabit-wi-fi-6-router",
+      "sku": "TP-ARCHER-AX55-1793173174137",
+      "nameEn": "TP-Link Archer AX55 Pro Gigabit Wi-Fi 6 Router",
+      "nameAr": "راوتر تي بي لينك آرتشر AX55 برو جيجابت واي فاي 6",
+      "descriptionEn": "Multi-Gigabit Wi-Fi 6 router with 2.5G port, AX3000 speeds, low latency gaming, and VPN server/client support.",
+      "descriptionAr": "راوتر واي فاي 6 متعدد الجيجابت مع منفذ 2.5G وسرعات AX3000 للألعاب السريعة ودعم خوادم VPN.",
+      "condition": "New",
+      "categoryId": 12,
+      "brandId": 11,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [],
+      "variants": [
+        {
+          "name": "AX3000 Pro (2.5G Port)",
+          "price": 290,
+          "isDefault": true,
+          "originalPrice": 330,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [
+        "/api/images/50001"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "215 AED",
+      "stockQuantity": 10,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-28T07:39:34.178Z",
+      "updatedAt": "2026-10-28T07:39:34.178Z",
+      "categoryNameEn": "Routers & Wi-Fi",
+      "categoryNameAr": "راوترات وواي فاي",
+      "categorySlug": "routers-wi-fi",
+      "brandName": "TP-Link",
+      "brandSlug": "tp-link"
+    },
+    {
+      "id": 13,
+      "slug": "tp-link-archer-air-e5-range-extender",
+      "sku": "ARCHER-AIR-E5-EXT",
+      "nameEn": "TP-Link Archer Air E5 Range Extender",
+      "nameAr": "موسع نطاق تي بي لينك آرتشر إير E5",
+      "descriptionEn": "Compact Wi-Fi 6 range extender engineered for dead-zone elimination with ultra-thin profile and smart signal indicator.",
+      "descriptionAr": "موسع نطاق واي فاي 6 مدمج مصمم للقضاء على المناطق الميتة مع تصميم نحيف ومؤشر إشارة ذكي.",
+      "condition": "New",
+      "categoryId": 11,
+      "brandId": 11,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [],
+      "variants": [
+        {
+          "name": "Standard Extender",
+          "price": 220,
+          "isDefault": true,
+          "originalPrice": 260,
+          "stockQuantity": 12
+        }
+      ],
+      "images": [
+        "/api/images/50001"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "160 AED",
+      "stockQuantity": 12,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-27T18:52:56.585Z",
+      "updatedAt": "2026-10-27T18:52:56.585Z",
+      "categoryNameEn": "Networking & Wi-Fi",
+      "categoryNameAr": "الشبكات والواي فاي",
+      "categorySlug": "networking-wi-fi",
+      "brandName": "TP-Link",
+      "brandSlug": "tp-link"
+    },
+    {
+      "id": 3,
+      "slug": "apple-watch-ultra-2-black-titanium",
+      "sku": "NMD-AWU2-BT",
+      "nameEn": "Apple Watch Ultra 2 - Black Titanium",
+      "nameAr": "آبل واتش الترا 2 - تيتانيوم أسود",
+      "descriptionEn": "Engineered for extreme environments with stunning 3000-nit display, precision dual-frequency GPS, and up to 72 hours of battery life.",
+      "descriptionAr": "مصممة للأجواء القاسية مع شاشة بسطوع 3000 شمعة، نظام GPS مزدوج عالي الدقة، وبطارية تدوم حتى 72 ساعة.",
+      "condition": "New",
+      "categoryId": 6,
+      "brandId": 1,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "الهيكل",
+          "keyEn": "Case",
+          "valueAr": "هيكل تيتانيوم أسود 49 ملم",
+          "valueEn": "49mm Black Titanium Case"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Water Resistance",
+          "valueAr": "مقاومة للماء حتى عمق 100 متر",
+          "valueEn": "100m Water Resistant"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black Titanium - Trail Loop",
+          "price": 3199,
+          "isDefault": true,
+          "originalPrice": 3499,
+          "stockQuantity": 5
+        },
+        {
+          "name": "Black Titanium - Ocean Band",
+          "price": 3199,
+          "isDefault": false,
+          "originalPrice": 3499,
+          "stockQuantity": 3
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 8,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.458Z",
+      "updatedAt": "2026-10-29T18:05:21.458Z",
+      "categoryNameEn": "Smartwatches",
+      "categoryNameAr": "الساعات الذكية",
+      "categorySlug": "smartwatches",
+      "brandName": "Apple",
+      "brandSlug": "apple"
+    },
+    {
+      "id": 4,
+      "slug": "ipad-pro-13-m4-oled",
+      "sku": "NMD-IPP13-M4",
+      "nameEn": "Apple iPad Pro 13-inch (M4) Tandem OLED",
+      "nameAr": "آبل آيباد برو 13 بوصة بشريحة M4 وشاشة أوليد",
+      "descriptionEn": "Ultra thin 5.1mm design with breakthrough Ultra Retina XDR display, game-changing M4 chip, and Apple Pencil Pro support.",
+      "descriptionAr": "تصميم فائق النحافة بسماكة 5.1 ملم مع شاشة ألترا ريتينا XDR أوليد الثورية ومعالج M4 الخارق.",
+      "condition": "New",
+      "categoryId": 7,
+      "brandId": 1,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المعالج",
+          "keyEn": "Processor",
+          "valueAr": "شريحة آبل M4 مع محرك عصبي متطور",
+          "valueEn": "Apple M4 Chip (Next-gen Neural Engine)"
+        },
+        {
+          "keyAr": "الشاشة",
+          "keyEn": "Display",
+          "valueAr": "شاشة 13 بوصة تانديم أوليد ألترا ريتينا XDR",
+          "valueEn": "13\" Tandem OLED Ultra Retina XDR"
+        }
+      ],
+      "variants": [
+        {
+          "name": "256GB Wi-Fi - Space Black",
+          "price": 4699,
+          "isDefault": true,
+          "originalPrice": 4999,
+          "stockQuantity": 6
+        },
+        {
+          "name": "512GB Wi-Fi + Cellular 5G",
+          "price": 5699,
+          "isDefault": false,
+          "originalPrice": 6099,
+          "stockQuantity": 4
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 10,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.463Z",
+      "updatedAt": "2026-10-29T18:05:21.463Z",
+      "categoryNameEn": "Tablets & Laptops",
+      "categoryNameAr": "الأجهزة اللوحية والمحمولة",
+      "categorySlug": "tablets-laptops",
+      "brandName": "Apple",
+      "brandSlug": "apple"
+    },
+    {
+      "id": 1,
+      "slug": "iphone-16-pro-max-desert-titanium",
+      "sku": "NMD-IP16PM-DT",
+      "nameEn": "Apple iPhone 16 Pro Max - Desert Titanium",
+      "nameAr": "آبل آيفون 16 برو ماكس - تيتانيوم صحراوي",
+      "descriptionEn": "Apple iPhone 16 Pro Max featuring the powerful A18 Pro chip, Grade 5 titanium design, 48MP Fusion camera system, and Camera Control button.",
+      "descriptionAr": "آبل آيفون 16 برو ماكس بشريحة A18 برو الجبارة، تصميم من التيتانيوم، كاميرا بدقة 48 ميجابكسل، وزر التحكم بالكاميرا الجديد.",
+      "condition": "New",
+      "categoryId": 1,
+      "brandId": 1,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "سعة التخزين",
+          "keyEn": "Storage",
+          "valueAr": "256 جيجابايت / 512 جيجابايت / 1 تيرابايت",
+          "valueEn": "256GB / 512GB / 1TB"
+        },
+        {
+          "keyAr": "الشاشة",
+          "keyEn": "Display",
+          "valueAr": "6.9 بوصة سوبر ريتينا XDR أوليد 120 هرتز",
+          "valueEn": "6.9\" Super Retina XDR OLED 120Hz"
+        },
+        {
+          "keyAr": "المعالج",
+          "keyEn": "Processor",
+          "valueAr": "آبل A18 برو (3 نانومتر)",
+          "valueEn": "Apple A18 Pro (3nm)"
+        },
+        {
+          "keyAr": "الضمان",
+          "keyEn": "Warranty",
+          "valueAr": "ضمان رسمي من آبل دبي لمدة سنة",
+          "valueEn": "1 Year Apple Official Dubai Warranty"
+        }
+      ],
+      "variants": [
+        {
+          "name": "256GB - Desert Titanium",
+          "price": 5099,
+          "isDefault": true,
+          "originalPrice": 5499,
+          "stockQuantity": 10
+        },
+        {
+          "name": "512GB - Desert Titanium",
+          "price": 5899,
+          "isDefault": false,
+          "originalPrice": 6299,
+          "stockQuantity": 5
+        },
+        {
+          "name": "1TB - Natural Titanium",
+          "price": 6699,
+          "isDefault": false,
+          "originalPrice": 7099,
+          "stockQuantity": 3
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80",
+        "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 18,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.448Z",
+      "updatedAt": "2026-10-29T18:05:21.448Z",
+      "categoryNameEn": "Mobile Phones",
+      "categoryNameAr": "الهواتف المتحركة",
+      "categorySlug": "mobile-phones",
+      "brandName": "Apple",
+      "brandSlug": "apple"
+    },
+    {
+      "id": 2,
+      "slug": "samsung-galaxy-s25-ultra-titanium-black",
+      "sku": "NMD-SGS25U-TB",
+      "nameEn": "Samsung Galaxy S25 Ultra 5G",
+      "nameAr": "سامسونج جالاكسي S25 الترا 5G",
+      "descriptionEn": "The ultimate flagship powered by Snapdragon 8 Elite for Galaxy, built-in S Pen, ProVisual 200MP camera, and Galaxy AI capabilities.",
+      "descriptionAr": "الهاتف الرائد الأقوى بمعالج سنابدراجون 8 إيليت، قلم S Pen مدمج، كاميرا بدقة 200 ميجابكسل، وميزات جالاكسي للذكاء الاصطناعي.",
+      "condition": "New",
+      "categoryId": 1,
+      "brandId": 2,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المعالج",
+          "keyEn": "Processor",
+          "valueAr": "سنابدراجون 8 إيليت مخصص لجالاكسي",
+          "valueEn": "Snapdragon 8 Elite for Galaxy"
+        },
+        {
+          "keyAr": "الكاميرا",
+          "keyEn": "Camera",
+          "valueAr": "200 ميجابكسل رئيسية + 50 ميجابكسل بيريسكوب",
+          "valueEn": "200MP Main + 50MP Periscope 5x"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery",
+          "valueAr": "5000 مللي أمبير شحن سريع 45 واط",
+          "valueEn": "5000 mAh Fast Charge 45W"
+        }
+      ],
+      "variants": [
+        {
+          "name": "512GB - Titanium Black",
+          "price": 4899,
+          "isDefault": true,
+          "originalPrice": 5299,
+          "stockQuantity": 8
+        },
+        {
+          "name": "1TB - Titanium Gray",
+          "price": 5699,
+          "isDefault": false,
+          "originalPrice": 6099,
+          "stockQuantity": 6
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 14,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.453Z",
+      "updatedAt": "2026-10-29T18:05:21.453Z",
+      "categoryNameEn": "Mobile Phones",
+      "categoryNameAr": "الهواتف المتحركة",
+      "categorySlug": "mobile-phones",
+      "brandName": "Samsung",
+      "brandSlug": "samsung"
+    },
+    {
+      "id": 7,
+      "slug": "google-pixel-9-pro-xl-5g",
+      "sku": "PIXEL-9PRO-XL",
+      "nameEn": "Google Pixel 9 Pro XL 5G - Obsidian",
+      "nameAr": "جوجل بكسل 9 برو XL 5G - أسود سبجي",
+      "descriptionEn": "Google Tensor G4 powerhouse featuring advanced Gemini Nano AI on-device, pro-triple camera array, and 7 years of OS updates.",
+      "descriptionAr": "هاتف جوجل الأقوى بمعالج تنسور G4، وذكاء اصطناعي جيميني مدمج، وكاميرا احترافية ثلاثية وتحديثات لمدة 7 سنوات.",
+      "condition": "New",
+      "categoryId": 1,
+      "brandId": 3,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المعالج",
+          "keyEn": "Processor",
+          "valueAr": "جوجل تنسور G4 مع شريحة تيتان M2",
+          "valueEn": "Google Tensor G4 + Titan M2"
+        },
+        {
+          "keyAr": "الشاشة",
+          "keyEn": "Display",
+          "valueAr": "6.8 بوصة سوبر أكشوا أوليد 120 هرتز",
+          "valueEn": "6.8\" Super Actua OLED 1-120Hz"
+        }
+      ],
+      "variants": [
+        {
+          "name": "256GB - Obsidian",
+          "price": 4199,
+          "isDefault": true,
+          "originalPrice": 4499,
+          "stockQuantity": 5
+        },
+        {
+          "name": "512GB - Porcelain",
+          "price": 4799,
+          "isDefault": false,
+          "originalPrice": 5099,
+          "stockQuantity": 4
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 9,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.478Z",
+      "updatedAt": "2026-10-29T18:05:21.478Z",
+      "categoryNameEn": "Mobile Phones",
+      "categoryNameAr": "الهواتف المتحركة",
+      "categorySlug": "mobile-phones",
+      "brandName": "Google Pixel",
+      "brandSlug": "google"
+    },
+    {
+      "id": 5,
+      "slug": "sony-wh-1000xm5-noise-canceling-headphones",
+      "sku": "SONY-WH1000XM5-BLK",
+      "nameEn": "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
+      "nameAr": "سماعات سوني WH-1000XM5 اللاسلكية العازلة للضوضاء",
+      "descriptionEn": "Industry-leading noise cancellation with two processors and 8 microphones, exceptional high-res audio, and crystal clear hands-free calling.",
+      "descriptionAr": "أفضل تقنية إلغاء ضوضاء في فئتها مع معالجين و8 ميكروفونات، صوت عالي الدقة، ومكالمات فائقة الوضوح.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 6,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 30 ساعة تشغيل",
+          "valueEn": "Up to 30 Hours"
+        },
+        {
+          "keyAr": "ترميز الصوت",
+          "keyEn": "Audio Codecs",
+          "valueAr": "صوت عالي الدقة لاسلكي",
+          "valueEn": "LDAC, AAC, SBC, Hi-Res Wireless"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Midnight Black",
+          "price": 1149,
+          "isDefault": true,
+          "originalPrice": 1299,
+          "stockQuantity": 7
+        },
+        {
+          "name": "Platinum Silver",
+          "price": 1149,
+          "isDefault": false,
+          "originalPrice": 1299,
+          "stockQuantity": 5
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 12,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.468Z",
+      "updatedAt": "2026-10-29T18:05:21.468Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "Sony",
+      "brandSlug": "sony"
+    },
+    {
+      "id": 6,
+      "slug": "anker-prime-27650mah-power-bank-250w",
+      "sku": "ANKER-PRIME-250W",
+      "nameEn": "Anker Prime 27,650mAh Power Bank (250W Ultra Fast)",
+      "nameAr": "بنك طاقة أنكر برايم 27650 مللي أمبير بقوة 250 واط",
+      "descriptionEn": "Ultra high-capacity power bank with 250W multi-device fast output, smart digital display, and companion app Bluetooth control.",
+      "descriptionAr": "بنك طاقة فائق السعة مع شحن سريع بقدرة 250 واط لعدة أجهزة في وقت واحد وشاشة رقمية ذكية.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "السعة",
+          "keyEn": "Capacity",
+          "valueAr": "27650 مللي أمبير مصرح به للطيران",
+          "valueEn": "27,650 mAh (99.54Wh airline approved)"
+        },
+        {
+          "keyAr": "أقصى قدرة إخراج",
+          "keyEn": "Max Output",
+          "valueAr": "250 واط إجمالي الطاقة",
+          "valueEn": "250W Total Output"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Standard Edition (250W)",
+          "price": 499,
+          "isDefault": true,
+          "originalPrice": 599,
+          "stockQuantity": 20
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1609592424367-e9a03e3aeb5c?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.473Z",
+      "updatedAt": "2026-10-29T18:05:21.473Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 14,
+      "slug": "playstation-5-pro-digital-edition",
+      "sku": "PS5-PRO-DIGITAL",
+      "nameEn": "Sony PlayStation 5 Pro Console",
+      "nameAr": "جهاز سوني بلايستيشن 5 برو",
+      "descriptionEn": "Experience next-level gaming with PlayStation Spectral Super Resolution (PSSR), 2TB ultra-fast SSD, and enhanced Ray Tracing.",
+      "descriptionAr": "تجربة ألعاب الجيل القادم مع تقنية PSSR وسعة 2 تيرابايت SSD فائقة السرعة وتتبع أشعة متطور.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 10,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "التخزين",
+          "keyEn": "Storage",
+          "valueAr": "2 تيرابايت NVMe SSD فائق السرعة",
+          "valueEn": "2TB Custom NVMe SSD"
+        },
+        {
+          "keyAr": "دعم الدقة",
+          "keyEn": "Resolution Support",
+          "valueAr": "دقة حتى 8K / 4K بسرعة 120 إطار",
+          "valueEn": "Up to 8K / 4K 120fps with PSSR"
+        }
+      ],
+      "variants": [
+        {
+          "name": "PS5 Pro (2TB)",
+          "price": 2999,
+          "isDefault": true,
+          "originalPrice": 3299,
+          "stockQuantity": 6
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 6,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.503Z",
+      "updatedAt": "2026-10-29T18:05:21.503Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "PlayStation",
+      "brandSlug": "playstation"
+    },
+    {
+      "id": 15,
+      "slug": "motorola-edge-50-ultra-5g",
+      "sku": "MOTO-EDGE50-ULTRA",
+      "nameEn": "Motorola Edge 50 Ultra 5G - Nordic Wood",
+      "nameAr": "موتورولا إيدج 50 الترا 5G - خشب نورديك",
+      "descriptionEn": "Real FSC-certified wood finish, Snapdragon 8s Gen 3, Pantone validated camera, 125W TurboPower charging, and IP68 underwater protection.",
+      "descriptionAr": "ظهر من الخشب الطبيعي المعتمد، معالج سنابدراجون 8s الجيل الثالث، كاميرا معتمدة من بانتون وشحن فائق 125 واط.",
+      "condition": "New",
+      "categoryId": 1,
+      "brandId": 13,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "الشحن",
+          "keyEn": "Charging",
+          "valueAr": "125 واط سلكي + 50 واط لاسلكي",
+          "valueEn": "125W Wired + 50W Wireless"
+        },
+        {
+          "keyAr": "الشاشة",
+          "keyEn": "Display",
+          "valueAr": "6.7 بوصة سوبر HD أوليد 144 هرتز",
+          "valueEn": "6.7\" Super HD (1220p) pOLED 144Hz"
+        }
+      ],
+      "variants": [
+        {
+          "name": "16GB RAM + 512GB (Nordic Wood)",
+          "price": 3299,
+          "isDefault": true,
+          "originalPrice": 3699,
+          "stockQuantity": 5
+        }
+      ],
+      "images": [
+        "/api/images/8"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 5,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.508Z",
+      "updatedAt": "2026-10-29T18:05:21.508Z",
+      "categoryNameEn": "Mobile Phones",
+      "categoryNameAr": "الهواتف المتحركة",
+      "categorySlug": "mobile-phones",
+      "brandName": "Motorola",
+      "brandSlug": "motorola"
+    },
+    {
+      "id": 16,
+      "slug": "razer-blackshark-v2-pro-wireless-gaming-headset",
+      "sku": "RAZER-BSV2P-WHT",
+      "nameEn": "Razer BlackShark V2 Pro Wireless Gaming Headset",
+      "nameAr": "سماعة الألعاب اللاسلكية ريزر بلاك شارك V2 برو",
+      "descriptionEn": "For esports athletes: Razer HyperClear Super Wideband Mic, TriForce Titanium 50mm Drivers, and up to 70 hours battery life.",
+      "descriptionAr": "مصممة لبطولات الرياضات الإلكترونية: ميكروفون فائق النقاء، مكبرات صوت تيتانيوم 50 ملم وبطارية تدوم حتى 70 ساعة.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 14,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 70 ساعة تشغيل",
+          "valueEn": "Up to 70 Hours"
+        },
+        {
+          "keyAr": "الاتصال",
+          "keyEn": "Connection",
+          "valueAr": "اتصال لاسلكي فائق السرعة + بلوتوث",
+          "valueEn": "Razer HyperSpeed Wireless 2.4GHz + Bluetooth 5.2"
+        }
+      ],
+      "variants": [
+        {
+          "name": "White Edition",
+          "price": 699,
+          "isDefault": true,
+          "originalPrice": 799,
+          "stockQuantity": 8
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T18:05:21.512Z",
+      "updatedAt": "2026-10-29T18:11:44.470Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "Razer",
+      "brandSlug": "razer"
+    },
+    {
+      "id": 18,
+      "slug": "apple-iphone-16-pro-max-silicone-case-magsafe",
+      "sku": "AP-IP16PM-SIL-BLK",
+      "nameEn": "Apple iPhone 16 Pro Max Silicone Case with MagSafe",
+      "nameAr": "غطاء سيليكون أصلي مع ماج سيف لآيفون 16 برو ماكس",
+      "descriptionEn": "Designed by Apple with Camera Control sapphire crystal interaction, silky soft-touch exterior silicone, microfiber lining, and built-in MagSafe alignment.",
+      "descriptionAr": "تصميم رسمي من آبل مع دعم زر التحكم بالكاميرا بطبقة الياقوت، سيليكون فائق النعومة، بطانة مايكروفايبر، ومغناطيس ماج سيف مدمج.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 1,
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple",
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "stockQuantity": 25,
+      "specifications": [
+        {
+          "keyEn": "Compatibility",
+          "keyAr": "التوافق",
+          "valueEn": "iPhone 16 Pro Max (6.9\")",
+          "valueAr": "آيفون 16 برو ماكس (6.9 بوصة)"
+        },
+        {
+          "keyEn": "Material",
+          "keyAr": "الخامة",
+          "valueEn": "Premium Liquid Silicone + Microfiber Lining",
+          "valueAr": "سيليكون سائل فاخر + بطانة مايكروفايبر"
+        },
+        {
+          "keyEn": "Special Feature",
+          "keyAr": "الميزة الخاصة",
+          "valueEn": "Full Camera Control Sapphire Crystal Support",
+          "valueAr": "دعم كامل لزر التحكم بالكاميرا"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black (Original)",
+          "price": 199,
+          "originalPrice": 229,
+          "isDefault": true,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Denim Blue",
+          "price": 199,
+          "originalPrice": 229,
+          "isDefault": false,
+          "stockQuantity": 8
+        },
+        {
+          "name": "Plum Purple",
+          "price": 199,
+          "originalPrice": 229,
+          "isDefault": false,
+          "stockQuantity": 7
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1603539279542-e925916a048d?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:00:00.000Z"
+    },
+    {
+      "id": 19,
+      "slug": "apple-iphone-16-pro-max-finewoven-case-magsafe",
+      "sku": "AP-IP16PM-FW-TAUPE",
+      "nameEn": "Apple iPhone 16 Pro Max FineWoven Case with MagSafe",
+      "nameAr": "غطاء فاين ووفن الفاخر مع ماج سيف لآيفون 16 برو ماكس",
+      "descriptionEn": "Made from durable microtwill with a soft suede-like touch. Premium luxury finish made with 68% post-consumer recycled content.",
+      "descriptionAr": "مصنوع من نسيج المايكروتويل المتين بملمس شمواه فاخر ومغناطيس ماج سيف قوي.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 1,
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple",
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "stockQuantity": 15,
+      "specifications": [
+        {
+          "keyEn": "Material",
+          "keyAr": "الخامة",
+          "valueEn": "Durable Microtwill Recycled Fabric",
+          "valueAr": "قماش مايكروتويل معاد تدويره متين"
+        },
+        {
+          "keyEn": "MagSafe Support",
+          "keyAr": "دعم ماج سيف",
+          "valueEn": "Integrated 15W High-Flux Magnets",
+          "valueAr": "مغناطيس عالي القوة مدمج"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Taupe Luxury",
+          "price": 229,
+          "originalPrice": 259,
+          "isDefault": true,
+          "stockQuantity": 8
+        },
+        {
+          "name": "Black FineWoven",
+          "price": 229,
+          "originalPrice": 259,
+          "isDefault": false,
+          "stockQuantity": 7
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:05:00.000Z"
+    },
+    {
+      "id": 20,
+      "slug": "apple-iphone-16-clear-case-magsafe",
+      "sku": "AP-IP16-CLR-CASE",
+      "nameEn": "Apple iPhone 16 Clear Case with MagSafe",
+      "nameAr": "غطاء حماية شفاف أصلي مع ماج سيف لآيفون 16",
+      "descriptionEn": "Thin, light, and easy to grip. Crafted with a blend of optically clear polycarbonate and flexible materials with scratch-resistant coating.",
+      "descriptionAr": "نحيف وخفيف مع قبضة محكمة. مزيج من البولي كربونات فائق الشفافية والمواد المرنة المقاومة للاصفرار والخدوش.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 1,
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple",
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "stockQuantity": 20,
+      "specifications": [
+        {
+          "keyEn": "Anti-Yellowing",
+          "keyAr": "مقاومة الاصفرار",
+          "valueEn": "UV & Scratch Resistant Optical Polycarbonate",
+          "valueAr": "بولي كربونات بصري مقاوم للأشعة فوق البنفسجية"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Crystal Clear",
+          "price": 179,
+          "originalPrice": 209,
+          "isDefault": true,
+          "stockQuantity": 20
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:10:00.000Z"
+    },
+    {
+      "id": 21,
+      "slug": "spigen-ultra-hybrid-magsafe-iphone-16-pro-max",
+      "sku": "SPG-UH-IP16PM-CLR",
+      "nameEn": "Spigen Ultra Hybrid MagSafe Case for iPhone 16 Pro Max",
+      "nameAr": "غطاء سبيجن ألترا هايبرد ماج سيف لآيفون 16 برو ماكس",
+      "descriptionEn": "Military-grade Air Cushion technology drop protection, raised lip screen and camera shield, and heavy-duty magnetic lock ring.",
+      "descriptionAr": "حماية عسكرية بتقنية الوسائد الهوائية Air Cushion وحواف مرتفعة لحماية الشاشة والكاميرا مع حلقة ماج سيف قوية.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 1,
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple",
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "stockQuantity": 30,
+      "specifications": [
+        {
+          "keyEn": "Drop Rating",
+          "keyAr": "معيار السقوط",
+          "valueEn": "Military Grade MIL-STD 810G-516.6",
+          "valueAr": "معيار عسكري لمقاومة السقوط"
+        },
+        {
+          "keyEn": "Magnet Strength",
+          "keyAr": "قوة المغناطيس",
+          "valueEn": "N52 Neodymium Magnetic Core",
+          "valueAr": "مغناطيس نيوديميوم N52 شديد القوة"
+        }
+      ],
+      "variants": [
+        {
+          "name": "White Frost MagSafe",
+          "price": 99,
+          "originalPrice": 129,
+          "isDefault": true,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Matte Black MagSafe",
+          "price": 99,
+          "originalPrice": 129,
+          "isDefault": false,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1541877590-a15d2a9f7336?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:15:00.000Z"
+    },
+    {
+      "id": 22,
+      "slug": "torras-360-rotatable-magnetic-ostand-iphone-16-pro",
+      "sku": "TRS-OST-IP16P-TIT",
+      "nameEn": "Torras 360° Rotatable Magnetic Ostand Case for iPhone 16 Pro",
+      "nameAr": "كفر توراس أوستاند ستاند مغناطيسي دوار 360 درجة لآيفون 16 برو",
+      "descriptionEn": "Pioneering 360-degree all-angle kickstand ring, 18N hyper-magnetism, silky aerospace aluminum ring, and rugged shockproof protection.",
+      "descriptionAr": "ستاند مدمج دوار بزاوية 360 درجة من الألمنيوم الفضائي، مغناطيس خارق 18 نيوتن وحماية متينة ضد الصدمات.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 1,
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple",
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "stockQuantity": 18,
+      "specifications": [
+        {
+          "keyEn": "Stand Angle",
+          "keyAr": "زوايا الستاند",
+          "valueEn": "0° to 120° Adjustable (Portrait & Landscape)",
+          "valueAr": "قابل للتعديل من 0 إلى 120 درجة"
+        },
+        {
+          "keyEn": "Protection",
+          "keyAr": "الحماية",
+          "valueEn": "12ft Military Drop Certified",
+          "valueAr": "حماية معتمدة من سقوط حتى 12 قدم"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Titanium Gray",
+          "price": 149,
+          "originalPrice": 179,
+          "isDefault": true,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Midnight Black",
+          "price": 149,
+          "originalPrice": 179,
+          "isDefault": false,
+          "stockQuantity": 8
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:20:00.000Z"
+    },
+    {
+      "id": 23,
+      "slug": "anker-737-ganprime-140w-3-port-wall-charger",
+      "sku": "ANKER-737-140W-BLK",
+      "nameEn": "Anker 737 GaNPrime 140W 3-Port Fast Wall Charger",
+      "nameAr": "شاحن جداري أنكر 737 جان برايم بقوة 140 واط بـ 3 منافذ",
+      "descriptionEn": "Power 3 devices simultaneously at maximum speed. Features GaNPrime technology, PowerIQ 4.0 dynamic power distribution, and ActiveShield 2.0 safety.",
+      "descriptionAr": "اشحن 3 أجهزة في وقت واحد بأقصى سرعة. تقنية GaNPrime وتوزيع طاقة ديناميكي مع نظام حماية ذكي ActiveShield 2.0.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker",
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "stockQuantity": 16,
+      "specifications": [
+        {
+          "keyEn": "Total Output",
+          "keyAr": "إجمالي الطاقة",
+          "valueEn": "140W Max Output (2x USB-C + 1x USB-A)",
+          "valueAr": "140 واط كحد أقصى (منفذين تايب سي + منفذ USB-A)"
+        },
+        {
+          "keyEn": "Compatibility",
+          "keyAr": "التوافق",
+          "valueEn": "MacBook Pro 16\", iPhone 16 Series, Galaxy S25, iPads",
+          "valueAr": "ماك بوك برو، سلسلة آيفون 16، جالاكسي S25، آيباد"
+        }
+      ],
+      "variants": [
+        {
+          "name": "GaNPrime 140W (Black)",
+          "price": 349,
+          "originalPrice": 399,
+          "isDefault": true,
+          "stockQuantity": 16
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:25:00.000Z"
+    },
+    {
+      "id": 24,
+      "slug": "anker-maggo-3-in-1-foldable-wireless-charging-station",
+      "sku": "ANKER-MAGGO-3IN1-WHT",
+      "nameEn": "Anker MagGo 3-in-1 Foldable Wireless Charging Station (Qi2 15W)",
+      "nameAr": "محطة شحن لاسلكي قابلة للطي 3 في 1 أنكر ماج جو بتقنية Qi2",
+      "descriptionEn": "Official Qi2 Certified 15W ultra-fast wireless stand. Charges iPhone, Apple Watch Series/Ultra, and AirPods simultaneously in an ultra-compact pocket format.",
+      "descriptionAr": "محطة شحن لاسلكي معتمدة رسمياً بتقنية Qi2 بقوة 15 واط فائقة السرعة للآيفون وساعة آبل وسماعات إيربودز بتصميم مدمج للجيب.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker",
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "stockQuantity": 14,
+      "specifications": [
+        {
+          "keyEn": "Wireless Speed",
+          "keyAr": "سرعة الشحن اللاسلكي",
+          "valueEn": "15W Qi2 Certified Ultra-Fast",
+          "valueAr": "15 واط شحن لاسلكي فائق السرعة"
+        },
+        {
+          "keyEn": "Design",
+          "keyAr": "التصميم",
+          "valueEn": "Ultra-Compact Foldable Travel Puck",
+          "valueAr": "تصميم فائق الصغر قابل للطي ومثالي للسفر"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Arctic White",
+          "price": 399,
+          "originalPrice": 449,
+          "isDefault": true,
+          "stockQuantity": 8
+        },
+        {
+          "name": "Phantom Black",
+          "price": 399,
+          "originalPrice": 449,
+          "isDefault": false,
+          "stockQuantity": 6
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1622445268045-81d33c84d728?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:30:00.000Z"
+    },
+    {
+      "id": 25,
+      "slug": "anker-soundcore-liberty-4-nc-noise-cancelling-earbuds",
+      "sku": "ANKER-SC-L4NC-NVY",
+      "nameEn": "Anker Soundcore Liberty 4 NC Wireless Noise-Cancelling Earbuds",
+      "nameAr": "سماعات أنكر ساوند كور ليبرتي 4 NC العازلة للضوضاء",
+      "descriptionEn": "Reduce noise by up to 98.5% with Adaptive ANC 2.0. Equipped with 11mm custom drivers, Hi-Res wireless audio (LDAC), and 50 hours of total playtime.",
+      "descriptionAr": "عزل ضوضاء فائق يصل إلى 98.5% مع تقنية ANC 2.0 التكيفية، مكبرات صوت 11 ملم، صوت عالي الدقة وبطارية تدوم حتى 50 ساعة.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 7,
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "Anker",
+      "brandSlug": "anker",
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "stockQuantity": 20,
+      "specifications": [
+        {
+          "keyEn": "Noise Reduction",
+          "keyAr": "عزل الضوضاء",
+          "valueEn": "Adaptive ANC 2.0 (Up to 98.5%)",
+          "valueAr": "عزل ذكي تكيفي حتى 98.5%"
+        },
+        {
+          "keyEn": "Battery Life",
+          "keyAr": "البطارية",
+          "valueEn": "10H Earbuds / 50H with Wireless Case",
+          "valueAr": "10 ساعات بالسماعة / 50 ساعة مع العلبة"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Navy Blue",
+          "price": 299,
+          "originalPrice": 349,
+          "isDefault": true,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Velvet Black",
+          "price": 299,
+          "originalPrice": 349,
+          "isDefault": false,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:35:00.000Z"
+    },
+    {
+      "id": 26,
+      "slug": "anker-powerline-iii-flow-usb-c-silicone-cable",
+      "sku": "ANKER-PL-FLOW-100W",
+      "nameEn": "Anker PowerLine III Flow USB-C to USB-C Silicone Cable (100W, 6ft)",
+      "nameAr": "كابل أنكر باورلاين 3 فلو سيليكون فائق النعومة 100 واط (6 أقدام)",
+      "descriptionEn": "Surprisingly soft silica gel finish that stays tangle-free even in pockets. Built to withstand 25,000 bends and supports 100W Power Delivery.",
+      "descriptionAr": "ملمس ناعم كالحرير لا يتشابك في الجيب، مصمم لتحمل 25 ألف انحناء مع دعم شحن سريع بقدرة 100 واط PD.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker",
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "stockQuantity": 40,
+      "specifications": [
+        {
+          "keyEn": "Max Wattage",
+          "keyAr": "أقصى طاقة",
+          "valueEn": "100W Power Delivery Fast Charging",
+          "valueAr": "شحن فائق السرعة بقدرة 100 واط"
+        },
+        {
+          "keyEn": "Durability",
+          "keyAr": "المتانة",
+          "valueEn": "25,000-Bend Lifespan Graphene Core",
+          "valueAr": "عمر افتراضي 25,000 انحناء"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Cloud White (6ft)",
+          "price": 59,
+          "originalPrice": 79,
+          "isDefault": true,
+          "stockQuantity": 20
+        },
+        {
+          "name": "Midnight Black (6ft)",
+          "price": 59,
+          "originalPrice": 79,
+          "isDefault": false,
+          "stockQuantity": 20
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:40:00.000Z"
+    },
+    {
+      "id": 27,
+      "slug": "anker-nano-ii-65w-gan-fast-charger",
+      "sku": "ANKER-NANO2-65W",
+      "nameEn": "Anker Nano II 65W GaN Fast Charger",
+      "nameAr": "شاحن أنكر نانو 2 السريع بقوة 65 واط بتقنية جان",
+      "descriptionEn": "Ultra-compact 65W pocket charger. Up to 59% smaller than typical 60W wall adapters, ideal for charging your phone, tablet, and USB-C notebook all with one tiny plug.",
+      "descriptionAr": "شاحن جيب فائق الصغر بقوة 65 واط أصغر بنسبة 59% من الشواحن التقليدية، مناسب لشحن الهواتف والأجهزة اللوحية واللابتوبات.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker",
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "stockQuantity": 25,
+      "specifications": [
+        {
+          "keyEn": "Output",
+          "keyAr": "الطاقة",
+          "valueEn": "65W Max USB-C PD 3.0 / PPS",
+          "valueAr": "65 واط كحد أقصى بمنفذ تايب سي"
+        },
+        {
+          "keyEn": "Technology",
+          "keyAr": "التقنية",
+          "valueEn": "Anker GaN II High-Efficiency Silicon",
+          "valueAr": "تقنية GaN II عالية الكفاءة"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Nano II 65W Black",
+          "price": 179,
+          "originalPrice": 209,
+          "isDefault": true,
+          "stockQuantity": 25
+        }
+      ],
+      "images": [
+        "https://images.unsplash.com/photo-1609592424367-e9a03e3aeb5c?w=800&auto=format&fit=crop&q=80"
+      ],
+      "createdAt": "2026-10-29T10:45:00.000Z"
     }
   ],
   "deletedProductIds": [
-    8,
-    9,
-    12
+    90001
+  ],
+  "services": [
+    {
+      "id": 1,
+      "slug": "screen-battery-replacement",
+      "titleEn": "Express Screen & Battery Replacement",
+      "titleAr": "استبدال فوري للشاشات والبطاريات",
+      "descriptionEn": "Certified Grade-A display glass and genuine high-health battery replacements completed in 30 to 45 minutes with a 90-day Dubai warranty.",
+      "descriptionAr": "شاشات زجاجية معتمدة وبطاريات أصلية جديدة يتم استبدالها خلال 30 إلى 45 دقيقة مع ضمان 90 يوماً في دبي.",
+      "icon": "Wrench",
+      "turnaroundEn": "30 - 45 Minutes",
+      "turnaroundAr": "30 - 45 دقيقة",
+      "badgeEn": "Same-Day Fast Repair",
+      "badgeAr": "صيانة فورية بنفس اليوم",
+      "featuresEn": [
+        "Original OLED & TrueTone calibration",
+        "100% Battery health restoration",
+        "Zero risk water-resistance seal renewal",
+        "90-Day warranty included"
+      ],
+      "featuresAr": [
+        "معايرة أصلية للشاشات وتقنية TrueTone",
+        "استعادة صحة البطارية إلى 100%",
+        "تجديد عازل مقاومة الماء والغبار",
+        "ضمان معتمد لمدة 90 يوماً"
+      ],
+      "displayOrder": 1,
+      "isActive": true
+    },
+    {
+      "id": 2,
+      "slug": "trade-in-device-valuation",
+      "titleEn": "Instant Device Trade-In & Fair Valuation",
+      "titleAr": "استبدال وتقييم فوري للأجهزة المستعملة",
+      "descriptionEn": "Upgrade your old smartphone, tablet, or smartwatch with the highest market valuation in Dubai. Immediate cash payout or instant upgrade credit.",
+      "descriptionAr": "قم بترقية هاتفك القديم أو جهازك اللوحي بأعلى سعر تقييم في سوق دبي، مع دفع نقدي فوري أو خصم على جهازك الجديد.",
+      "icon": "RefreshCw",
+      "turnaroundEn": "15 Minutes",
+      "turnaroundAr": "15 دقيقة",
+      "badgeEn": "Best Market Value",
+      "badgeAr": "أعلى تقييم فوري",
+      "featuresEn": [
+        "Instant WhatsApp quote based on photos",
+        "Complimentary military-grade data wipe",
+        "Accepts Apple, Samsung, Google & tablets",
+        "Immediate cash or direct trade credit"
+      ],
+      "featuresAr": [
+        "تقييم فوري عبر الواتساب من الصور",
+        "مسح آمن ومعتمد للبيانات مجاناً",
+        "نقبل آبل، سامسونج، جوجل والأجهزة اللوحية",
+        "تسليم نقدي فوري أو خصم على الجديد"
+      ],
+      "displayOrder": 2,
+      "isActive": true
+    },
+    {
+      "id": 3,
+      "slug": "smart-data-transfer-migration",
+      "titleEn": "Seamless Data Transfer & Migration",
+      "titleAr": "نقل البيانات الشامل وإعداد الأجهزة",
+      "descriptionEn": "Switch between Android and iPhone without losing a single WhatsApp message, photo, contact, or app setting. Safe, private, and supervised.",
+      "descriptionAr": "انتقل بسهولة بين نظامي أندرويد وآيفون دون فقدان أي رسالة واتساب أو صورة أو جهة اتصال بأمان وخصوصية تامة.",
+      "icon": "Smartphone",
+      "turnaroundEn": "30 - 60 Minutes",
+      "turnaroundAr": "30 - 60 دقيقة",
+      "badgeEn": "100% Zero Data Loss",
+      "badgeAr": "بدون أي فقدان للبيانات",
+      "featuresEn": [
+        "Full WhatsApp chat & media transfer",
+        "iCloud & Google account configuration",
+        "App layout & eSIM migration support",
+        "Absolute privacy and supervised setup"
+      ],
+      "featuresAr": [
+        "نقل كامل لمحادثات ووسائط الواتساب",
+        "إعداد حسابات iCloud و Google",
+        "نقل الشرائح الإلكترونية eSIM والتطبيقات",
+        "سرية وخصوصية تامة أثناء النقل"
+      ],
+      "displayOrder": 3,
+      "isActive": true
+    },
+    {
+      "id": 4,
+      "slug": "software-diagnostics-os-restore",
+      "titleEn": "Software Diagnostics & OS Recovery",
+      "titleAr": "فحص البرمجيات واستعادة النظام الرسمي",
+      "descriptionEn": "Fix boot loops, stuck Apple logo, corrupted updates, network glitches, or regional firmware configuration with authorized tools.",
+      "descriptionAr": "إصلاح مشاكل التوقف على الشعار، تحديثات النظام المعطوبة، أخطاء الشبكة، وتثبيت التحديثات الرسمية المعتمدة.",
+      "icon": "Cpu",
+      "turnaroundEn": "Same-Day",
+      "turnaroundAr": "في نفس اليوم",
+      "badgeEn": "Official Tools",
+      "badgeAr": "أدوات برمجية معتمدة",
+      "featuresEn": [
+        "Factory restore without bricking risk",
+        "Official GCC firmware flashes",
+        "Hardware diagnostics & error detection",
+        "Carrier unlock & SIM troubleshooting"
+      ],
+      "featuresAr": [
+        "استعادة نظام رسمية بدون أي مخاطر",
+        "تثبيت الرومات والمواصفات الخليجية الرسمية",
+        "فحص شامل للقطع واكتشاف الأعطال",
+        "حل مشاكل الشبكة والشرائح"
+      ],
+      "displayOrder": 4,
+      "isActive": true
+    },
+    {
+      "id": 5,
+      "slug": "b2b-corporate-procurement",
+      "titleEn": "Corporate Procurement & Mesh Wi-Fi Setup",
+      "titleAr": "التوريد المؤسسي وإعداد شبكات المكاتب",
+      "descriptionEn": "Wholesale bulk device purchases for businesses, office mesh Wi-Fi 6/7 router installations, and company phone deployments across the UAE.",
+      "descriptionAr": "توريد أجهزة ذكية للشركات بأسعار الجملة، تركيب راوترات وشبكات واي فاي 6 و 7 المتطورة وتجهيز أجهزة الموظفين في الإمارات.",
+      "icon": "Wifi",
+      "turnaroundEn": "24 - 48 Hours",
+      "turnaroundAr": "24 - 48 ساعة",
+      "badgeEn": "B2B & Wholesale Rates",
+      "badgeAr": "أسعار خاصة بالشركات",
+      "featuresEn": [
+        "Bulk wholesale quotation within 2 hours",
+        "High-speed TP-Link Archer / Mesh deployment",
+        "Official UAE VAT invoice provided",
+        "Dedicated account manager support"
+      ],
+      "featuresAr": [
+        "عروض أسعار جملة خلال ساعتين",
+        "تركيب راوترات تي بي لينك وشبكات التغطية",
+        "فواتير رسمية خاضعة لضريبة القيمة المضافة",
+        "مدير حساب مخصص للشركات"
+      ],
+      "displayOrder": 5,
+      "isActive": true
+    },
+    {
+      "id": 6,
+      "slug": "vip-doorstep-express-delivery",
+      "titleEn": "VIP Same-Day Doorstep Express Delivery",
+      "titleAr": "توصيل VIP سريع إلى باب منزلك في دبي",
+      "descriptionEn": "Direct courier service delivering sealed devices, chargers, and accessories to your home, office, or hotel in Dubai within hours.",
+      "descriptionAr": "خدمة توصيل فورية ومباشرة للأجهزة المغلقة والشواحن والإكسسوارات إلى منزلك أو مكتبك أو فندقك في دبي خلال ساعات.",
+      "icon": "ShieldCheck",
+      "turnaroundEn": "2 - 4 Hours in Dubai",
+      "turnaroundAr": "2 - 4 ساعات في دبي",
+      "badgeEn": "Inspect Before Payment",
+      "badgeAr": "افحص واستلم جهازك",
+      "featuresEn": [
+        "Instant tracking via WhatsApp direct link",
+        "On-delivery card payment machine available",
+        "Inspect sealed serial numbers in person",
+        "Coverage across Dubai, Sharjah, & Ajman"
+      ],
+      "featuresAr": [
+        "متابعة فورية ومباشرة عبر الواتساب",
+        "دفع بالبطاقة أو نقداً عند الاستلام",
+        "فحص السيريال والرقم التسلسلي قبل الاستلام",
+        "تغطية دبي والشارقة وعجمان"
+      ],
+      "displayOrder": 6,
+      "isActive": true
+    }
   ]
 }

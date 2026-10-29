@@ -11,6 +11,7 @@ import {
   ProductCondition,
   ProductStatus,
   AdminVisitorAnalytics,
+  ServiceItem,
 } from '../types/index.ts';
 import {
   Package,
@@ -54,6 +55,7 @@ import {
   BarChart3,
   Users,
   Archive,
+  Wrench,
 } from 'lucide-react';
 import { ProductMultiImageUploader, ImageAspectRatio, ImageFitMode } from './ProductMultiImageUploader.tsx';
 import { IconImageUploader } from './IconImageUploader.tsx';
@@ -72,7 +74,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onViewPublicSite,
 }) => {
   const { language, setLanguage } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'whatsapp' | 'content' | 'audit' | 'security' | 'visitors'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'services' | 'whatsapp' | 'content' | 'audit' | 'security' | 'visitors'>('overview');
 
   // Visitor Analytics State
   const [visitorAnalytics, setVisitorAnalytics] = useState<AdminVisitorAnalytics | null>(null);
@@ -119,6 +121,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [whatsappSettingsData, setWhatsappSettingsData] = useState<WhatsAppSettings | null>(null);
   const [siteContentData, setSiteContentData] = useState<SiteContent | null>(null);
   const [auditLogsList, setAuditLogsList] = useState<AuditLog[]>([]);
+  const [servicesList, setServicesList] = useState<ServiceItem[]>([]);
+
+  // Service form & modal state
+  const [serviceModalOpen, setServiceModalOpen] = useState(false);
+  const [editingService, setEditingService] = useState<ServiceItem | null>(null);
+  const [serviceTitleEn, setServiceTitleEn] = useState('');
+  const [serviceTitleAr, setServiceTitleAr] = useState('');
+  const [serviceDescEn, setServiceDescEn] = useState('');
+  const [serviceDescAr, setServiceDescAr] = useState('');
+  const [serviceIcon, setServiceIcon] = useState('Wrench');
+  const [serviceTurnaroundEn, setServiceTurnaroundEn] = useState('30 - 45 Minutes');
+  const [serviceTurnaroundAr, setServiceTurnaroundAr] = useState('30 - 45 دقيقة');
+  const [serviceBadgeEn, setServiceBadgeEn] = useState('Certified');
+  const [serviceBadgeAr, setServiceBadgeAr] = useState('معتمد');
+  const [serviceFeaturesEn, setServiceFeaturesEn] = useState('');
+  const [serviceFeaturesAr, setServiceFeaturesAr] = useState('');
+  const [serviceDisplayOrder, setServiceDisplayOrder] = useState(0);
+  const [serviceIsActive, setServiceIsActive] = useState(true);
 
   // Filters for product catalogue
   const [productSearch, setProductSearch] = useState('');
@@ -803,7 +823,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         variants: formVariants,
         privateNotes: formPrivateNotes,
         purchaseCost: formPurchaseCost,
-        stockQuantity: formStockQuantity,
+        stockQuantity: Number(formStockQuantity) || 0,
         imeiSerialNumbers: formImeis,
       };
 
@@ -3912,8 +3932,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     </label>
                     <input
                       type="number"
-                      value={formStockQuantity}
-                      onChange={(e) => setFormStockQuantity(parseInt(e.target.value, 10) || 0)}
+                      min="0"
+                      value={formStockQuantity === 0 ? '' : formStockQuantity}
+                      placeholder="0"
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setFormStockQuantity(val === '' ? ('' as any) : Math.max(0, parseInt(val, 10) || 0));
+                      }}
+                      onBlur={() => {
+                        if (formStockQuantity === ('' as any) || isNaN(Number(formStockQuantity))) {
+                          setFormStockQuantity(0);
+                        }
+                      }}
                       className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs font-mono text-white focus:outline-none focus:border-[#922CB5]"
                     />
                   </div>

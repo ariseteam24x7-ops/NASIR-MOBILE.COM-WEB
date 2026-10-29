@@ -111,6 +111,9 @@ export const Header: React.FC<HeaderProps> = ({
             <a href="#categories" className="hover:text-[#B7F34B] transition-colors">
               {t('categories')}
             </a>
+            <a href="#services" className="hover:text-[#B7F34B] transition-colors">
+              {t('services')}
+            </a>
             <a href="#about" className="hover:text-[#B7F34B] transition-colors">
               {t('about_us')}
             </a>
@@ -212,6 +215,13 @@ export const Header: React.FC<HeaderProps> = ({
               className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
             >
               {t('categories')}
+            </a>
+            <a
+              href="#services"
+              onClick={() => setMobileMenuOpen(false)}
+              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+            >
+              {t('services')}
             </a>
             <a
               href="#about"

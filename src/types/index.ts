@@ -139,3 +139,21 @@ export interface AdminVisitorAnalytics {
   recentDailyStats: VisitorDailyRecord[];
 }
 
+export interface ServiceItem {
+  id: number;
+  slug: string;
+  titleEn: string;
+  titleAr: string;
+  descriptionEn: string;
+  descriptionAr: string;
+  icon?: string;
+  turnaroundEn?: string;
+  turnaroundAr?: string;
+  badgeEn?: string;
+  badgeAr?: string;
+  featuresEn?: string[];
+  featuresAr?: string[];
+  displayOrder?: number;
+  isActive?: boolean;
+  createdAt?: string;
+}

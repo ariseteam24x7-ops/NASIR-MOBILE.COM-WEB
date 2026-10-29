@@ -58,6 +58,11 @@ export const Footer: React.FC<FooterProps> = ({
                 </a>
               </li>
               <li>
+                <a href="#services" className="hover:text-white transition-colors">
+                  {t('services')}
+                </a>
+              </li>
+              <li>
                 <a href="#about" className="hover:text-white transition-colors">
                   {t('about_us')}
                 </a>

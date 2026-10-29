@@ -30,6 +30,7 @@ import {
   FALLBACK_WHATSAPP,
   FALLBACK_SITE_CONTENT,
   FALLBACK_PRODUCTS,
+  FALLBACK_SERVICES,
 } from './src/db/fallbacks.ts';
 
 // Global error handlers to prevent unexpected process crashes
@@ -89,6 +90,7 @@ async function startServer() {
     createdAt?: string;
   }> = [];
   let customProducts: any[] = [];
+  let customServices: any[] = [];
   let deletedProductIds: number[] = [];
 
   try {
@@ -98,10 +100,15 @@ async function startServer() {
       if (Array.isArray(parsed.brands)) customBrands = parsed.brands;
       if (Array.isArray(parsed.categories)) customCategories = parsed.categories;
       if (Array.isArray(parsed.products)) customProducts = parsed.products;
+      if (Array.isArray(parsed.services)) customServices = parsed.services;
       if (Array.isArray(parsed.deletedProductIds)) deletedProductIds = parsed.deletedProductIds.map(Number).filter((n: number) => !isNaN(n));
     }
   } catch (err) {
     console.warn('Note: Could not read data-store.json:', err);
+  }
+
+  if (customServices.length === 0) {
+    customServices = [...FALLBACK_SERVICES];
   }
 
   const persistDataStore = () => {
@@ -113,6 +120,7 @@ async function startServer() {
             brands: customBrands,
             categories: customCategories,
             products: customProducts,
+            services: customServices,
             deletedProductIds: deletedProductIds,
           },
           null,
@@ -129,7 +137,111 @@ async function startServer() {
   const reconcileStores = async () => {
     if (!isPostgresAvailable) return;
     try {
-      // 1. Sync PostgreSQL brands -> customBrands
+      const pool = (global as any)._postgresPool;
+      if (!pool) return;
+
+      // 1. Ensure services table exists in PostgreSQL
+      try {
+        await pool.query(`
+          CREATE TABLE IF NOT EXISTS services (
+            id SERIAL PRIMARY KEY,
+            slug TEXT NOT NULL UNIQUE,
+            title_en TEXT NOT NULL,
+            title_ar TEXT NOT NULL,
+            description_en TEXT NOT NULL,
+            description_ar TEXT NOT NULL,
+            icon TEXT DEFAULT 'Wrench',
+            turnaround_en TEXT DEFAULT '30 - 45 Minutes',
+            turnaround_ar TEXT DEFAULT '30 - 45 دقيقة',
+            badge_en TEXT DEFAULT 'Certified',
+            badge_ar TEXT DEFAULT 'معتمد',
+            features_en JSONB DEFAULT '[]',
+            features_ar JSONB DEFAULT '[]',
+            display_order INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+        `);
+      } catch (tblErr) {
+        console.warn('Services table creation note:', tblErr);
+      }
+
+      // 2. Seed any missing categories into PostgreSQL (DO NOTHING on conflict so custom edits are never lost)
+      for (const c of [...FALLBACK_CATEGORIES, ...customCategories]) {
+        try {
+          await pool.query(`
+            INSERT INTO categories (id, slug, name_en, name_ar, description_en, description_ar, icon, display_order)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO NOTHING;
+          `, [c.id, c.slug, c.nameEn, c.nameAr, c.descriptionEn || '', c.descriptionAr || '', c.icon || 'Smartphone', c.displayOrder || 0]);
+        } catch {}
+      }
+
+      // 3. Seed any missing brands into PostgreSQL
+      for (const b of [...FALLBACK_BRANDS, ...customBrands]) {
+        try {
+          await pool.query(`
+            INSERT INTO brands (id, slug, name, logo_url)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (id) DO NOTHING;
+          `, [b.id, b.slug, b.name, b.logoUrl || '']);
+        } catch {}
+      }
+
+      // 4. Seed any missing products into PostgreSQL
+      for (const p of [...FALLBACK_PRODUCTS, ...customProducts]) {
+        if (!deletedProductIds.includes(p.id)) {
+          try {
+            await pool.query(`
+              INSERT INTO products (
+                id, slug, sku, name_en, name_ar, description_en, description_ar,
+                condition, category_id, brand_id, is_featured, is_new_arrival,
+                status, specifications, variants, images, stock_quantity
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+              ON CONFLICT (id) DO NOTHING;
+            `, [
+              p.id, p.slug, p.sku, p.nameEn, p.nameAr, p.descriptionEn || '', p.descriptionAr || '',
+              p.condition || 'New', p.categoryId, p.brandId, Boolean(p.isFeatured), Boolean(p.isNewArrival),
+              p.status || 'published', JSON.stringify(p.specifications || []), JSON.stringify(p.variants || []),
+              JSON.stringify(p.images || []), p.stockQuantity ?? 10
+            ]);
+          } catch {}
+        }
+      }
+
+      // 5. Seed any missing services into PostgreSQL
+      for (const s of [...FALLBACK_SERVICES, ...customServices]) {
+        try {
+          await pool.query(`
+            INSERT INTO services (
+              id, slug, title_en, title_ar, description_en, description_ar,
+              icon, turnaround_en, turnaround_ar, badge_en, badge_ar,
+              features_en, features_ar, display_order, is_active
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ON CONFLICT (id) DO NOTHING;
+          `, [
+            s.id, s.slug, s.titleEn, s.titleAr, s.descriptionEn, s.descriptionAr,
+            s.icon || 'Wrench', s.turnaroundEn || '30 - 45 Minutes', s.turnaroundAr || '30 - 45 دقيقة',
+            s.badgeEn || 'Certified', s.badgeAr || 'معتمد',
+            JSON.stringify(s.featuresEn || []), JSON.stringify(s.featuresAr || []),
+            s.displayOrder || 0, s.isActive !== false
+          ]);
+        } catch {}
+      }
+
+      // Align PostgreSQL ID sequences so nextval() never collides with seeded IDs
+      try {
+        await pool.query(`
+          SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1) + 1, false);
+          SELECT setval(pg_get_serial_sequence('categories', 'id'), COALESCE((SELECT MAX(id) FROM categories), 1) + 1, false);
+          SELECT setval(pg_get_serial_sequence('brands', 'id'), COALESCE((SELECT MAX(id) FROM brands), 1) + 1, false);
+          SELECT setval(pg_get_serial_sequence('services', 'id'), COALESCE((SELECT MAX(id) FROM services), 1) + 1, false);
+        `);
+      } catch (seqErr) {
+        console.warn('Sequence alignment note:', seqErr);
+      }
+
+      // 6. Query PostgreSQL and mirror to in-memory custom stores
       const pgBrands = await db
         .select({
           id: brands.id,
@@ -149,7 +261,6 @@ async function startServer() {
         }
       }
 
-      // 2. Sync PostgreSQL categories -> customCategories
       const pgCats = await db
         .select({
           id: categories.id,
@@ -172,8 +283,86 @@ async function startServer() {
         }
       }
 
+      const pgProds = await db
+        .select({
+          id: products.id,
+          slug: products.slug,
+          sku: products.sku,
+          nameEn: products.nameEn,
+          nameAr: products.nameAr,
+          descriptionEn: products.descriptionEn,
+          descriptionAr: products.descriptionAr,
+          condition: products.condition,
+          categoryId: products.categoryId,
+          brandId: products.brandId,
+          isFeatured: products.isFeatured,
+          isNewArrival: products.isNewArrival,
+          status: products.status,
+          specifications: products.specifications,
+          variants: products.variants,
+          images: products.images,
+          privateNotes: products.privateNotes,
+          purchaseCost: products.purchaseCost,
+          stockQuantity: products.stockQuantity,
+          imeiSerialNumbers: products.imeiSerialNumbers,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+          categoryNameEn: categories.nameEn,
+          categoryNameAr: categories.nameAr,
+          categorySlug: categories.slug,
+          brandName: brands.name,
+          brandSlug: brands.slug,
+        })
+        .from(products)
+        .leftJoin(categories, eq(products.categoryId, categories.id))
+        .leftJoin(brands, eq(products.brandId, brands.id));
+
+      for (const p of pgProds) {
+        if (!deletedProductIds.includes(p.id)) {
+          const idx = customProducts.findIndex((cp) => cp.id === p.id);
+          if (idx !== -1) {
+            customProducts[idx] = { ...p, ...customProducts[idx] };
+          } else {
+            customProducts.push(p);
+          }
+        }
+      }
+
+      // Query services from PostgreSQL
+      try {
+        const pgServs = await pool.query('SELECT * FROM services ORDER BY display_order ASC, id ASC;');
+        for (const s of pgServs.rows) {
+          const item = {
+            id: s.id,
+            slug: s.slug,
+            titleEn: s.title_en,
+            titleAr: s.title_ar,
+            descriptionEn: s.description_en,
+            descriptionAr: s.description_ar,
+            icon: s.icon,
+            turnaroundEn: s.turnaround_en,
+            turnaroundAr: s.turnaround_ar,
+            badgeEn: s.badge_en,
+            badgeAr: s.badge_ar,
+            featuresEn: s.features_en || [],
+            featuresAr: s.features_ar || [],
+            displayOrder: s.display_order,
+            isActive: s.is_active,
+            createdAt: s.created_at,
+          };
+          const idx = customServices.findIndex((cs) => cs.id === item.id || cs.slug === item.slug);
+          if (idx !== -1) {
+            customServices[idx] = { ...customServices[idx], ...item };
+          } else {
+            customServices.push(item);
+          }
+        }
+      } catch (sErr) {
+        console.warn('Services fetch note:', sErr);
+      }
+
       persistDataStore();
-      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories`);
+      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories, ${customProducts.length} products, ${customServices.length} services`);
     } catch (e: any) {
       console.warn('Store reconciliation note:', e?.message || e);
     }
@@ -188,8 +377,8 @@ async function startServer() {
   // PUBLIC APIS (ABSOLUTE PRIVACY: NO COSTS, STOCK, IMEIS, ETC.)
   // ----------------------------------------------------
 
-  // Public Categories (Merged PostgreSQL + Data-Store so no category ever vanishes)
-  app.get('/api/categories', async (_req, res) => {
+  // Public & Admin Categories (Merged PostgreSQL + Data-Store so no category ever vanishes)
+  app.get(['/api/categories', '/api/admin/categories'], async (_req, res) => {
     let dbCategories: any[] = [];
     if (isPostgresAvailable) {
       try {
@@ -263,14 +452,108 @@ async function startServer() {
     res.json(merged);
   });
 
-  // Helper for in-memory fallback product filtering (includes custom saved products, excludes deleted products)
-  const filterFallbackProducts = (query: any, isPublic = true) => {
+  // Public & Admin Services (Merged PostgreSQL + Data-Store so services are always available)
+  app.get(['/api/services', '/api/admin/services'], async (req, res) => {
+    const isPublic = !req.path.includes('/admin/');
+    let dbServices: any[] = [];
+    if (isPostgresAvailable) {
+      try {
+        const pool = (global as any)._postgresPool;
+        if (pool) {
+          const sqlQuery = isPublic
+            ? 'SELECT * FROM services WHERE is_active = true ORDER BY display_order ASC, id ASC;'
+            : 'SELECT * FROM services ORDER BY display_order ASC, id ASC;';
+          const pgRes = await pool.query(sqlQuery);
+          dbServices = pgRes.rows.map((s: any) => ({
+            id: s.id,
+            slug: s.slug,
+            titleEn: s.title_en,
+            titleAr: s.title_ar,
+            descriptionEn: s.description_en,
+            descriptionAr: s.description_ar,
+            icon: s.icon,
+            turnaroundEn: s.turnaround_en,
+            turnaroundAr: s.turnaround_ar,
+            badgeEn: s.badge_en,
+            badgeAr: s.badge_ar,
+            featuresEn: s.features_en || [],
+            featuresAr: s.features_ar || [],
+            displayOrder: s.display_order,
+            isActive: s.is_active,
+            createdAt: s.created_at,
+          }));
+        }
+      } catch (err) {
+        console.warn('Services query fallback:', (err as any)?.message);
+      }
+    }
+
+    const merged = [...dbServices];
+    for (const s of customServices) {
+      if ((!isPublic || s.isActive !== false) && !merged.some((m) => m.slug === s.slug || m.id === s.id)) {
+        merged.push(s);
+      }
+    }
+
+    if (merged.length === 0) {
+      for (const fs of FALLBACK_SERVICES) {
+        if (!isPublic || fs.isActive !== false) {
+          merged.push(fs);
+        }
+      }
+    }
+
+    res.json(merged);
+  });
+
+  // High-reliability unified product filtering engine (guarantees zero products ever vanish)
+  const filterFallbackProducts = (query: any, isPublic = true, dbItems: any[] = []) => {
     const { category, brand, condition, featured, newArrival, search, sort, status, categoryId, brandId } = query;
-    const activeFallbacks = FALLBACK_PRODUCTS.filter(
-      (p) => !deletedProductIds.includes(p.id) && !customProducts.some((cp) => cp.id === p.id)
-    );
-    const activeCustom = customProducts.filter((p) => !deletedProductIds.includes(p.id));
-    let allMerged = [...activeCustom, ...activeFallbacks];
+
+    // Merge order:
+    // 1. FALLBACK_PRODUCTS (base catalog)
+    // 2. dbItems (PostgreSQL)
+    // 3. customProducts (data-store.json manual additions/edits take highest priority)
+    const productMap = new Map<number, any>();
+
+    for (const fp of FALLBACK_PRODUCTS) {
+      if (!deletedProductIds.includes(fp.id)) {
+        productMap.set(fp.id, { ...fp, status: fp.status || 'published' });
+      }
+    }
+
+    for (const p of (dbItems || [])) {
+      if (!deletedProductIds.includes(p.id)) {
+        const existing = productMap.get(p.id) || {};
+        productMap.set(p.id, { ...existing, ...p });
+      }
+    }
+
+    for (const cp of customProducts) {
+      if (!deletedProductIds.includes(cp.id)) {
+        const existing = productMap.get(cp.id) || {};
+        productMap.set(cp.id, { ...existing, ...cp });
+      }
+    }
+
+    let allMerged = Array.from(productMap.values());
+
+    // Resolve category and brand names and slugs cleanly
+    allMerged = allMerged.map((p) => {
+      const cat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === p.categoryId || c.slug === p.categorySlug);
+      const br = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === p.brandId || b.slug === p.brandSlug);
+      return {
+        ...p,
+        categoryNameEn: p.categoryNameEn || cat?.nameEn || 'General',
+        categoryNameAr: p.categoryNameAr || cat?.nameAr || 'عام',
+        categorySlug: p.categorySlug || cat?.slug || 'mobile-phones',
+        brandName: p.brandName || br?.name || 'General',
+        brandSlug: p.brandSlug || br?.slug || 'apple',
+        brandLogoUrl: p.brandLogoUrl || br?.logoUrl || '',
+        inStock: (p.stockQuantity ?? 1) > 0,
+        status: p.status || 'published',
+      };
+    });
 
     if (isPublic) {
       allMerged = allMerged.filter((p) => !p.status || p.status === 'published');
@@ -280,16 +563,30 @@ async function startServer() {
 
     let filtered = [...allMerged];
 
+    // Category filter: match slug or ID, including aliases (smartphones <=> mobile-phones, tablets <=> tablets-laptops)
     if (category && typeof category === 'string') {
-      filtered = filtered.filter((p) => p.categorySlug === category || String(p.categoryId) === category);
+      const normCat = category.trim().toLowerCase();
+      filtered = filtered.filter((p) => {
+        const pSlug = (p.categorySlug || '').toLowerCase();
+        if (pSlug === normCat || String(p.categoryId) === normCat) return true;
+        if ((normCat === 'smartphones' || normCat === 'mobile-phones') && (pSlug === 'smartphones' || pSlug === 'mobile-phones')) return true;
+        if ((normCat === 'tablets' || normCat === 'tablets-laptops') && (pSlug === 'tablets' || pSlug === 'tablets-laptops')) return true;
+        return false;
+      });
     }
     if (categoryId && !isNaN(parseInt(categoryId as string, 10))) {
       const cid = parseInt(categoryId as string, 10);
       filtered = filtered.filter((p) => p.categoryId === cid);
     }
 
+    // Brand filter: match slug or ID
     if (brand && typeof brand === 'string') {
-      filtered = filtered.filter((p) => p.brandSlug === brand || String(p.brandId) === brand);
+      const normBrand = brand.trim().toLowerCase();
+      filtered = filtered.filter((p) => {
+        const bSlug = (p.brandSlug || '').toLowerCase();
+        const bName = (p.brandName || '').toLowerCase();
+        return bSlug === normBrand || bName === normBrand || String(p.brandId) === normBrand;
+      });
     }
     if (brandId && !isNaN(parseInt(brandId as string, 10))) {
       const bid = parseInt(brandId as string, 10);
@@ -300,10 +597,10 @@ async function startServer() {
       filtered = filtered.filter((p) => p.condition === condition);
     }
     if (featured === 'true') {
-      filtered = filtered.filter((p) => p.isFeatured);
+      filtered = filtered.filter((p) => Boolean(p.isFeatured));
     }
     if (newArrival === 'true') {
-      filtered = filtered.filter((p) => p.isNewArrival);
+      filtered = filtered.filter((p) => Boolean(p.isNewArrival));
     }
     if (search && typeof search === 'string' && search.trim() !== '') {
       const q = search.trim().toLowerCase();
@@ -319,6 +616,8 @@ async function startServer() {
       filtered.sort((a, b) => (a.nameEn || '').localeCompare(b.nameEn || ''));
     } else if (sort === 'name-desc') {
       filtered.sort((a, b) => (b.nameEn || '').localeCompare(a.nameEn || ''));
+    } else {
+      filtered.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
     }
 
     if (isPublic) {
@@ -354,132 +653,45 @@ async function startServer() {
   // Public Products Catalogue (Filters: category, brand, condition, featured, newArrival, search, sort)
   // ABSOLUTE PRIVACY: Only public catalogue fields returned
   app.get('/api/products', async (req, res) => {
-    if (!isPostgresAvailable) {
-      return res.json(filterFallbackProducts(req.query));
-    }
     try {
-      const { category, brand, condition, featured, newArrival, search, sort } = req.query;
-
-      const conditions = [eq(products.status, 'published')];
-
-      if (category && typeof category === 'string') {
-        const cat = await db.select().from(categories).where(eq(categories.slug, category)).limit(1);
-        if (cat.length > 0) {
-          conditions.push(eq(products.categoryId, cat[0].id));
+      let dbItems: any[] = [];
+      if (isPostgresAvailable) {
+        try {
+          dbItems = await db
+            .select({
+              id: products.id,
+              slug: products.slug,
+              sku: products.sku,
+              nameEn: products.nameEn,
+              nameAr: products.nameAr,
+              descriptionEn: products.descriptionEn,
+              descriptionAr: products.descriptionAr,
+              condition: products.condition,
+              categoryId: products.categoryId,
+              brandId: products.brandId,
+              isFeatured: products.isFeatured,
+              isNewArrival: products.isNewArrival,
+              status: products.status,
+              specifications: products.specifications,
+              variants: products.variants,
+              images: products.images,
+              createdAt: products.createdAt,
+              categoryNameEn: categories.nameEn,
+              categoryNameAr: categories.nameAr,
+              categorySlug: categories.slug,
+              brandName: brands.name,
+              brandSlug: brands.slug,
+            })
+            .from(products)
+            .leftJoin(categories, eq(products.categoryId, categories.id))
+            .leftJoin(brands, eq(products.brandId, brands.id));
+        } catch (dbErr) {
+          console.warn('DB query note in /api/products:', dbErr);
         }
       }
-
-      if (brand && typeof brand === 'string') {
-        const br = await db.select().from(brands).where(eq(brands.slug, brand)).limit(1);
-        if (br.length > 0) {
-          conditions.push(eq(products.brandId, br[0].id));
-        }
-      }
-
-      if (condition && typeof condition === 'string' && ['New', 'Used', 'Refurbished'].includes(condition)) {
-        conditions.push(eq(products.condition, condition));
-      }
-
-      if (featured === 'true') {
-        conditions.push(eq(products.isFeatured, true));
-      }
-
-      if (newArrival === 'true') {
-        conditions.push(eq(products.isNewArrival, true));
-      }
-
-      if (search && typeof search === 'string' && search.trim() !== '') {
-        const query = `%${search.trim()}%`;
-        conditions.push(
-          or(
-            ilike(products.nameEn, query),
-            ilike(products.nameAr, query),
-            ilike(products.sku, query),
-            ilike(products.descriptionEn, query),
-            ilike(products.descriptionAr, query)
-          )!
-        );
-      }
-
-      let query = db
-        .select({
-          id: products.id,
-          slug: products.slug,
-          sku: products.sku,
-          nameEn: products.nameEn,
-          nameAr: products.nameAr,
-          descriptionEn: products.descriptionEn,
-          descriptionAr: products.descriptionAr,
-          condition: products.condition,
-          categoryId: products.categoryId,
-          brandId: products.brandId,
-          isFeatured: products.isFeatured,
-          isNewArrival: products.isNewArrival,
-          specifications: products.specifications,
-          variants: products.variants,
-          images: products.images,
-          createdAt: products.createdAt,
-          categoryNameEn: categories.nameEn,
-          categoryNameAr: categories.nameAr,
-          categorySlug: categories.slug,
-          brandName: brands.name,
-          brandSlug: brands.slug,
-        })
-        .from(products)
-        .leftJoin(categories, eq(products.categoryId, categories.id))
-        .leftJoin(brands, eq(products.brandId, brands.id))
-        .where(and(...conditions));
-
-      // Sorting
-      if (sort === 'name-asc') {
-        query = query.orderBy(asc(products.nameEn)) as any;
-      } else if (sort === 'name-desc') {
-        query = query.orderBy(desc(products.nameEn)) as any;
-      } else {
-        query = query.orderBy(desc(products.createdAt)) as any;
-      }
-
-      const results = await query;
-      const finalProducts = (results || []).filter((p: any) => !deletedProductIds.includes(p.id));
-      for (const cp of customProducts) {
-        if (!deletedProductIds.includes(cp.id) && (!cp.status || cp.status === 'published')) {
-          if (!finalProducts.some((p: any) => p.id === cp.id || (p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase()))) {
-            finalProducts.unshift({
-              id: cp.id,
-              slug: cp.slug,
-              sku: cp.sku,
-              nameEn: cp.nameEn,
-              nameAr: cp.nameAr,
-              descriptionEn: cp.descriptionEn || '',
-              descriptionAr: cp.descriptionAr || '',
-              condition: cp.condition || 'New',
-              categoryId: cp.categoryId,
-              brandId: cp.brandId,
-              categoryNameEn: cp.categoryNameEn || 'General',
-              categoryNameAr: cp.categoryNameAr || 'عام',
-              categorySlug: cp.categorySlug,
-              brandName: cp.brandName || '',
-              brandSlug: cp.brandSlug,
-              brandLogoUrl: cp.brandLogoUrl,
-              isFeatured: Boolean(cp.isFeatured),
-              isNewArrival: Boolean(cp.isNewArrival),
-              specifications: cp.specifications || [],
-              variants: cp.variants || [],
-              images: cp.images || [],
-              inStock: (cp.stockQuantity ?? 1) > 0,
-            });
-          }
-        }
-      }
-      if (finalProducts.length > 0) {
-        return res.json(finalProducts);
-      }
-      if (deletedProductIds.length > 0 || (results && Array.isArray(results))) {
-        return res.json([]);
-      }
-      res.json(filterFallbackProducts(req.query));
+      res.json(filterFallbackProducts(req.query, true, dbItems));
     } catch {
-      res.json(filterFallbackProducts(req.query));
+      res.json(filterFallbackProducts(req.query, true));
     }
   });
 
@@ -1308,103 +1520,48 @@ async function startServer() {
   // Admin: Get all products (includes private notes, costs, serial numbers for the owner)
   app.get('/api/admin/products', requireAuth, async (req: AuthRequest, res) => {
     try {
-      if (!isPostgresAvailable) {
-        return res.json(filterFallbackProducts(req.query));
-      }
-
-      const { search, status, categoryId, brandId } = req.query;
-      const conditions: any[] = [];
-
-      if (status && typeof status === 'string' && status !== 'all') {
-        conditions.push(eq(products.status, status));
-      }
-
-      if (categoryId && !isNaN(parseInt(categoryId as string, 10))) {
-        conditions.push(eq(products.categoryId, parseInt(categoryId as string, 10)));
-      }
-
-      if (brandId && !isNaN(parseInt(brandId as string, 10))) {
-        conditions.push(eq(products.brandId, parseInt(brandId as string, 10)));
-      }
-
-      const { condition } = req.query;
-      if (condition && typeof condition === 'string' && ['New', 'Used', 'Refurbished'].includes(condition)) {
-        conditions.push(eq(products.condition, condition));
-      }
-
-      if (search && typeof search === 'string' && search.trim() !== '') {
-        const query = `%${search.trim()}%`;
-        conditions.push(
-          or(
-            ilike(products.nameEn, query),
-            ilike(products.nameAr, query),
-            ilike(products.sku, query),
-            ilike(products.descriptionEn, query)
-          )!
-        );
-      }
-
-      const query = db
-        .select({
-          id: products.id,
-          slug: products.slug,
-          sku: products.sku,
-          nameEn: products.nameEn,
-          nameAr: products.nameAr,
-          descriptionEn: products.descriptionEn,
-          descriptionAr: products.descriptionAr,
-          condition: products.condition,
-          categoryId: products.categoryId,
-          brandId: products.brandId,
-          isFeatured: products.isFeatured,
-          isNewArrival: products.isNewArrival,
-          status: products.status,
-          specifications: products.specifications,
-          variants: products.variants,
-          images: products.images,
-          // Private administrative fields
-          privateNotes: products.privateNotes,
-          purchaseCost: products.purchaseCost,
-          stockQuantity: products.stockQuantity,
-          imeiSerialNumbers: products.imeiSerialNumbers,
-          createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
-          categoryNameEn: categories.nameEn,
-          categoryNameAr: categories.nameAr,
-          brandName: brands.name,
-        })
-        .from(products)
-        .leftJoin(categories, eq(products.categoryId, categories.id))
-        .leftJoin(brands, eq(products.brandId, brands.id));
-
-      const results =
-        conditions.length > 0
-          ? await query.where(and(...conditions)).orderBy(desc(products.createdAt))
-          : await query.orderBy(desc(products.createdAt));
-
-      const finalProducts = (results || [])
-        .filter((p: any) => !deletedProductIds.includes(p.id))
-        .map((p: any) => {
-          const cp = customProducts.find(
-            (c) => c.id === p.id || (c.sku && p.sku && c.sku.toUpperCase() === p.sku.toUpperCase())
-          );
-          return cp ? { ...p, ...cp } : p;
-        });
-      for (const cp of customProducts) {
-        if (!deletedProductIds.includes(cp.id)) {
-          if (!finalProducts.some((p: any) => p.id === cp.id || (p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase()))) {
-            finalProducts.unshift(cp);
-          }
+      let dbItems: any[] = [];
+      if (isPostgresAvailable) {
+        try {
+          dbItems = await db
+            .select({
+              id: products.id,
+              slug: products.slug,
+              sku: products.sku,
+              nameEn: products.nameEn,
+              nameAr: products.nameAr,
+              descriptionEn: products.descriptionEn,
+              descriptionAr: products.descriptionAr,
+              condition: products.condition,
+              categoryId: products.categoryId,
+              brandId: products.brandId,
+              isFeatured: products.isFeatured,
+              isNewArrival: products.isNewArrival,
+              status: products.status,
+              specifications: products.specifications,
+              variants: products.variants,
+              images: products.images,
+              // Private administrative fields
+              privateNotes: products.privateNotes,
+              purchaseCost: products.purchaseCost,
+              stockQuantity: products.stockQuantity,
+              imeiSerialNumbers: products.imeiSerialNumbers,
+              createdAt: products.createdAt,
+              updatedAt: products.updatedAt,
+              categoryNameEn: categories.nameEn,
+              categoryNameAr: categories.nameAr,
+              categorySlug: categories.slug,
+              brandName: brands.name,
+              brandSlug: brands.slug,
+            })
+            .from(products)
+            .leftJoin(categories, eq(products.categoryId, categories.id))
+            .leftJoin(brands, eq(products.brandId, brands.id));
+        } catch (dbErr) {
+          console.warn('DB query note in /api/admin/products:', dbErr);
         }
       }
-
-      if (finalProducts.length > 0) {
-        return res.json(finalProducts);
-      }
-      if (deletedProductIds.length > 0 || (results && Array.isArray(results))) {
-        return res.json([]);
-      }
-      res.json(filterFallbackProducts(req.query, false));
+      res.json(filterFallbackProducts(req.query, false, dbItems));
     } catch (error) {
       console.warn('Database note: Using fallback admin products:', (error as any)?.message);
       res.json(filterFallbackProducts(req.query, false));
@@ -2674,6 +2831,322 @@ async function startServer() {
       res.json({ success: true });
     } catch (error: any) {
       res.json({ success: true });
+    }
+  });
+
+  // ----------------------------------------------------
+  // Admin: Services Management (Dual-persistent: PostgreSQL + data-store.json)
+  // ----------------------------------------------------
+  app.post('/api/admin/services', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const {
+        titleEn,
+        titleAr,
+        descriptionEn,
+        descriptionAr,
+        icon,
+        turnaroundEn,
+        turnaroundAr,
+        badgeEn,
+        badgeAr,
+        featuresEn,
+        featuresAr,
+        displayOrder,
+        isActive,
+      } = req.body;
+
+      if (!titleEn || !titleEn.trim()) {
+        return res.status(400).json({ error: 'Service English title is required' });
+      }
+
+      let baseSlug = makeSlug(titleEn.trim());
+      if (!baseSlug) baseSlug = `service-${Date.now().toString(36)}`;
+      let finalSlug = baseSlug;
+
+      let savedService: any = null;
+
+      if (isPostgresAvailable) {
+        try {
+          const pool = (global as any)._postgresPool;
+          if (pool) {
+            // Check unique slug
+            let counter = 1;
+            while (counter <= 50) {
+              const check = await pool.query('SELECT id FROM services WHERE slug = $1 LIMIT 1;', [finalSlug]);
+              if (check.rows.length === 0) break;
+              finalSlug = `${baseSlug}-${counter++}`;
+            }
+
+            const insertRes = await pool.query(`
+              INSERT INTO services (
+                slug, title_en, title_ar, description_en, description_ar,
+                icon, turnaround_en, turnaround_ar, badge_en, badge_ar,
+                features_en, features_ar, display_order, is_active
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+              RETURNING *;
+            `, [
+              finalSlug,
+              titleEn.trim(),
+              titleAr?.trim() || titleEn.trim(),
+              descriptionEn?.trim() || '',
+              descriptionAr?.trim() || descriptionEn?.trim() || '',
+              icon || 'Wrench',
+              turnaroundEn?.trim() || '30 - 45 Minutes',
+              turnaroundAr?.trim() || '30 - 45 دقيقة',
+              badgeEn?.trim() || 'Certified',
+              badgeAr?.trim() || 'معتمد',
+              JSON.stringify(featuresEn || []),
+              JSON.stringify(featuresAr || []),
+              parseInt(displayOrder, 10) || 0,
+              isActive !== false,
+            ]);
+
+            if (insertRes.rows.length > 0) {
+              const row = insertRes.rows[0];
+              savedService = {
+                id: row.id,
+                slug: row.slug,
+                titleEn: row.title_en,
+                titleAr: row.title_ar,
+                descriptionEn: row.description_en,
+                descriptionAr: row.description_ar,
+                icon: row.icon,
+                turnaroundEn: row.turnaround_en,
+                turnaroundAr: row.turnaround_ar,
+                badgeEn: row.badge_en,
+                badgeAr: row.badge_ar,
+                featuresEn: row.features_en || [],
+                featuresAr: row.features_ar || [],
+                displayOrder: row.display_order,
+                isActive: row.is_active,
+                createdAt: row.created_at,
+              };
+            }
+          }
+        } catch (dbErr) {
+          console.warn('DB service create note:', dbErr);
+        }
+      }
+
+      if (!savedService) {
+        const nextId = Math.max(100, ...customServices.map((s) => Number(s.id) || 0)) + 1;
+        savedService = {
+          id: nextId,
+          slug: finalSlug,
+          titleEn: titleEn.trim(),
+          titleAr: titleAr?.trim() || titleEn.trim(),
+          descriptionEn: descriptionEn?.trim() || '',
+          descriptionAr: descriptionAr?.trim() || descriptionEn?.trim() || '',
+          icon: icon || 'Wrench',
+          turnaroundEn: turnaroundEn?.trim() || '30 - 45 Minutes',
+          turnaroundAr: turnaroundAr?.trim() || '30 - 45 دقيقة',
+          badgeEn: badgeEn?.trim() || 'Certified',
+          badgeAr: badgeAr?.trim() || 'معتمد',
+          featuresEn: featuresEn || [],
+          featuresAr: featuresAr || [],
+          displayOrder: parseInt(displayOrder, 10) || 0,
+          isActive: isActive !== false,
+          createdAt: new Date().toISOString(),
+        };
+      }
+
+      customServices.push(savedService);
+      persistDataStore();
+
+      await logAudit('SERVICE_CREATE', `Created service "${savedService.titleEn}"`, req.user?.email);
+      res.status(201).json(savedService);
+    } catch (error: any) {
+      console.error('Error creating service:', error);
+      res.status(500).json({ error: error.message || 'Failed to create service' });
+    }
+  });
+
+  app.put('/api/admin/services/:id', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const {
+        titleEn,
+        titleAr,
+        descriptionEn,
+        descriptionAr,
+        icon,
+        turnaroundEn,
+        turnaroundAr,
+        badgeEn,
+        badgeAr,
+        featuresEn,
+        featuresAr,
+        displayOrder,
+        isActive,
+      } = req.body;
+
+      let updatedService: any = null;
+
+      if (isPostgresAvailable) {
+        try {
+          const pool = (global as any)._postgresPool;
+          if (pool) {
+            const updateRes = await pool.query(`
+              UPDATE services SET
+                title_en = COALESCE($1, title_en),
+                title_ar = COALESCE($2, title_ar),
+                description_en = COALESCE($3, description_en),
+                description_ar = COALESCE($4, description_ar),
+                icon = COALESCE($5, icon),
+                turnaround_en = COALESCE($6, turnaround_en),
+                turnaround_ar = COALESCE($7, turnaround_ar),
+                badge_en = COALESCE($8, badge_en),
+                badge_ar = COALESCE($9, badge_ar),
+                features_en = COALESCE($10, features_en),
+                features_ar = COALESCE($11, features_ar),
+                display_order = COALESCE($12, display_order),
+                is_active = COALESCE($13, is_active)
+              WHERE id = $14
+              RETURNING *;
+            `, [
+              titleEn !== undefined ? titleEn.trim() : null,
+              titleAr !== undefined ? titleAr.trim() : null,
+              descriptionEn !== undefined ? descriptionEn.trim() : null,
+              descriptionAr !== undefined ? descriptionAr.trim() : null,
+              icon !== undefined ? icon : null,
+              turnaroundEn !== undefined ? turnaroundEn.trim() : null,
+              turnaroundAr !== undefined ? turnaroundAr.trim() : null,
+              badgeEn !== undefined ? badgeEn.trim() : null,
+              badgeAr !== undefined ? badgeAr.trim() : null,
+              featuresEn !== undefined ? JSON.stringify(featuresEn) : null,
+              featuresAr !== undefined ? JSON.stringify(featuresAr) : null,
+              displayOrder !== undefined ? parseInt(displayOrder, 10) : null,
+              isActive !== undefined ? Boolean(isActive) : null,
+              id,
+            ]);
+
+            if (updateRes.rows.length > 0) {
+              const row = updateRes.rows[0];
+              updatedService = {
+                id: row.id,
+                slug: row.slug,
+                titleEn: row.title_en,
+                titleAr: row.title_ar,
+                descriptionEn: row.description_en,
+                descriptionAr: row.description_ar,
+                icon: row.icon,
+                turnaroundEn: row.turnaround_en,
+                turnaroundAr: row.turnaround_ar,
+                badgeEn: row.badge_en,
+                badgeAr: row.badge_ar,
+                featuresEn: row.features_en || [],
+                featuresAr: row.features_ar || [],
+                displayOrder: row.display_order,
+                isActive: row.is_active,
+                createdAt: row.created_at,
+              };
+            }
+          }
+        } catch (dbErr) {
+          console.warn('DB service update note:', dbErr);
+        }
+      }
+
+      const idx = customServices.findIndex((s) => s.id === id);
+      if (idx !== -1) {
+        customServices[idx] = {
+          ...customServices[idx],
+          ...(titleEn !== undefined ? { titleEn: titleEn.trim() } : {}),
+          ...(titleAr !== undefined ? { titleAr: titleAr.trim() } : {}),
+          ...(descriptionEn !== undefined ? { descriptionEn: descriptionEn.trim() } : {}),
+          ...(descriptionAr !== undefined ? { descriptionAr: descriptionAr.trim() } : {}),
+          ...(icon !== undefined ? { icon } : {}),
+          ...(turnaroundEn !== undefined ? { turnaroundEn: turnaroundEn.trim() } : {}),
+          ...(turnaroundAr !== undefined ? { turnaroundAr: turnaroundAr.trim() } : {}),
+          ...(badgeEn !== undefined ? { badgeEn: badgeEn.trim() } : {}),
+          ...(badgeAr !== undefined ? { badgeAr: badgeAr.trim() } : {}),
+          ...(featuresEn !== undefined ? { featuresEn } : {}),
+          ...(featuresAr !== undefined ? { featuresAr } : {}),
+          ...(displayOrder !== undefined ? { displayOrder: parseInt(displayOrder, 10) } : {}),
+          ...(isActive !== undefined ? { isActive: Boolean(isActive) } : {}),
+        };
+        if (!updatedService) updatedService = customServices[idx];
+      } else if (!updatedService) {
+        updatedService = {
+          id,
+          slug: `service-${id}`,
+          titleEn: titleEn || 'Service',
+          titleAr: titleAr || titleEn || 'خدمة',
+          descriptionEn: descriptionEn || '',
+          descriptionAr: descriptionAr || '',
+          icon: icon || 'Wrench',
+          turnaroundEn: turnaroundEn || '30 - 45 Minutes',
+          turnaroundAr: turnaroundAr || '30 - 45 دقيقة',
+          badgeEn: badgeEn || 'Certified',
+          badgeAr: badgeAr || 'معتمد',
+          featuresEn: featuresEn || [],
+          featuresAr: featuresAr || [],
+          displayOrder: parseInt(displayOrder, 10) || 0,
+          isActive: isActive !== false,
+        };
+        customServices.push(updatedService);
+      }
+
+      persistDataStore();
+      await logAudit('SERVICE_UPDATE', `Updated service "${updatedService.titleEn || id}"`, req.user?.email);
+      res.json(updatedService);
+    } catch (error: any) {
+      console.error('Error updating service:', error);
+      res.status(500).json({ error: error.message || 'Failed to update service' });
+    }
+  });
+
+  app.delete('/api/admin/services/:id', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isPostgresAvailable) {
+        try {
+          const pool = (global as any)._postgresPool;
+          if (pool) {
+            await pool.query('DELETE FROM services WHERE id = $1;', [id]);
+          }
+        } catch (dbErr) {
+          console.warn('DB service delete note:', dbErr);
+        }
+      }
+
+      customServices = customServices.filter((s) => s.id !== id);
+      persistDataStore();
+
+      await logAudit('SERVICE_DELETE', `Deleted service ID ${id}`, req.user?.email);
+      res.json({ success: true, id });
+    } catch (error: any) {
+      res.json({ success: true, id: parseInt(req.params.id, 10) });
+    }
+  });
+
+  app.patch('/api/admin/services/:id/toggle', requireAuth, async (req: AuthRequest, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      let newStatus = true;
+
+      const idx = customServices.findIndex((s) => s.id === id);
+      if (idx !== -1) {
+        newStatus = !customServices[idx].isActive;
+        customServices[idx].isActive = newStatus;
+      }
+
+      if (isPostgresAvailable) {
+        try {
+          const pool = (global as any)._postgresPool;
+          if (pool) {
+            await pool.query('UPDATE services SET is_active = $1 WHERE id = $2;', [newStatus, id]);
+          }
+        } catch (dbErr) {
+          console.warn('DB service toggle note:', dbErr);
+        }
+      }
+
+      persistDataStore();
+      await logAudit('SERVICE_TOGGLE', `Toggled service ID ${id} active to ${newStatus}`, req.user?.email);
+      res.json({ id, isActive: newStatus });
+    } catch (error: any) {
+      res.json({ id: parseInt(req.params.id, 10), isActive: true });
     }
   });
 

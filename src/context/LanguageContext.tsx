@@ -15,6 +15,7 @@ const translations: Record<string, { en: string; ar: string }> = {
   home: { en: 'Home', ar: 'الرئيسية' },
   catalogue: { en: 'Catalogue', ar: 'الكتالوج' },
   categories: { en: 'Categories', ar: 'الأقسام' },
+  services: { en: 'Services', ar: 'الخدمات' },
   about_us: { en: 'About Us', ar: 'عن ناصر موبايل' },
   faq: { en: 'FAQ', ar: 'الأسئلة الشائعة' },
   contact: { en: 'Contact & Location', ar: 'التواصل والموقع' },
