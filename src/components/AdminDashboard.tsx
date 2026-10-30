@@ -284,6 +284,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
+  // Fetch Services
+  const fetchServices = async () => {
+    try {
+      const res = await fetch('/api/admin/services', { headers: authHeaders });
+      if (res.ok) {
+        const data = await res.json();
+        setServicesList(Array.isArray(data) ? data : []);
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
   // Fetch WhatsApp Settings
   const fetchWhatsappSettings = async () => {
     try {
@@ -491,6 +504,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     fetchOverview();
     fetchCategories();
     fetchBrands();
+    fetchServices();
     fetchWhatsappSettings();
     fetchSiteContent();
     fetchVisitorAnalytics();
@@ -501,6 +515,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (activeTab === 'products') fetchProducts();
     if (activeTab === 'categories') fetchCategories();
     if (activeTab === 'brands') fetchBrands();
+    if (activeTab === 'services') fetchServices();
     if (activeTab === 'overview') fetchOverview();
     if (activeTab === 'audit') fetchAuditLogs();
     if (activeTab === 'visitors') fetchVisitorAnalytics();
@@ -1214,6 +1229,140 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     });
   };
 
+  // Service Handlers
+  const handleOpenAddService = () => {
+    setEditingService(null);
+    setServiceTitleEn('');
+    setServiceTitleAr('');
+    setServiceDescEn('');
+    setServiceDescAr('');
+    setServiceIcon('Wrench');
+    setServiceTurnaroundEn('30 - 45 Minutes');
+    setServiceTurnaroundAr('30 - 45 دقيقة');
+    setServiceBadgeEn('Certified');
+    setServiceBadgeAr('معتمد');
+    setServiceFeaturesEn('');
+    setServiceFeaturesAr('');
+    setServiceDisplayOrder(servicesList.length + 1);
+    setServiceIsActive(true);
+    setServiceModalOpen(true);
+  };
+
+  const handleOpenEditService = (service: ServiceItem) => {
+    setEditingService(service);
+    setServiceTitleEn(service.titleEn || '');
+    setServiceTitleAr(service.titleAr || '');
+    setServiceDescEn(service.descriptionEn || '');
+    setServiceDescAr(service.descriptionAr || '');
+    setServiceIcon(service.icon || 'Wrench');
+    setServiceTurnaroundEn(service.turnaroundEn || '30 - 45 Minutes');
+    setServiceTurnaroundAr(service.turnaroundAr || '30 - 45 دقيقة');
+    setServiceBadgeEn(service.badgeEn || 'Certified');
+    setServiceBadgeAr(service.badgeAr || 'معتمد');
+    setServiceFeaturesEn((service.featuresEn || []).join('\n'));
+    setServiceFeaturesAr((service.featuresAr || []).join('\n'));
+    setServiceDisplayOrder(service.displayOrder || 0);
+    setServiceIsActive(service.isActive !== false);
+    setServiceModalOpen(true);
+  };
+
+  const handleSaveService = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!serviceTitleEn.trim()) {
+      showNotification('Service English title is required', true);
+      return;
+    }
+    try {
+      setLoading(true);
+      const payload = {
+        titleEn: serviceTitleEn.trim(),
+        titleAr: serviceTitleAr.trim() || serviceTitleEn.trim(),
+        descriptionEn: serviceDescEn.trim(),
+        descriptionAr: serviceDescAr.trim() || serviceDescEn.trim(),
+        icon: serviceIcon,
+        turnaroundEn: serviceTurnaroundEn.trim(),
+        turnaroundAr: serviceTurnaroundAr.trim(),
+        badgeEn: serviceBadgeEn.trim(),
+        badgeAr: serviceBadgeAr.trim(),
+        featuresEn: serviceFeaturesEn.split('\n').map((s) => s.trim()).filter(Boolean),
+        featuresAr: serviceFeaturesAr.split('\n').map((s) => s.trim()).filter(Boolean),
+        displayOrder: Number(serviceDisplayOrder) || 0,
+        isActive: serviceIsActive,
+      };
+
+      let res;
+      if (editingService) {
+        res = await fetch(`/api/admin/services/${editingService.id}`, {
+          method: 'PUT',
+          headers: authHeaders,
+          body: JSON.stringify(payload),
+        });
+      } else {
+        res = await fetch('/api/admin/services', {
+          method: 'POST',
+          headers: authHeaders,
+          body: JSON.stringify(payload),
+        });
+      }
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save service');
+
+      showNotification(editingService ? `Updated service "${serviceTitleEn}"` : `Added service "${serviceTitleEn}"`);
+      setServiceModalOpen(false);
+      fetchServices();
+    } catch (e: any) {
+      showNotification(e.message, true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteService = (id: number, name: string) => {
+    setDeleteConfirmDialog({
+      isOpen: true,
+      title: 'Delete Service',
+      message: `Are you sure you want to delete service "${name}"?`,
+      onConfirm: async () => {
+        setDeleteConfirmDialog(null);
+        try {
+          setLoading(true);
+          const res = await fetch(`/api/admin/services/${id}`, {
+            method: 'DELETE',
+            headers: authHeaders,
+          });
+          if (!res.ok) {
+            const d = await res.json();
+            throw new Error(d.error || 'Failed to delete service');
+          }
+          showNotification(`Service "${name}" deleted`);
+          setServicesList((prev) => prev.filter((s) => s.id !== id));
+          fetchServices();
+        } catch (e: any) {
+          showNotification(e.message, true);
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleToggleServiceActive = async (id: number) => {
+    try {
+      const res = await fetch(`/api/admin/services/${id}/toggle`, {
+        method: 'PATCH',
+        headers: authHeaders,
+      });
+      if (res.ok) {
+        const d = await res.json();
+        setServicesList((prev) => prev.map((s) => (s.id === id ? { ...s, isActive: d.isActive } : s)));
+        showNotification('Service status updated!');
+      }
+    } catch (e: any) {
+      showNotification(e.message, true);
+    }
+  };
+
   // Change Owner Password
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1380,6 +1529,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <Tag className="w-4 h-4" />
             <span>Brands</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab('services')}
+            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+              activeTab === 'services'
+                ? 'bg-[#922CB5] text-white shadow-md'
+                : 'text-zinc-400 hover:text-white hover:bg-white/5'
+            }`}
+          >
+            <Wrench className="w-4 h-4 text-[#B7F34B]" />
+            <span>Services & Repair</span>
+            {servicesList.length > 0 && (
+              <span className="ml-auto bg-black/40 px-2 py-0.5 rounded-full text-[10px] font-mono">
+                {servicesList.length}
+              </span>
+            )}
           </button>
 
           <button
@@ -2402,6 +2568,273 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   ))}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* TAB: SERVICES & REPAIR */}
+          {activeTab === 'services' && (
+            <div className="space-y-8 max-w-5xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-2xl font-black text-white uppercase tracking-tight">
+                    Store Services & Repair
+                  </h2>
+                  <p className="text-xs text-zinc-400 mt-0.5">
+                    Manage boutique customer services, repairs, trade-ins, and B2B solutions. All changes persist permanently.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleOpenAddService}
+                  className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#922CB5] hover:bg-[#8023a0] text-white text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(146,44,181,0.35)] cursor-pointer"
+                >
+                  <Plus className="w-4 h-4" />
+                  <span>Add Service</span>
+                </button>
+              </div>
+
+              {/* Services List */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {servicesList.map((srv) => (
+                  <div
+                    key={srv.id}
+                    className={`p-5 rounded-2xl bg-[#1e1c24] border transition-all flex flex-col justify-between ${
+                      srv.isActive !== false ? 'border-white/10 hover:border-[#922CB5]/40' : 'border-rose-500/20 opacity-60'
+                    }`}
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#151419] border border-white/10 flex items-center justify-center p-2 text-[#B7F34B]">
+                            <Wrench className="w-5 h-5" />
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2">
+                              <h3 className="text-sm font-black text-white">{srv.titleEn}</h3>
+                              {srv.badgeEn && (
+                                <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#391548] text-[#B7F34B]">
+                                  {srv.badgeEn}
+                                </span>
+                              )}
+                            </div>
+                            <p className="text-xs font-arabic text-zinc-400 mt-0.5">{srv.titleAr}</p>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          onClick={() => handleToggleServiceActive(srv.id)}
+                          className={`px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wider transition-colors cursor-pointer ${
+                            srv.isActive !== false
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
+                              : 'bg-zinc-800 text-zinc-400 border border-white/5'
+                          }`}
+                        >
+                          {srv.isActive !== false ? 'Active' : 'Hidden'}
+                        </button>
+                      </div>
+
+                      <p className="text-xs text-zinc-400 line-clamp-2">{srv.descriptionEn}</p>
+
+                      <div className="flex items-center gap-4 text-[11px] text-zinc-500 font-mono">
+                        <span>Turnaround: {srv.turnaroundEn || 'Same-Day'}</span>
+                        <span>Order: {srv.displayOrder ?? 0}</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-end gap-2 pt-4 mt-4 border-t border-white/5">
+                      <button
+                        type="button"
+                        onClick={() => handleOpenEditService(srv)}
+                        className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-white transition-colors cursor-pointer"
+                        title="Edit Service"
+                      >
+                        <Edit className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteService(srv.id, srv.titleEn)}
+                        className="p-2 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 transition-colors cursor-pointer"
+                        title="Delete Service"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Service Modal */}
+              {serviceModalOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm overflow-y-auto">
+                  <div className="relative w-full max-w-2xl bg-[#1e1c24] border border-white/10 rounded-3xl p-6 sm:p-8 space-y-6 my-8 shadow-2xl">
+                    <div className="flex items-center justify-between border-b border-white/10 pb-4">
+                      <h3 className="text-lg font-black text-white uppercase tracking-tight">
+                        {editingService ? 'Edit Store Service' : 'Add New Service'}
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => setServiceModalOpen(false)}
+                        className="text-zinc-400 hover:text-white p-2 rounded-xl hover:bg-white/5"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSaveService} className="space-y-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Service Title (English) *
+                          </label>
+                          <input
+                            type="text"
+                            required
+                            value={serviceTitleEn}
+                            onChange={(e) => setServiceTitleEn(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                            placeholder="Express Screen & Battery Replacement"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Service Title (Arabic)
+                          </label>
+                          <input
+                            type="text"
+                            value={serviceTitleAr}
+                            onChange={(e) => setServiceTitleAr(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5] text-right font-arabic"
+                            placeholder="استبدال فوري للشاشات والبطاريات"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Description (English)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={serviceDescEn}
+                            onChange={(e) => setServiceDescEn(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                            placeholder="Detailed description of the service..."
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Description (Arabic)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={serviceDescAr}
+                            onChange={(e) => setServiceDescAr(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5] text-right font-arabic"
+                            placeholder="تفاصيل الخدمة باللغة العربية..."
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Turnaround Time (En)
+                          </label>
+                          <input
+                            type="text"
+                            value={serviceTurnaroundEn}
+                            onChange={(e) => setServiceTurnaroundEn(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                            placeholder="30 - 45 Minutes"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Turnaround Time (Ar)
+                          </label>
+                          <input
+                            type="text"
+                            value={serviceTurnaroundAr}
+                            onChange={(e) => setServiceTurnaroundAr(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5] text-right font-arabic"
+                            placeholder="30 - 45 دقيقة"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Badge Label
+                          </label>
+                          <input
+                            type="text"
+                            value={serviceBadgeEn}
+                            onChange={(e) => setServiceBadgeEn(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white focus:outline-none focus:border-[#922CB5]"
+                            placeholder="Certified"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Feature Highlights (English - One per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={serviceFeaturesEn}
+                            onChange={(e) => setServiceFeaturesEn(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs font-mono text-white focus:outline-none focus:border-[#922CB5]"
+                            placeholder="Original OLED calibration&#10;100% Battery health&#10;90-Day warranty"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-[11px] font-bold text-zinc-400 uppercase tracking-wider mb-1">
+                            Feature Highlights (Arabic - One per line)
+                          </label>
+                          <textarea
+                            rows={3}
+                            value={serviceFeaturesAr}
+                            onChange={(e) => setServiceFeaturesAr(e.target.value)}
+                            className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs font-arabic text-white focus:outline-none focus:border-[#922CB5] text-right"
+                            placeholder="معايرة أصلية للشاشات&#10;استعادة صحة البطارية&#10;ضمان لمدة 90 يوماً"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2">
+                        <label className="flex items-center gap-2 cursor-pointer text-xs text-zinc-300">
+                          <input
+                            type="checkbox"
+                            checked={serviceIsActive}
+                            onChange={(e) => setServiceIsActive(e.target.checked)}
+                            className="rounded bg-[#151419] border-white/10 text-[#922CB5] focus:ring-0"
+                          />
+                          <span>Show on Public Website</span>
+                        </label>
+
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setServiceModalOpen(false)}
+                            className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-zinc-300"
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            disabled={loading}
+                            className="px-5 py-2 rounded-xl bg-[#922CB5] hover:bg-[#8023a0] text-xs font-black text-white uppercase tracking-wider shadow-lg disabled:opacity-50"
+                          >
+                            {loading ? 'Saving...' : editingService ? 'Save Changes' : 'Create Service'}
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
