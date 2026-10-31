@@ -231,7 +231,7 @@ var pool = createPool();
 var db = drizzle(pool, { schema: schema_exports });
 
 // server.ts
-import { eq as eq2, desc, asc, and, or, ilike, sql } from "drizzle-orm";
+import { eq as eq2, desc, asc, and, or, sql } from "drizzle-orm";
 
 // src/middleware/auth.ts
 import crypto from "crypto";
@@ -393,43 +393,123 @@ async function initDatabase() {
 var FALLBACK_CATEGORIES = [
   {
     id: 1,
-    slug: "smartphones",
-    nameEn: "Smartphones",
-    nameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629",
-    descriptionEn: "Flagship & high-performance smartphones from Apple, Samsung, Google & more.",
-    descriptionAr: "\u0623\u062D\u062F\u062B \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629 \u0627\u0644\u0631\u0627\u0626\u062F\u0629 \u0645\u0646 \u0622\u0628\u0644 \u0648\u0633\u0627\u0645\u0633\u0648\u0646\u062C \u0648\u062C\u0648\u062C\u0644 \u0648\u063A\u064A\u0631\u0647\u0627.",
+    slug: "mobile-phones",
+    nameEn: "Mobile Phones",
+    nameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0645\u062A\u062D\u0631\u0643\u0629",
+    descriptionEn: "Flagship smartphones, 5G devices, and the latest releases.",
+    descriptionAr: "\u0623\u062D\u062F\u062B \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629 \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0631\u0627\u0626\u062F\u0629 \u0648\u062A\u0642\u0646\u064A\u0627\u062A \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u062E\u0627\u0645\u0633.",
     icon: "Smartphone",
     displayOrder: 1
   },
   {
     id: 2,
-    slug: "tablets",
-    nameEn: "Tablets & iPads",
-    nameAr: "\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629",
-    descriptionEn: "Apple iPads and high-tier productivity Android tablets.",
-    descriptionAr: "\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0622\u064A\u0628\u0627\u062F \u0648\u0623\u0642\u0648\u0649 \u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0644\u0644\u0625\u0646\u062A\u0627\u062C\u064A\u0629 \u0648\u0627\u0644\u0639\u0645\u0644.",
-    icon: "Tablet",
+    slug: "used-refurbished-phones",
+    nameEn: "Used & Refurbished Phones",
+    nameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0645\u0633\u062A\u0639\u0645\u0644\u0629 \u0648\u0627\u0644\u0645\u062C\u062F\u062F\u0629",
+    descriptionEn: "Certified pre-owned and refurbished phones tested for top performance.",
+    descriptionAr: "\u0647\u0648\u0627\u062A\u0641 \u0645\u0633\u062A\u0639\u0645\u0644\u0629 \u0648\u0645\u062C\u062F\u062F\u0629 \u0648\u0645\u0641\u062D\u0648\u0635\u0629 \u0628\u062F\u0642\u0629 \u0644\u0636\u0645\u0627\u0646 \u0623\u0639\u0644\u0649 \u0623\u062F\u0627\u0621.",
+    icon: "RefreshCw",
     displayOrder: 2
   },
   {
     id: 3,
-    slug: "smartwatches",
-    nameEn: "Smartwatches",
-    nameAr: "\u0627\u0644\u0633\u0627\u0639\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629",
-    descriptionEn: "Luxury smart wearables, Apple Watch Ultra & Galaxy Watch series.",
-    descriptionAr: "\u0633\u0627\u0639\u0627\u062A \u0622\u0628\u0644 \u0648\u0633\u0627\u0645\u0633\u0648\u0646\u062C \u0627\u0644\u0630\u0643\u064A\u0629 \u0627\u0644\u0641\u0627\u062E\u0631\u0629 \u0627\u0644\u0645\u062C\u0647\u0632\u0629 \u0628\u0643\u0627\u0641\u0629 \u0645\u064A\u0632\u0627\u062A \u0627\u0644\u0635\u062D\u0629.",
-    icon: "Watch",
+    slug: "accessories",
+    nameEn: "Accessories",
+    nameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    descriptionEn: "Protective cases, screen guards, camera protectors, and mounts.",
+    descriptionAr: "\u0623\u063A\u0637\u064A\u0629 \u062D\u0645\u0627\u064A\u0629\u060C \u0648\u0627\u0642\u064A\u0627\u062A \u0634\u0627\u0634\u0629\u060C \u0645\u0644\u062D\u0642\u0627\u062A \u0643\u0627\u0645\u064A\u0631\u0627\u060C \u0648\u062D\u0648\u0627\u0645\u0644 \u0627\u0644\u0647\u0648\u0627\u062A\u0641.",
+    icon: "ShieldCheck",
     displayOrder: 3
   },
   {
     id: 4,
-    slug: "accessories",
-    nameEn: "Premium Accessories",
-    nameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A \u0627\u0644\u0641\u0627\u062E\u0631\u0629",
-    descriptionEn: "Original MagSafe chargers, GaN power adapters, AirPods, and protective cases.",
-    descriptionAr: "\u0634\u0648\u0627\u062D\u0646 \u0645\u0627\u062C \u0633\u064A\u0641 \u0648\u0633\u0645\u0627\u0639\u0627\u062A \u0623\u0635\u0644\u064A\u0629 \u0648\u0643\u0641\u0631\u0627\u062A \u062D\u0645\u0627\u064A\u0629 \u0641\u0627\u062E\u0631\u0629 \u0645\u0639\u062A\u0645\u062F\u0629.",
-    icon: "Headphones",
+    slug: "chargers-cables",
+    nameEn: "Chargers & Cables",
+    nameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    descriptionEn: "High-speed PD power adapters, braided cables, and wireless docks.",
+    descriptionAr: "\u0645\u062D\u0648\u0644\u0627\u062A \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 PD\u060C \u0643\u0627\u0628\u0644\u0627\u062A \u0645\u062A\u064A\u0646\u0629\u060C \u0648\u0642\u0648\u0627\u0639\u062F \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A.",
+    icon: "Zap",
     displayOrder: 4
+  },
+  {
+    id: 5,
+    slug: "earbuds-audio",
+    nameEn: "Earbuds & Audio",
+    nameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    descriptionEn: "Wireless earbuds, noise-canceling headphones, and portable speakers.",
+    descriptionAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0623\u0630\u0646 \u0644\u0627\u0633\u0644\u0643\u064A\u0629\u060C \u0633\u0645\u0627\u0639\u0627\u062A \u0631\u0623\u0633 \u0639\u0627\u0632\u0644\u0629 \u0644\u0644\u0636\u0648\u0636\u0627\u0621 \u0648\u0645\u0643\u0628\u0631\u0627\u062A \u0635\u0648\u062A.",
+    icon: "Headphones",
+    displayOrder: 5
+  },
+  {
+    id: 6,
+    slug: "smartwatches",
+    nameEn: "Smartwatches",
+    nameAr: "\u0627\u0644\u0633\u0627\u0639\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629",
+    descriptionEn: "Advanced fitness trackers, cellular watches, and smart wearables.",
+    descriptionAr: "\u0633\u0627\u0639\u0627\u062A \u0630\u0643\u064A\u0629 \u0644\u0644\u064A\u0627\u0642\u0629 \u0648\u0627\u0644\u0627\u062A\u0635\u0627\u0644 \u0648\u0645\u062A\u0627\u0628\u0639\u0629 \u0627\u0644\u0635\u062D\u0629.",
+    icon: "Watch",
+    displayOrder: 6
+  },
+  {
+    id: 7,
+    slug: "tablets-laptops",
+    nameEn: "Tablets & Laptops",
+    nameAr: "\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0648\u0627\u0644\u0645\u062D\u0645\u0648\u0644\u0629",
+    descriptionEn: "Pro tablets, ultrabooks, styluses, and keyboard accessories.",
+    descriptionAr: "\u0623\u062C\u0647\u0632\u0629 \u0644\u0648\u062D\u064A\u0629 \u0645\u062A\u0642\u062F\u0645\u0629\u060C \u0623\u062C\u0647\u0632\u0629 \u0645\u062D\u0645\u0648\u0644\u0629\u060C \u0648\u0623\u0642\u0644\u0627\u0645 \u0630\u0643\u064A\u0629.",
+    icon: "Tablet",
+    displayOrder: 7
+  },
+  {
+    id: 8,
+    slug: "other-electronics",
+    nameEn: "Other Electronics",
+    nameAr: "\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0623\u062E\u0631\u0649",
+    descriptionEn: "Gaming consoles, streaming gadgets, power banks, and smart gear.",
+    descriptionAr: "\u0623\u062C\u0647\u0632\u0629 \u0623\u0644\u0639\u0627\u0628\u060C \u0645\u0644\u062D\u0642\u0627\u062A \u0630\u0643\u064A\u0629\u060C \u0628\u0646\u0648\u0643 \u0637\u0627\u0642\u0629\u060C \u0648\u062A\u0642\u0646\u064A\u0627\u062A \u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0629.",
+    icon: "Cpu",
+    displayOrder: 8
+  },
+  {
+    id: 10,
+    slug: "smart-audio",
+    nameEn: "Smart Audio",
+    nameAr: "\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629",
+    descriptionEn: "High-fidelity smart soundbars, voice speakers, and Hi-Res audio gear.",
+    descriptionAr: "\u0645\u0643\u0628\u0631\u0627\u062A \u0635\u0648\u062A \u0630\u0643\u064A\u0629 \u0639\u0627\u0644\u064A\u0629 \u0627\u0644\u0646\u0642\u0627\u0621 \u0648\u0645\u0639\u062F\u0627\u062A \u0635\u0648\u062A\u064A\u0629 \u0645\u062A\u0637\u0648\u0631\u0629.",
+    icon: "Volume2",
+    displayOrder: 9
+  },
+  {
+    id: 11,
+    slug: "networking-wi-fi",
+    nameEn: "Networking & Wi-Fi",
+    nameAr: "\u0627\u0644\u0634\u0628\u0643\u0627\u062A \u0648\u0627\u0644\u0648\u0627\u064A \u0641\u0627\u064A",
+    descriptionEn: "Range extenders, mesh Wi-Fi nodes, network switches, and adapters.",
+    descriptionAr: "\u0645\u0648\u0633\u0639\u0627\u062A \u0646\u0637\u0627\u0642 \u0634\u0628\u0643\u0627\u062A\u060C \u0623\u0646\u0638\u0645\u0629 \u0634\u0628\u0643\u0627\u062A \u0648\u0627\u064A \u0641\u0627\u064A \u0645\u0648\u0633\u0639\u0629 \u0648\u0645\u062D\u0648\u0644\u0627\u062A.",
+    icon: "Wifi",
+    displayOrder: 10
+  },
+  {
+    id: 12,
+    slug: "routers-wi-fi",
+    nameEn: "Routers & Wi-Fi",
+    nameAr: "\u0631\u0627\u0648\u062A\u0631\u0627\u062A \u0648\u0648\u0627\u064A \u0641\u0627\u064A",
+    descriptionEn: "High-performance Wi-Fi 6/7 routers, gaming routers, and 5G CPE routers.",
+    descriptionAr: "\u0623\u062C\u0647\u0632\u0629 \u0631\u0627\u0648\u062A\u0631 \u0648\u0627\u064A \u0641\u0627\u064A 6 \u0648 7 \u0639\u0627\u0644\u064A\u0629 \u0627\u0644\u0633\u0631\u0639\u0629 \u0648\u0631\u0627\u0648\u062A\u0631\u0627\u062A \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u062E\u0627\u0645\u0633 \u0644\u0644\u0623\u0644\u0639\u0627\u0628.",
+    icon: "Radio",
+    displayOrder: 11
+  },
+  {
+    id: 13,
+    slug: "gaming-vr-tech",
+    nameEn: "Gaming & VR Tech",
+    nameAr: "\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0623\u0644\u0639\u0627\u0628 \u0648\u0627\u0644\u0648\u0627\u0642\u0639 \u0627\u0644\u0627\u0641\u062A\u0631\u0627\u0636\u064A",
+    descriptionEn: "Next-gen gaming systems, controllers, VR headsets, and pro gaming gear.",
+    descriptionAr: "\u0623\u062C\u0647\u0632\u0629 \u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u0642\u0627\u062F\u0645\u060C \u0623\u064A\u0627\u062F\u064A \u062A\u062D\u0643\u0645\u060C \u0646\u0638\u0627\u0631\u0627\u062A \u0648\u0627\u0642\u0639 \u0627\u0641\u062A\u0631\u0627\u0636\u064A \u0648\u0645\u0644\u062D\u0642\u0627\u062A \u0642\u064A\u0645\u0646\u0642.",
+    icon: "Gamepad2",
+    displayOrder: 12
   }
 ];
 var FALLBACK_BRANDS = [
@@ -437,30 +517,84 @@ var FALLBACK_BRANDS = [
     id: 1,
     slug: "apple",
     name: "Apple",
-    logoUrl: "https://images.unsplash.com/photo-1611186871348-b1ce696e52c9?w=120&auto=format&fit=crop&q=80"
+    logoUrl: "/src/assets/images/apple_brand_icon_1792330702744.jpg"
   },
   {
     id: 2,
     slug: "samsung",
     name: "Samsung",
-    logoUrl: "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=120&auto=format&fit=crop&q=80"
+    logoUrl: "/src/assets/images/samsung_brand_icon_1792330702562.jpg"
   },
   {
     id: 3,
     slug: "google",
     name: "Google Pixel",
-    logoUrl: "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=120&auto=format&fit=crop&q=80"
+    logoUrl: "/src/assets/images/pixel_brand_icon_1792330703295.jpg"
   },
   {
     id: 4,
     slug: "xiaomi",
     name: "Xiaomi",
-    logoUrl: ""
+    logoUrl: "/src/assets/images/xiaomi_brand_icon_1792330703614.jpg"
   },
   {
     id: 5,
+    slug: "huawei",
+    name: "Huawei",
+    logoUrl: ""
+  },
+  {
+    id: 6,
+    slug: "sony",
+    name: "Sony",
+    logoUrl: ""
+  },
+  {
+    id: 7,
+    slug: "anker",
+    name: "Anker",
+    logoUrl: ""
+  },
+  {
+    id: 8,
+    slug: "jbl",
+    name: "JBL",
+    logoUrl: ""
+  },
+  {
+    id: 9,
     slug: "oneplus",
     name: "OnePlus",
+    logoUrl: "/src/assets/images/oneplus_brand_icon_1792330704300.jpg"
+  },
+  {
+    id: 10,
+    slug: "playstation",
+    name: "PlayStation",
+    logoUrl: ""
+  },
+  {
+    id: 11,
+    slug: "tp-link",
+    name: "TP-Link",
+    logoUrl: "https://kommodo.ai/i/i5yB9eczSjRtrWw6VM7h"
+  },
+  {
+    id: 12,
+    slug: "nothing-tech",
+    name: "Nothing Tech",
+    logoUrl: ""
+  },
+  {
+    id: 13,
+    slug: "motorola",
+    name: "Motorola",
+    logoUrl: "/api/images/8"
+  },
+  {
+    id: 14,
+    slug: "razer",
+    name: "Razer",
     logoUrl: ""
   }
 ];
@@ -500,28 +634,31 @@ var FALLBACK_PRODUCTS = [
     condition: "New",
     categoryId: 1,
     brandId: 1,
-    categoryNameEn: "Smartphones",
-    categoryNameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629",
-    categorySlug: "smartphones",
+    categoryNameEn: "Mobile Phones",
+    categoryNameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0645\u062A\u062D\u0631\u0643\u0629",
+    categorySlug: "mobile-phones",
     brandName: "Apple",
     brandSlug: "apple",
     isFeatured: true,
     isNewArrival: true,
+    status: "published",
+    stockQuantity: 18,
     specifications: [
       { keyEn: "Storage", keyAr: "\u0633\u0639\u0629 \u0627\u0644\u062A\u062E\u0632\u064A\u0646", valueEn: "256GB / 512GB / 1TB", valueAr: "256 \u062C\u064A\u062C\u0627\u0628\u0627\u064A\u062A / 512 \u062C\u064A\u062C\u0627\u0628\u0627\u064A\u062A / 1 \u062A\u064A\u0631\u0627\u0628\u0627\u064A\u062A" },
       { keyEn: "Display", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629", valueEn: '6.9" Super Retina XDR OLED 120Hz', valueAr: "6.9 \u0628\u0648\u0635\u0629 \u0633\u0648\u0628\u0631 \u0631\u064A\u062A\u064A\u0646\u0627 XDR \u0623\u0648\u0644\u064A\u062F 120 \u0647\u0631\u062A\u0632" },
       { keyEn: "Processor", keyAr: "\u0627\u0644\u0645\u0639\u0627\u0644\u062C", valueEn: "Apple A18 Pro (3nm)", valueAr: "\u0622\u0628\u0644 A18 \u0628\u0631\u0648 (3 \u0646\u0627\u0646\u0648\u0645\u062A\u0631)" },
-      { keyEn: "Warranty", keyAr: "\u0627\u0644\u0636\u0645\u0627\u0646", valueEn: "1 Year Apple Official Warranty", valueAr: "\u0636\u0645\u0627\u0646 \u0631\u0633\u0645\u064A \u0645\u0646 \u0622\u0628\u0644 \u0644\u0645\u062F\u0629 \u0633\u0646\u0629" }
+      { keyEn: "Warranty", keyAr: "\u0627\u0644\u0636\u0645\u0627\u0646", valueEn: "1 Year Apple Official Dubai Warranty", valueAr: "\u0636\u0645\u0627\u0646 \u0631\u0633\u0645\u064A \u0645\u0646 \u0622\u0628\u0644 \u062F\u0628\u064A \u0644\u0645\u062F\u0629 \u0633\u0646\u0629" }
     ],
     variants: [
-      { nameEn: "Storage", nameAr: "\u0627\u0644\u0633\u0639\u0629", options: ["256GB", "512GB", "1TB"] },
-      { nameEn: "Color", nameAr: "\u0627\u0644\u0644\u0648\u0646", options: ["Desert Titanium", "Natural Titanium", "White Titanium", "Black Titanium"] }
+      { name: "256GB - Desert Titanium", price: 5099, originalPrice: 5499, isDefault: true, stockQuantity: 10 },
+      { name: "512GB - Desert Titanium", price: 5899, originalPrice: 6299, isDefault: false, stockQuantity: 5 },
+      { name: "1TB - Natural Titanium", price: 6699, originalPrice: 7099, isDefault: false, stockQuantity: 3 }
     ],
     images: [
       "https://images.unsplash.com/photo-1695048133142-1a20484d2569?w=800&auto=format&fit=crop&q=80",
       "https://images.unsplash.com/photo-1592750475338-74b7b21085ab?w=800&auto=format&fit=crop&q=80"
     ],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: "2026-10-14T15:32:58.226Z"
   },
   {
     id: 2,
@@ -534,26 +671,28 @@ var FALLBACK_PRODUCTS = [
     condition: "New",
     categoryId: 1,
     brandId: 2,
-    categoryNameEn: "Smartphones",
-    categoryNameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0630\u0643\u064A\u0629",
-    categorySlug: "smartphones",
+    categoryNameEn: "Mobile Phones",
+    categoryNameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0645\u062A\u062D\u0631\u0643\u0629",
+    categorySlug: "mobile-phones",
     brandName: "Samsung",
     brandSlug: "samsung",
     isFeatured: true,
     isNewArrival: true,
+    status: "published",
+    stockQuantity: 14,
     specifications: [
       { keyEn: "Processor", keyAr: "\u0627\u0644\u0645\u0639\u0627\u0644\u062C", valueEn: "Snapdragon 8 Elite for Galaxy", valueAr: "\u0633\u0646\u0627\u0628\u062F\u0631\u0627\u062C\u0648\u0646 8 \u0625\u064A\u0644\u064A\u062A \u0645\u062E\u0635\u0635 \u0644\u062C\u0627\u0644\u0627\u0643\u0633\u064A" },
       { keyEn: "Camera", keyAr: "\u0627\u0644\u0643\u0627\u0645\u064A\u0631\u0627", valueEn: "200MP Main + 50MP Periscope 5x", valueAr: "200 \u0645\u064A\u062C\u0627\u0628\u0643\u0633\u0644 \u0631\u0626\u064A\u0633\u064A\u0629 + 50 \u0645\u064A\u062C\u0627\u0628\u0643\u0633\u0644 \u0628\u064A\u0631\u064A\u0633\u0643\u0648\u0628" },
       { keyEn: "Battery", keyAr: "\u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "5000 mAh Fast Charge 45W", valueAr: "5000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 45 \u0648\u0627\u0637" }
     ],
     variants: [
-      { nameEn: "Storage", nameAr: "\u0627\u0644\u0633\u0639\u0629", options: ["256GB", "512GB", "1TB"] },
-      { nameEn: "Color", nameAr: "\u0627\u0644\u0644\u0648\u0646", options: ["Titanium Black", "Titanium Silver", "Titanium Gray"] }
+      { name: "512GB - Titanium Black", price: 4899, originalPrice: 5299, isDefault: true, stockQuantity: 8 },
+      { name: "1TB - Titanium Gray", price: 5699, originalPrice: 6099, isDefault: false, stockQuantity: 6 }
     ],
     images: [
       "https://images.unsplash.com/photo-1610945265064-0e34e5519bbf?w=800&auto=format&fit=crop&q=80"
     ],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: "2026-10-14T15:32:58.226Z"
   },
   {
     id: 3,
@@ -564,7 +703,7 @@ var FALLBACK_PRODUCTS = [
     descriptionEn: "Engineered for extreme environments with stunning 3000-nit display, precision dual-frequency GPS, and up to 72 hours of battery life.",
     descriptionAr: "\u0645\u0635\u0645\u0645\u0629 \u0644\u0644\u0623\u062C\u0648\u0627\u0621 \u0627\u0644\u0642\u0627\u0633\u064A\u0629 \u0645\u0639 \u0634\u0627\u0634\u0629 \u0628\u0633\u0637\u0648\u0639 3000 \u0634\u0645\u0639\u0629\u060C \u0646\u0638\u0627\u0645 GPS \u0645\u0632\u062F\u0648\u062C \u0639\u0627\u0644\u064A \u0627\u0644\u062F\u0642\u0629\u060C \u0648\u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 72 \u0633\u0627\u0639\u0629.",
     condition: "New",
-    categoryId: 3,
+    categoryId: 6,
     brandId: 1,
     categoryNameEn: "Smartwatches",
     categoryNameAr: "\u0627\u0644\u0633\u0627\u0639\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629",
@@ -573,17 +712,20 @@ var FALLBACK_PRODUCTS = [
     brandSlug: "apple",
     isFeatured: true,
     isNewArrival: false,
+    status: "published",
+    stockQuantity: 8,
     specifications: [
       { keyEn: "Case", keyAr: "\u0627\u0644\u0647\u064A\u0643\u0644", valueEn: "49mm Black Titanium Case", valueAr: "\u0647\u064A\u0643\u0644 \u062A\u064A\u062A\u0627\u0646\u064A\u0648\u0645 \u0623\u0633\u0648\u062F 49 \u0645\u0644\u0645" },
       { keyEn: "Water Resistance", keyAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0645\u0627\u0621", valueEn: "100m Water Resistant", valueAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0644\u0644\u0645\u0627\u0621 \u062D\u062A\u0649 \u0639\u0645\u0642 100 \u0645\u062A\u0631" }
     ],
     variants: [
-      { nameEn: "Band", nameAr: "\u0627\u0644\u0633\u0648\u0627\u0631", options: ["Trail Loop", "Alpine Loop", "Ocean Band"] }
+      { name: "Black Titanium - Trail Loop", price: 3199, originalPrice: 3499, isDefault: true, stockQuantity: 5 },
+      { name: "Black Titanium - Ocean Band", price: 3199, originalPrice: 3499, isDefault: false, stockQuantity: 3 }
     ],
     images: [
       "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?w=800&auto=format&fit=crop&q=80"
     ],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: "2026-10-14T15:32:58.226Z"
   },
   {
     id: 4,
@@ -594,27 +736,842 @@ var FALLBACK_PRODUCTS = [
     descriptionEn: "Ultra thin 5.1mm design with breakthrough Ultra Retina XDR display, game-changing M4 chip, and Apple Pencil Pro support.",
     descriptionAr: "\u062A\u0635\u0645\u064A\u0645 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u062D\u0627\u0641\u0629 \u0628\u0633\u0645\u0627\u0643\u0629 5.1 \u0645\u0644\u0645 \u0645\u0639 \u0634\u0627\u0634\u0629 \u0623\u0644\u062A\u0631\u0627 \u0631\u064A\u062A\u064A\u0646\u0627 XDR \u0623\u0648\u0644\u064A\u062F \u0627\u0644\u062B\u0648\u0631\u064A\u0629 \u0648\u0645\u0639\u0627\u0644\u062C M4 \u0627\u0644\u062E\u0627\u0631\u0642.",
     condition: "New",
-    categoryId: 2,
+    categoryId: 7,
     brandId: 1,
-    categoryNameEn: "Tablets & iPads",
-    categoryNameAr: "\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629",
-    categorySlug: "tablets",
+    categoryNameEn: "Tablets & Laptops",
+    categoryNameAr: "\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0648\u0627\u0644\u0645\u062D\u0645\u0648\u0644\u0629",
+    categorySlug: "tablets-laptops",
     brandName: "Apple",
     brandSlug: "apple",
     isFeatured: false,
     isNewArrival: true,
+    status: "published",
+    stockQuantity: 10,
     specifications: [
       { keyEn: "Processor", keyAr: "\u0627\u0644\u0645\u0639\u0627\u0644\u062C", valueEn: "Apple M4 Chip (Next-gen Neural Engine)", valueAr: "\u0634\u0631\u064A\u062D\u0629 \u0622\u0628\u0644 M4 \u0645\u0639 \u0645\u062D\u0631\u0643 \u0639\u0635\u0628\u064A \u0645\u062A\u0637\u0648\u0631" },
       { keyEn: "Display", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629", valueEn: '13" Tandem OLED Ultra Retina XDR', valueAr: "\u0634\u0627\u0634\u0629 13 \u0628\u0648\u0635\u0629 \u062A\u0627\u0646\u062F\u064A\u0645 \u0623\u0648\u0644\u064A\u062F \u0623\u0644\u062A\u0631\u0627 \u0631\u064A\u062A\u064A\u0646\u0627 XDR" }
     ],
     variants: [
-      { nameEn: "Storage", nameAr: "\u0627\u0644\u0633\u0639\u0629", options: ["256GB", "512GB", "1TB"] },
-      { nameEn: "Connectivity", nameAr: "\u0627\u0644\u0627\u062A\u0635\u0627\u0644", options: ["Wi-Fi", "Wi-Fi + Cellular 5G"] }
+      { name: "256GB Wi-Fi - Space Black", price: 4699, originalPrice: 4999, isDefault: true, stockQuantity: 6 },
+      { name: "512GB Wi-Fi + Cellular 5G", price: 5699, originalPrice: 6099, isDefault: false, stockQuantity: 4 }
     ],
     images: [
       "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&auto=format&fit=crop&q=80"
     ],
-    createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    createdAt: "2026-10-14T15:32:58.226Z"
+  },
+  {
+    id: 5,
+    slug: "sony-wh-1000xm5-noise-canceling-headphones",
+    sku: "SONY-WH1000XM5-BLK",
+    nameEn: "Sony WH-1000XM5 Wireless Noise Canceling Headphones",
+    nameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0633\u0648\u0646\u064A WH-1000XM5 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A\u0629 \u0627\u0644\u0639\u0627\u0632\u0644\u0629 \u0644\u0644\u0636\u0648\u0636\u0627\u0621",
+    descriptionEn: "Industry-leading noise cancellation with two processors and 8 microphones, exceptional high-res audio, and crystal clear hands-free calling.",
+    descriptionAr: "\u0623\u0641\u0636\u0644 \u062A\u0642\u0646\u064A\u0629 \u0625\u0644\u063A\u0627\u0621 \u0636\u0648\u0636\u0627\u0621 \u0641\u064A \u0641\u0626\u062A\u0647\u0627 \u0645\u0639 \u0645\u0639\u0627\u0644\u062C\u064A\u0646 \u06488 \u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646\u0627\u062A\u060C \u0635\u0648\u062A \u0639\u0627\u0644\u064A \u0627\u0644\u062F\u0642\u0629\u060C \u0648\u0645\u0643\u0627\u0644\u0645\u0627\u062A \u0641\u0627\u0626\u0642\u0629 \u0627\u0644\u0648\u0636\u0648\u062D.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 6,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "Sony",
+    brandSlug: "sony",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 12,
+    specifications: [
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 30 Hours", valueAr: "\u062D\u062A\u0649 30 \u0633\u0627\u0639\u0629 \u062A\u0634\u063A\u064A\u0644" },
+      { keyEn: "Audio Codecs", keyAr: "\u062A\u0631\u0645\u064A\u0632 \u0627\u0644\u0635\u0648\u062A", valueEn: "LDAC, AAC, SBC, Hi-Res Wireless", valueAr: "\u0635\u0648\u062A \u0639\u0627\u0644\u064A \u0627\u0644\u062F\u0642\u0629 \u0644\u0627\u0633\u0644\u0643\u064A" }
+    ],
+    variants: [
+      { name: "Midnight Black", price: 1149, originalPrice: 1299, isDefault: true, stockQuantity: 7 },
+      { name: "Platinum Silver", price: 1149, originalPrice: 1299, isDefault: false, stockQuantity: 5 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-15T10:00:00.000Z"
+  },
+  {
+    id: 6,
+    slug: "anker-prime-27650mah-power-bank-250w",
+    sku: "ANKER-PRIME-250W",
+    nameEn: "Anker Prime 27,650mAh Power Bank (250W Ultra Fast)",
+    nameAr: "\u0628\u0646\u0643 \u0637\u0627\u0642\u0629 \u0623\u0646\u0643\u0631 \u0628\u0631\u0627\u064A\u0645 27650 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u0628\u0642\u0648\u0629 250 \u0648\u0627\u0637",
+    descriptionEn: "Ultra high-capacity power bank with 250W multi-device fast output, smart digital display, and companion app Bluetooth control.",
+    descriptionAr: "\u0628\u0646\u0643 \u0637\u0627\u0642\u0629 \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0639\u0629 \u0645\u0639 \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 \u0628\u0642\u062F\u0631\u0629 250 \u0648\u0627\u0637 \u0644\u0639\u062F\u0629 \u0623\u062C\u0647\u0632\u0629 \u0641\u064A \u0648\u0642\u062A \u0648\u0627\u062D\u062F \u0648\u0634\u0627\u0634\u0629 \u0631\u0642\u0645\u064A\u0629 \u0630\u0643\u064A\u0629.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 20,
+    specifications: [
+      { keyEn: "Capacity", keyAr: "\u0627\u0644\u0633\u0639\u0629", valueEn: "27,650 mAh (99.54Wh airline approved)", valueAr: "27650 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u0645\u0635\u0631\u062D \u0628\u0647 \u0644\u0644\u0637\u064A\u0631\u0627\u0646" },
+      { keyEn: "Max Output", keyAr: "\u0623\u0642\u0635\u0649 \u0642\u062F\u0631\u0629 \u0625\u062E\u0631\u0627\u062C", valueEn: "250W Total Output", valueAr: "250 \u0648\u0627\u0637 \u0625\u062C\u0645\u0627\u0644\u064A \u0627\u0644\u0637\u0627\u0642\u0629" }
+    ],
+    variants: [
+      { name: "Standard Edition (250W)", price: 499, originalPrice: 599, isDefault: true, stockQuantity: 20 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1609592424367-e9a03e3aeb5c?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-15T11:00:00.000Z"
+  },
+  {
+    id: 7,
+    slug: "google-pixel-9-pro-xl-5g",
+    sku: "PIXEL-9PRO-XL",
+    nameEn: "Google Pixel 9 Pro XL 5G - Obsidian",
+    nameAr: "\u062C\u0648\u062C\u0644 \u0628\u0643\u0633\u0644 9 \u0628\u0631\u0648 XL 5G - \u0623\u0633\u0648\u062F \u0633\u0628\u062C\u064A",
+    descriptionEn: "Google Tensor G4 powerhouse featuring advanced Gemini Nano AI on-device, pro-triple camera array, and 7 years of OS updates.",
+    descriptionAr: "\u0647\u0627\u062A\u0641 \u062C\u0648\u062C\u0644 \u0627\u0644\u0623\u0642\u0648\u0649 \u0628\u0645\u0639\u0627\u0644\u062C \u062A\u0646\u0633\u0648\u0631 G4\u060C \u0648\u0630\u0643\u0627\u0621 \u0627\u0635\u0637\u0646\u0627\u0639\u064A \u062C\u064A\u0645\u064A\u0646\u064A \u0645\u062F\u0645\u062C\u060C \u0648\u0643\u0627\u0645\u064A\u0631\u0627 \u0627\u062D\u062A\u0631\u0627\u0641\u064A\u0629 \u062B\u0644\u0627\u062B\u064A\u0629 \u0648\u062A\u062D\u062F\u064A\u062B\u0627\u062A \u0644\u0645\u062F\u0629 7 \u0633\u0646\u0648\u0627\u062A.",
+    condition: "New",
+    categoryId: 1,
+    brandId: 3,
+    categoryNameEn: "Mobile Phones",
+    categoryNameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0645\u062A\u062D\u0631\u0643\u0629",
+    categorySlug: "mobile-phones",
+    brandName: "Google Pixel",
+    brandSlug: "google",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 9,
+    specifications: [
+      { keyEn: "Processor", keyAr: "\u0627\u0644\u0645\u0639\u0627\u0644\u062C", valueEn: "Google Tensor G4 + Titan M2", valueAr: "\u062C\u0648\u062C\u0644 \u062A\u0646\u0633\u0648\u0631 G4 \u0645\u0639 \u0634\u0631\u064A\u062D\u0629 \u062A\u064A\u062A\u0627\u0646 M2" },
+      { keyEn: "Display", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629", valueEn: '6.8" Super Actua OLED 1-120Hz', valueAr: "6.8 \u0628\u0648\u0635\u0629 \u0633\u0648\u0628\u0631 \u0623\u0643\u0634\u0648\u0627 \u0623\u0648\u0644\u064A\u062F 120 \u0647\u0631\u062A\u0632" }
+    ],
+    variants: [
+      { name: "256GB - Obsidian", price: 4199, originalPrice: 4499, isDefault: true, stockQuantity: 5 },
+      { name: "512GB - Porcelain", price: 4799, originalPrice: 5099, isDefault: false, stockQuantity: 4 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-16T12:00:00.000Z"
+  },
+  {
+    id: 10,
+    slug: "tp-link-archer-air-e5-ultra-thin-wi-fi-6-extender",
+    sku: "ARCHER-AIR-E5",
+    nameEn: "TP-Link Archer Air E5 Ultra-Thin Wi-Fi 6 Extender",
+    nameAr: "\u0645\u0648\u0633\u0639 \u0634\u0628\u0643\u0629 \u0648\u0627\u064A \u0641\u0627\u064A 6 \u0631\u0641\u064A\u0639 \u0644\u0644\u063A\u0627\u064A\u0629 \u0622\u0631\u062A\u0634\u0631 \u0625\u064A\u0631 E5",
+    descriptionEn: "Ultra-thin and minimalist design with AX3000 Wi-Fi 6 speeds, smart antennas, and seamless EasyMesh support.",
+    descriptionAr: "\u062A\u0635\u0645\u064A\u0645 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u062D\u0627\u0641\u0629 \u0648\u0627\u0644\u0623\u0646\u0627\u0642\u0629 \u0645\u0639 \u0633\u0631\u0639\u0627\u062A \u0648\u0627\u064A \u0641\u0627\u064A 6 AX3000 \u0648\u0647\u0648\u0627\u0626\u064A\u0627\u062A \u0630\u0643\u064A\u0629 \u0648\u062F\u0639\u0645 EasyMesh \u0627\u0644\u0633\u0644\u0633.",
+    condition: "New",
+    categoryId: 11,
+    brandId: 11,
+    categoryNameEn: "Networking & Wi-Fi",
+    categoryNameAr: "\u0627\u0644\u0634\u0628\u0643\u0627\u062A \u0648\u0627\u0644\u0648\u0627\u064A \u0641\u0627\u064A",
+    categorySlug: "networking-wi-fi",
+    brandName: "TP-Link",
+    brandSlug: "tp-link",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 7,
+    specifications: [
+      { keyEn: "Wi-Fi Speeds", keyAr: "\u0633\u0631\u0639\u0627\u062A \u0627\u0644\u0648\u0627\u064A \u0641\u0627\u064A", valueEn: "AX3000 (2402 Mbps on 5GHz + 574 Mbps on 2.4GHz)", valueAr: "AX3000 (2402 \u0645\u064A\u062C\u0627\u0628\u062A \u0639\u0644\u0649 5 \u062C\u064A\u062C\u0627\u0647\u0631\u062A\u0632 + 574 \u0645\u064A\u062C\u0627\u0628\u062A \u0639\u0644\u0649 2.4 \u062C\u064A\u062C\u0627\u0647\u0631\u062A\u0632)" },
+      { keyEn: "Thickness", keyAr: "\u0627\u0644\u0633\u0645\u0627\u0643\u0629", valueEn: "8mm Ultra Slim Wall Mountable", valueAr: "8 \u0645\u0644\u0645 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u062D\u0627\u0641\u0629 \u0642\u0627\u0628\u0644 \u0644\u0644\u062A\u0639\u0644\u064A\u0642" }
+    ],
+    variants: [
+      { name: "Standard Pack", price: 280, originalPrice: 320, isDefault: true, stockQuantity: 7 }
+    ],
+    images: [
+      "/api/images/50001"
+    ],
+    createdAt: "2026-10-28T08:03:06.157Z"
+  },
+  {
+    id: 11,
+    slug: "tp-link-archer-ax73-dual-band-wi-fi-6-router",
+    sku: "TP-ARCHER-AX73-1793174564980",
+    nameEn: "TP-Link Archer AX73 Dual-Band Wi-Fi 6 Router",
+    nameAr: "\u0631\u0627\u0648\u062A\u0631 \u062A\u064A \u0628\u064A \u0644\u064A\u0646\u0643 \u0622\u0631\u062A\u0634\u0631 AX73 \u0648\u0627\u064A \u0641\u0627\u064A 6 \u0645\u0632\u062F\u0648\u062C \u0627\u0644\u0646\u0637\u0627\u0642",
+    descriptionEn: "Gigabit Wi-Fi 6 router delivering up to 5400 Mbps speeds for 8K streaming, 6 high-gain antennas, and HomeShield security.",
+    descriptionAr: "\u0631\u0627\u0648\u062A\u0631 \u0648\u0627\u064A \u0641\u0627\u064A 6 \u062C\u064A\u062C\u0627\u0628\u062A \u0628\u0633\u0631\u0639\u0627\u062A \u062A\u0635\u0644 \u0625\u0644\u0649 5400 \u0645\u064A\u062C\u0627\u0628\u062A \u0644\u0628\u062B \u0628\u062F\u0642\u0629 8K \u0645\u0639 6 \u0647\u0648\u0627\u0626\u064A\u0627\u062A \u0648\u062D\u0645\u0627\u064A\u0629 HomeShield \u0627\u0644\u0645\u062A\u0637\u0648\u0631\u0629.",
+    condition: "New",
+    categoryId: 12,
+    brandId: 11,
+    categoryNameEn: "Routers & Wi-Fi",
+    categoryNameAr: "\u0631\u0627\u0648\u062A\u0631\u0627\u062A \u0648\u0648\u0627\u064A \u0641\u0627\u064A",
+    categorySlug: "routers-wi-fi",
+    brandName: "TP-Link",
+    brandSlug: "tp-link",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 15,
+    specifications: [
+      { keyEn: "Wi-Fi Speed", keyAr: "\u0633\u0631\u0639\u0629 \u0627\u0644\u0648\u0627\u064A \u0641\u0627\u064A", valueEn: "AX5400 (4804 Mbps + 574 Mbps)", valueAr: "AX5400 (4804 \u0645\u064A\u062C\u0627\u0628\u062A + 574 \u0645\u064A\u062C\u0627\u0628\u062A)" },
+      { keyEn: "Antennas", keyAr: "\u0627\u0644\u0647\u0648\u0627\u0626\u064A\u0627\u062A", valueEn: "6 High-Gain External Antennas", valueAr: "6 \u0647\u0648\u0627\u0626\u064A\u0627\u062A \u062E\u0627\u0631\u062C\u064A\u0629 \u0639\u0627\u0644\u064A\u0629 \u0627\u0644\u0623\u062F\u0627\u0621" }
+    ],
+    variants: [
+      { name: "AX5400 Standard", price: 340, originalPrice: 380, isDefault: true, stockQuantity: 15 }
+    ],
+    images: [
+      "/api/images/50001"
+    ],
+    createdAt: "2026-10-28T08:02:45.015Z"
+  },
+  {
+    id: 12,
+    slug: "tp-link-archer-ax55-pro-gigabit-wi-fi-6-router",
+    sku: "TP-ARCHER-AX55-1793173174137",
+    nameEn: "TP-Link Archer AX55 Pro Gigabit Wi-Fi 6 Router",
+    nameAr: "\u0631\u0627\u0648\u062A\u0631 \u062A\u064A \u0628\u064A \u0644\u064A\u0646\u0643 \u0622\u0631\u062A\u0634\u0631 AX55 \u0628\u0631\u0648 \u062C\u064A\u062C\u0627\u0628\u062A \u0648\u0627\u064A \u0641\u0627\u064A 6",
+    descriptionEn: "Multi-Gigabit Wi-Fi 6 router with 2.5G port, AX3000 speeds, low latency gaming, and VPN server/client support.",
+    descriptionAr: "\u0631\u0627\u0648\u062A\u0631 \u0648\u0627\u064A \u0641\u0627\u064A 6 \u0645\u062A\u0639\u062F\u062F \u0627\u0644\u062C\u064A\u062C\u0627\u0628\u062A \u0645\u0639 \u0645\u0646\u0641\u0630 2.5G \u0648\u0633\u0631\u0639\u0627\u062A AX3000 \u0644\u0644\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0633\u0631\u064A\u0639\u0629 \u0648\u062F\u0639\u0645 \u062E\u0648\u0627\u062F\u0645 VPN.",
+    condition: "New",
+    categoryId: 12,
+    brandId: 11,
+    categoryNameEn: "Routers & Wi-Fi",
+    categoryNameAr: "\u0631\u0627\u0648\u062A\u0631\u0627\u062A \u0648\u0648\u0627\u064A \u0641\u0627\u064A",
+    categorySlug: "routers-wi-fi",
+    brandName: "TP-Link",
+    brandSlug: "tp-link",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 10,
+    specifications: [
+      { keyEn: "Ports", keyAr: "\u0627\u0644\u0645\u0646\u0627\u0641\u0630", valueEn: "1x 2.5Gbps WAN/LAN + 4x Gigabit LAN", valueAr: "\u0645\u0646\u0641\u0630 2.5 \u062C\u064A\u062C\u0627\u0628\u062A + 4 \u0645\u0646\u0627\u0641\u0630 \u062C\u064A\u062C\u0627\u0628\u062A" },
+      { keyEn: "Wi-Fi Speed", keyAr: "\u0633\u0631\u0639\u0629 \u0627\u0644\u0648\u0627\u064A \u0641\u0627\u064A", valueEn: "AX3000 (2402 Mbps + 574 Mbps)", valueAr: "AX3000 (2402 \u0645\u064A\u062C\u0627\u0628\u062A + 574 \u0645\u064A\u062C\u0627\u0628\u062A)" }
+    ],
+    variants: [
+      { name: "AX3000 Pro (2.5G Port)", price: 290, originalPrice: 330, isDefault: true, stockQuantity: 10 }
+    ],
+    images: [
+      "/api/images/50001"
+    ],
+    createdAt: "2026-10-28T07:39:34.178Z"
+  },
+  {
+    id: 13,
+    slug: "tp-link-archer-air-e5-range-extender",
+    sku: "ARCHER-AIR-E5-EXT",
+    nameEn: "TP-Link Archer Air E5 Range Extender",
+    nameAr: "\u0645\u0648\u0633\u0639 \u0646\u0637\u0627\u0642 \u062A\u064A \u0628\u064A \u0644\u064A\u0646\u0643 \u0622\u0631\u062A\u0634\u0631 \u0625\u064A\u0631 E5",
+    descriptionEn: "Compact Wi-Fi 6 range extender engineered for dead-zone elimination with ultra-thin profile and smart signal indicator.",
+    descriptionAr: "\u0645\u0648\u0633\u0639 \u0646\u0637\u0627\u0642 \u0648\u0627\u064A \u0641\u0627\u064A 6 \u0645\u062F\u0645\u062C \u0645\u0635\u0645\u0645 \u0644\u0644\u0642\u0636\u0627\u0621 \u0639\u0644\u0649 \u0627\u0644\u0645\u0646\u0627\u0637\u0642 \u0627\u0644\u0645\u064A\u062A\u0629 \u0645\u0639 \u062A\u0635\u0645\u064A\u0645 \u0646\u062D\u064A\u0641 \u0648\u0645\u0624\u0634\u0631 \u0625\u0634\u0627\u0631\u0629 \u0630\u0643\u064A.",
+    condition: "New",
+    categoryId: 11,
+    brandId: 11,
+    categoryNameEn: "Networking & Wi-Fi",
+    categoryNameAr: "\u0627\u0644\u0634\u0628\u0643\u0627\u062A \u0648\u0627\u0644\u0648\u0627\u064A \u0641\u0627\u064A",
+    categorySlug: "networking-wi-fi",
+    brandName: "TP-Link",
+    brandSlug: "tp-link",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 12,
+    specifications: [
+      { keyEn: "Coverage", keyAr: "\u0627\u0644\u062A\u063A\u0637\u064A\u0629", valueEn: "Up to 1,500 sq. ft.", valueAr: "\u062A\u063A\u0637\u064A\u0629 \u062A\u0635\u0644 \u0625\u0644\u0649 1500 \u0642\u062F\u0645 \u0645\u0631\u0628\u0639" }
+    ],
+    variants: [
+      { name: "Standard Extender", price: 220, originalPrice: 260, isDefault: true, stockQuantity: 12 }
+    ],
+    images: [
+      "/api/images/50001"
+    ],
+    createdAt: "2026-10-27T18:52:56.585Z"
+  },
+  {
+    id: 14,
+    slug: "playstation-5-pro-digital-edition",
+    sku: "PS5-PRO-DIGITAL",
+    nameEn: "Sony PlayStation 5 Pro Console",
+    nameAr: "\u062C\u0647\u0627\u0632 \u0633\u0648\u0646\u064A \u0628\u0644\u0627\u064A\u0633\u062A\u064A\u0634\u0646 5 \u0628\u0631\u0648",
+    descriptionEn: "Experience next-level gaming with PlayStation Spectral Super Resolution (PSSR), 2TB ultra-fast SSD, and enhanced Ray Tracing.",
+    descriptionAr: "\u062A\u062C\u0631\u0628\u0629 \u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u0642\u0627\u062F\u0645 \u0645\u0639 \u062A\u0642\u0646\u064A\u0629 PSSR \u0648\u0633\u0639\u0629 2 \u062A\u064A\u0631\u0627\u0628\u0627\u064A\u062A SSD \u0641\u0627\u0626\u0642\u0629 \u0627\u0644\u0633\u0631\u0639\u0629 \u0648\u062A\u062A\u0628\u0639 \u0623\u0634\u0639\u0629 \u0645\u062A\u0637\u0648\u0631.",
+    condition: "New",
+    categoryId: 8,
+    brandId: 10,
+    categoryNameEn: "Other Electronics",
+    categoryNameAr: "\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0623\u062E\u0631\u0649",
+    categorySlug: "other-electronics",
+    brandName: "PlayStation",
+    brandSlug: "playstation",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 6,
+    specifications: [
+      { keyEn: "Storage", keyAr: "\u0627\u0644\u062A\u062E\u0632\u064A\u0646", valueEn: "2TB Custom NVMe SSD", valueAr: "2 \u062A\u064A\u0631\u0627\u0628\u0627\u064A\u062A NVMe SSD \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629" },
+      { keyEn: "Resolution Support", keyAr: "\u062F\u0639\u0645 \u0627\u0644\u062F\u0642\u0629", valueEn: "Up to 8K / 4K 120fps with PSSR", valueAr: "\u062F\u0642\u0629 \u062D\u062A\u0649 8K / 4K \u0628\u0633\u0631\u0639\u0629 120 \u0625\u0637\u0627\u0631" }
+    ],
+    variants: [
+      { name: "PS5 Pro (2TB)", price: 2999, originalPrice: 3299, isDefault: true, stockQuantity: 6 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1606813907291-d86efa9b94db?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-18T13:38:33.384Z"
+  },
+  {
+    id: 15,
+    slug: "motorola-edge-50-ultra-5g",
+    sku: "MOTO-EDGE50-ULTRA",
+    nameEn: "Motorola Edge 50 Ultra 5G - Nordic Wood",
+    nameAr: "\u0645\u0648\u062A\u0648\u0631\u0648\u0644\u0627 \u0625\u064A\u062F\u062C 50 \u0627\u0644\u062A\u0631\u0627 5G - \u062E\u0634\u0628 \u0646\u0648\u0631\u062F\u064A\u0643",
+    descriptionEn: "Real FSC-certified wood finish, Snapdragon 8s Gen 3, Pantone validated camera, 125W TurboPower charging, and IP68 underwater protection.",
+    descriptionAr: "\u0638\u0647\u0631 \u0645\u0646 \u0627\u0644\u062E\u0634\u0628 \u0627\u0644\u0637\u0628\u064A\u0639\u064A \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u060C \u0645\u0639\u0627\u0644\u062C \u0633\u0646\u0627\u0628\u062F\u0631\u0627\u062C\u0648\u0646 8s \u0627\u0644\u062C\u064A\u0644 \u0627\u0644\u062B\u0627\u0644\u062B\u060C \u0643\u0627\u0645\u064A\u0631\u0627 \u0645\u0639\u062A\u0645\u062F\u0629 \u0645\u0646 \u0628\u0627\u0646\u062A\u0648\u0646 \u0648\u0634\u062D\u0646 \u0641\u0627\u0626\u0642 125 \u0648\u0627\u0637.",
+    condition: "New",
+    categoryId: 1,
+    brandId: 13,
+    categoryNameEn: "Mobile Phones",
+    categoryNameAr: "\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0627\u0644\u0645\u062A\u062D\u0631\u0643\u0629",
+    categorySlug: "mobile-phones",
+    brandName: "Motorola",
+    brandSlug: "motorola",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 5,
+    specifications: [
+      { keyEn: "Charging", keyAr: "\u0627\u0644\u0634\u062D\u0646", valueEn: "125W Wired + 50W Wireless", valueAr: "125 \u0648\u0627\u0637 \u0633\u0644\u0643\u064A + 50 \u0648\u0627\u0637 \u0644\u0627\u0633\u0644\u0643\u064A" },
+      { keyEn: "Display", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629", valueEn: '6.7" Super HD (1220p) pOLED 144Hz', valueAr: "6.7 \u0628\u0648\u0635\u0629 \u0633\u0648\u0628\u0631 HD \u0623\u0648\u0644\u064A\u062F 144 \u0647\u0631\u062A\u0632" }
+    ],
+    variants: [
+      { name: "16GB RAM + 512GB (Nordic Wood)", price: 3299, originalPrice: 3699, isDefault: true, stockQuantity: 5 }
+    ],
+    images: [
+      "/api/images/8"
+    ],
+    createdAt: "2026-10-27T18:14:47.783Z"
+  },
+  {
+    id: 16,
+    slug: "razer-blackshark-v2-pro-wireless-gaming-headset",
+    sku: "RAZER-BSV2P-WHT",
+    nameEn: "Razer BlackShark V2 Pro Wireless Gaming Headset",
+    nameAr: "\u0633\u0645\u0627\u0639\u0629 \u0627\u0644\u0623\u0644\u0639\u0627\u0628 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A\u0629 \u0631\u064A\u0632\u0631 \u0628\u0644\u0627\u0643 \u0634\u0627\u0631\u0643 V2 \u0628\u0631\u0648",
+    descriptionEn: "For esports athletes: Razer HyperClear Super Wideband Mic, TriForce Titanium 50mm Drivers, and up to 70 hours battery life.",
+    descriptionAr: "\u0645\u0635\u0645\u0645\u0629 \u0644\u0628\u0637\u0648\u0644\u0627\u062A \u0627\u0644\u0631\u064A\u0627\u0636\u0627\u062A \u0627\u0644\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0629: \u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u0642\u0627\u0621\u060C \u0645\u0643\u0628\u0631\u0627\u062A \u0635\u0648\u062A \u062A\u064A\u062A\u0627\u0646\u064A\u0648\u0645 50 \u0645\u0644\u0645 \u0648\u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 70 \u0633\u0627\u0639\u0629.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 14,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "Razer",
+    brandSlug: "razer",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 8,
+    specifications: [
+      { keyEn: "Battery Life", keyAr: "\u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 70 Hours", valueAr: "\u062D\u062A\u0649 70 \u0633\u0627\u0639\u0629 \u062A\u0634\u063A\u064A\u0644" },
+      { keyEn: "Connection", keyAr: "\u0627\u0644\u0627\u062A\u0635\u0627\u0644", valueEn: "Razer HyperSpeed Wireless 2.4GHz + Bluetooth 5.2", valueAr: "\u0627\u062A\u0635\u0627\u0644 \u0644\u0627\u0633\u0644\u0643\u064A \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629 + \u0628\u0644\u0648\u062A\u0648\u062B" }
+    ],
+    variants: [
+      { name: "White Edition", price: 699, originalPrice: 799, isDefault: true, stockQuantity: 8 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1546435770-a3e426bf472b?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-28T09:44:24.212Z"
+  },
+  {
+    id: 18,
+    slug: "apple-iphone-16-pro-max-silicone-case-magsafe",
+    sku: "AP-IP16PM-SIL-BLK",
+    nameEn: "Apple iPhone 16 Pro Max Silicone Case with MagSafe",
+    nameAr: "\u063A\u0637\u0627\u0621 \u0633\u064A\u0644\u064A\u0643\u0648\u0646 \u0623\u0635\u0644\u064A \u0645\u0639 \u0645\u0627\u062C \u0633\u064A\u0641 \u0644\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648 \u0645\u0627\u0643\u0633",
+    descriptionEn: "Designed by Apple with Camera Control sapphire crystal interaction, silky soft-touch exterior silicone, microfiber lining, and built-in MagSafe alignment.",
+    descriptionAr: "\u062A\u0635\u0645\u064A\u0645 \u0631\u0633\u0645\u064A \u0645\u0646 \u0622\u0628\u0644 \u0645\u0639 \u062F\u0639\u0645 \u0632\u0631 \u0627\u0644\u062A\u062D\u0643\u0645 \u0628\u0627\u0644\u0643\u0627\u0645\u064A\u0631\u0627 \u0628\u0637\u0628\u0642\u0629 \u0627\u0644\u064A\u0627\u0642\u0648\u062A\u060C \u0633\u064A\u0644\u064A\u0643\u0648\u0646 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u0639\u0648\u0645\u0629\u060C \u0628\u0637\u0627\u0646\u0629 \u0645\u0627\u064A\u0643\u0631\u0648\u0641\u0627\u064A\u0628\u0631\u060C \u0648\u0645\u063A\u0646\u0627\u0637\u064A\u0633 \u0645\u0627\u062C \u0633\u064A\u0641 \u0645\u062F\u0645\u062C.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 1,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Apple",
+    brandSlug: "apple",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 25,
+    specifications: [
+      { keyEn: "Compatibility", keyAr: "\u0627\u0644\u062A\u0648\u0627\u0641\u0642", valueEn: 'iPhone 16 Pro Max (6.9")', valueAr: "\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648 \u0645\u0627\u0643\u0633 (6.9 \u0628\u0648\u0635\u0629)" },
+      { keyEn: "Material", keyAr: "\u0627\u0644\u062E\u0627\u0645\u0629", valueEn: "Premium Liquid Silicone + Microfiber Lining", valueAr: "\u0633\u064A\u0644\u064A\u0643\u0648\u0646 \u0633\u0627\u0626\u0644 \u0641\u0627\u062E\u0631 + \u0628\u0637\u0627\u0646\u0629 \u0645\u0627\u064A\u0643\u0631\u0648\u0641\u0627\u064A\u0628\u0631" },
+      { keyEn: "Special Feature", keyAr: "\u0627\u0644\u0645\u064A\u0632\u0629 \u0627\u0644\u062E\u0627\u0635\u0629", valueEn: "Full Camera Control Sapphire Crystal Support", valueAr: "\u062F\u0639\u0645 \u0643\u0627\u0645\u0644 \u0644\u0632\u0631 \u0627\u0644\u062A\u062D\u0643\u0645 \u0628\u0627\u0644\u0643\u0627\u0645\u064A\u0631\u0627" }
+    ],
+    variants: [
+      { name: "Black (Original)", price: 199, originalPrice: 229, isDefault: true, stockQuantity: 10 },
+      { name: "Denim Blue", price: 199, originalPrice: 229, isDefault: false, stockQuantity: 8 },
+      { name: "Plum Purple", price: 199, originalPrice: 229, isDefault: false, stockQuantity: 7 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1603539279542-e925916a048d?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:00:00.000Z"
+  },
+  {
+    id: 19,
+    slug: "apple-iphone-16-pro-max-finewoven-case-magsafe",
+    sku: "AP-IP16PM-FW-TAUPE",
+    nameEn: "Apple iPhone 16 Pro Max FineWoven Case with MagSafe",
+    nameAr: "\u063A\u0637\u0627\u0621 \u0641\u0627\u064A\u0646 \u0648\u0648\u0641\u0646 \u0627\u0644\u0641\u0627\u062E\u0631 \u0645\u0639 \u0645\u0627\u062C \u0633\u064A\u0641 \u0644\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648 \u0645\u0627\u0643\u0633",
+    descriptionEn: "Made from durable microtwill with a soft suede-like touch. Premium luxury finish made with 68% post-consumer recycled content.",
+    descriptionAr: "\u0645\u0635\u0646\u0648\u0639 \u0645\u0646 \u0646\u0633\u064A\u062C \u0627\u0644\u0645\u0627\u064A\u0643\u0631\u0648\u062A\u0648\u064A\u0644 \u0627\u0644\u0645\u062A\u064A\u0646 \u0628\u0645\u0644\u0645\u0633 \u0634\u0645\u0648\u0627\u0647 \u0641\u0627\u062E\u0631 \u0648\u0645\u063A\u0646\u0627\u0637\u064A\u0633 \u0645\u0627\u062C \u0633\u064A\u0641 \u0642\u0648\u064A.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 1,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Apple",
+    brandSlug: "apple",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 15,
+    specifications: [
+      { keyEn: "Material", keyAr: "\u0627\u0644\u062E\u0627\u0645\u0629", valueEn: "Durable Microtwill Recycled Fabric", valueAr: "\u0642\u0645\u0627\u0634 \u0645\u0627\u064A\u0643\u0631\u0648\u062A\u0648\u064A\u0644 \u0645\u0639\u0627\u062F \u062A\u062F\u0648\u064A\u0631\u0647 \u0645\u062A\u064A\u0646" },
+      { keyEn: "MagSafe Support", keyAr: "\u062F\u0639\u0645 \u0645\u0627\u062C \u0633\u064A\u0641", valueEn: "Integrated 15W High-Flux Magnets", valueAr: "\u0645\u063A\u0646\u0627\u0637\u064A\u0633 \u0639\u0627\u0644\u064A \u0627\u0644\u0642\u0648\u0629 \u0645\u062F\u0645\u062C" }
+    ],
+    variants: [
+      { name: "Taupe Luxury", price: 229, originalPrice: 259, isDefault: true, stockQuantity: 8 },
+      { name: "Black FineWoven", price: 229, originalPrice: 259, isDefault: false, stockQuantity: 7 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:05:00.000Z"
+  },
+  {
+    id: 20,
+    slug: "apple-iphone-16-clear-case-magsafe",
+    sku: "AP-IP16-CLR-CASE",
+    nameEn: "Apple iPhone 16 Clear Case with MagSafe",
+    nameAr: "\u063A\u0637\u0627\u0621 \u062D\u0645\u0627\u064A\u0629 \u0634\u0641\u0627\u0641 \u0623\u0635\u0644\u064A \u0645\u0639 \u0645\u0627\u062C \u0633\u064A\u0641 \u0644\u0622\u064A\u0641\u0648\u0646 16",
+    descriptionEn: "Thin, light, and easy to grip. Crafted with a blend of optically clear polycarbonate and flexible materials with scratch-resistant coating.",
+    descriptionAr: "\u0646\u062D\u064A\u0641 \u0648\u062E\u0641\u064A\u0641 \u0645\u0639 \u0642\u0628\u0636\u0629 \u0645\u062D\u0643\u0645\u0629. \u0645\u0632\u064A\u062C \u0645\u0646 \u0627\u0644\u0628\u0648\u0644\u064A \u0643\u0631\u0628\u0648\u0646\u0627\u062A \u0641\u0627\u0626\u0642 \u0627\u0644\u0634\u0641\u0627\u0641\u064A\u0629 \u0648\u0627\u0644\u0645\u0648\u0627\u062F \u0627\u0644\u0645\u0631\u0646\u0629 \u0627\u0644\u0645\u0642\u0627\u0648\u0645\u0629 \u0644\u0644\u0627\u0635\u0641\u0631\u0627\u0631 \u0648\u0627\u0644\u062E\u062F\u0648\u0634.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 1,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Apple",
+    brandSlug: "apple",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 20,
+    specifications: [
+      { keyEn: "Anti-Yellowing", keyAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0627\u0635\u0641\u0631\u0627\u0631", valueEn: "UV & Scratch Resistant Optical Polycarbonate", valueAr: "\u0628\u0648\u0644\u064A \u0643\u0631\u0628\u0648\u0646\u0627\u062A \u0628\u0635\u0631\u064A \u0645\u0642\u0627\u0648\u0645 \u0644\u0644\u0623\u0634\u0639\u0629 \u0641\u0648\u0642 \u0627\u0644\u0628\u0646\u0641\u0633\u062C\u064A\u0629" }
+    ],
+    variants: [
+      { name: "Crystal Clear", price: 179, originalPrice: 209, isDefault: true, stockQuantity: 20 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:10:00.000Z"
+  },
+  {
+    id: 21,
+    slug: "spigen-ultra-hybrid-magsafe-iphone-16-pro-max",
+    sku: "SPG-UH-IP16PM-CLR",
+    nameEn: "Spigen Ultra Hybrid MagSafe Case for iPhone 16 Pro Max",
+    nameAr: "\u063A\u0637\u0627\u0621 \u0633\u0628\u064A\u062C\u0646 \u0623\u0644\u062A\u0631\u0627 \u0647\u0627\u064A\u0628\u0631\u062F \u0645\u0627\u062C \u0633\u064A\u0641 \u0644\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648 \u0645\u0627\u0643\u0633",
+    descriptionEn: "Military-grade Air Cushion technology drop protection, raised lip screen and camera shield, and heavy-duty magnetic lock ring.",
+    descriptionAr: "\u062D\u0645\u0627\u064A\u0629 \u0639\u0633\u0643\u0631\u064A\u0629 \u0628\u062A\u0642\u0646\u064A\u0629 \u0627\u0644\u0648\u0633\u0627\u0626\u062F \u0627\u0644\u0647\u0648\u0627\u0626\u064A\u0629 Air Cushion \u0648\u062D\u0648\u0627\u0641 \u0645\u0631\u062A\u0641\u0639\u0629 \u0644\u062D\u0645\u0627\u064A\u0629 \u0627\u0644\u0634\u0627\u0634\u0629 \u0648\u0627\u0644\u0643\u0627\u0645\u064A\u0631\u0627 \u0645\u0639 \u062D\u0644\u0642\u0629 \u0645\u0627\u062C \u0633\u064A\u0641 \u0642\u0648\u064A\u0629.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 1,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Apple",
+    brandSlug: "apple",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 30,
+    specifications: [
+      { keyEn: "Drop Rating", keyAr: "\u0645\u0639\u064A\u0627\u0631 \u0627\u0644\u0633\u0642\u0648\u0637", valueEn: "Military Grade MIL-STD 810G-516.6", valueAr: "\u0645\u0639\u064A\u0627\u0631 \u0639\u0633\u0643\u0631\u064A \u0644\u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0633\u0642\u0648\u0637" },
+      { keyEn: "Magnet Strength", keyAr: "\u0642\u0648\u0629 \u0627\u0644\u0645\u063A\u0646\u0627\u0637\u064A\u0633", valueEn: "N52 Neodymium Magnetic Core", valueAr: "\u0645\u063A\u0646\u0627\u0637\u064A\u0633 \u0646\u064A\u0648\u062F\u064A\u0645\u064A\u0648\u0645 N52 \u0634\u062F\u064A\u062F \u0627\u0644\u0642\u0648\u0629" }
+    ],
+    variants: [
+      { name: "White Frost MagSafe", price: 99, originalPrice: 129, isDefault: true, stockQuantity: 15 },
+      { name: "Matte Black MagSafe", price: 99, originalPrice: 129, isDefault: false, stockQuantity: 15 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1541877590-a15d2a9f7336?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:15:00.000Z"
+  },
+  {
+    id: 22,
+    slug: "torras-360-rotatable-magnetic-ostand-iphone-16-pro",
+    sku: "TRS-OST-IP16P-TIT",
+    nameEn: "Torras 360\xB0 Rotatable Magnetic Ostand Case for iPhone 16 Pro",
+    nameAr: "\u0643\u0641\u0631 \u062A\u0648\u0631\u0627\u0633 \u0623\u0648\u0633\u062A\u0627\u0646\u062F \u0633\u062A\u0627\u0646\u062F \u0645\u063A\u0646\u0627\u0637\u064A\u0633\u064A \u062F\u0648\u0627\u0631 360 \u062F\u0631\u062C\u0629 \u0644\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648",
+    descriptionEn: "Pioneering 360-degree all-angle kickstand ring, 18N hyper-magnetism, silky aerospace aluminum ring, and rugged shockproof protection.",
+    descriptionAr: "\u0633\u062A\u0627\u0646\u062F \u0645\u062F\u0645\u062C \u062F\u0648\u0627\u0631 \u0628\u0632\u0627\u0648\u064A\u0629 360 \u062F\u0631\u062C\u0629 \u0645\u0646 \u0627\u0644\u0623\u0644\u0645\u0646\u064A\u0648\u0645 \u0627\u0644\u0641\u0636\u0627\u0626\u064A\u060C \u0645\u063A\u0646\u0627\u0637\u064A\u0633 \u062E\u0627\u0631\u0642 18 \u0646\u064A\u0648\u062A\u0646 \u0648\u062D\u0645\u0627\u064A\u0629 \u0645\u062A\u064A\u0646\u0629 \u0636\u062F \u0627\u0644\u0635\u062F\u0645\u0627\u062A.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 1,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Apple",
+    brandSlug: "apple",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 18,
+    specifications: [
+      { keyEn: "Stand Angle", keyAr: "\u0632\u0648\u0627\u064A\u0627 \u0627\u0644\u0633\u062A\u0627\u0646\u062F", valueEn: "0\xB0 to 120\xB0 Adjustable (Portrait & Landscape)", valueAr: "\u0642\u0627\u0628\u0644 \u0644\u0644\u062A\u0639\u062F\u064A\u0644 \u0645\u0646 0 \u0625\u0644\u0649 120 \u062F\u0631\u062C\u0629" },
+      { keyEn: "Protection", keyAr: "\u0627\u0644\u062D\u0645\u0627\u064A\u0629", valueEn: "12ft Military Drop Certified", valueAr: "\u062D\u0645\u0627\u064A\u0629 \u0645\u0639\u062A\u0645\u062F\u0629 \u0645\u0646 \u0633\u0642\u0648\u0637 \u062D\u062A\u0649 12 \u0642\u062F\u0645" }
+    ],
+    variants: [
+      { name: "Titanium Gray", price: 149, originalPrice: 179, isDefault: true, stockQuantity: 10 },
+      { name: "Midnight Black", price: 149, originalPrice: 179, isDefault: false, stockQuantity: 8 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:20:00.000Z"
+  },
+  {
+    id: 23,
+    slug: "anker-737-ganprime-140w-3-port-wall-charger",
+    sku: "ANKER-737-140W-BLK",
+    nameEn: "Anker 737 GaNPrime 140W 3-Port Fast Wall Charger",
+    nameAr: "\u0634\u0627\u062D\u0646 \u062C\u062F\u0627\u0631\u064A \u0623\u0646\u0643\u0631 737 \u062C\u0627\u0646 \u0628\u0631\u0627\u064A\u0645 \u0628\u0642\u0648\u0629 140 \u0648\u0627\u0637 \u0628\u0640 3 \u0645\u0646\u0627\u0641\u0630",
+    descriptionEn: "Power 3 devices simultaneously at maximum speed. Features GaNPrime technology, PowerIQ 4.0 dynamic power distribution, and ActiveShield 2.0 safety.",
+    descriptionAr: "\u0627\u0634\u062D\u0646 3 \u0623\u062C\u0647\u0632\u0629 \u0641\u064A \u0648\u0642\u062A \u0648\u0627\u062D\u062F \u0628\u0623\u0642\u0635\u0649 \u0633\u0631\u0639\u0629. \u062A\u0642\u0646\u064A\u0629 GaNPrime \u0648\u062A\u0648\u0632\u064A\u0639 \u0637\u0627\u0642\u0629 \u062F\u064A\u0646\u0627\u0645\u064A\u0643\u064A \u0645\u0639 \u0646\u0638\u0627\u0645 \u062D\u0645\u0627\u064A\u0629 \u0630\u0643\u064A ActiveShield 2.0.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 16,
+    specifications: [
+      { keyEn: "Total Output", keyAr: "\u0625\u062C\u0645\u0627\u0644\u064A \u0627\u0644\u0637\u0627\u0642\u0629", valueEn: "140W Max Output (2x USB-C + 1x USB-A)", valueAr: "140 \u0648\u0627\u0637 \u0643\u062D\u062F \u0623\u0642\u0635\u0649 (\u0645\u0646\u0641\u0630\u064A\u0646 \u062A\u0627\u064A\u0628 \u0633\u064A + \u0645\u0646\u0641\u0630 USB-A)" },
+      { keyEn: "Compatibility", keyAr: "\u0627\u0644\u062A\u0648\u0627\u0641\u0642", valueEn: 'MacBook Pro 16", iPhone 16 Series, Galaxy S25, iPads', valueAr: "\u0645\u0627\u0643 \u0628\u0648\u0643 \u0628\u0631\u0648\u060C \u0633\u0644\u0633\u0644\u0629 \u0622\u064A\u0641\u0648\u0646 16\u060C \u062C\u0627\u0644\u0627\u0643\u0633\u064A S25\u060C \u0622\u064A\u0628\u0627\u062F" }
+    ],
+    variants: [
+      { name: "GaNPrime 140W (Black)", price: 349, originalPrice: 399, isDefault: true, stockQuantity: 16 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:25:00.000Z"
+  },
+  {
+    id: 24,
+    slug: "anker-maggo-3-in-1-foldable-wireless-charging-station",
+    sku: "ANKER-MAGGO-3IN1-WHT",
+    nameEn: "Anker MagGo 3-in-1 Foldable Wireless Charging Station (Qi2 15W)",
+    nameAr: "\u0645\u062D\u0637\u0629 \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u0637\u064A 3 \u0641\u064A 1 \u0623\u0646\u0643\u0631 \u0645\u0627\u062C \u062C\u0648 \u0628\u062A\u0642\u0646\u064A\u0629 Qi2",
+    descriptionEn: "Official Qi2 Certified 15W ultra-fast wireless stand. Charges iPhone, Apple Watch Series/Ultra, and AirPods simultaneously in an ultra-compact pocket format.",
+    descriptionAr: "\u0645\u062D\u0637\u0629 \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0645\u0639\u062A\u0645\u062F\u0629 \u0631\u0633\u0645\u064A\u0627\u064B \u0628\u062A\u0642\u0646\u064A\u0629 Qi2 \u0628\u0642\u0648\u0629 15 \u0648\u0627\u0637 \u0641\u0627\u0626\u0642\u0629 \u0627\u0644\u0633\u0631\u0639\u0629 \u0644\u0644\u0622\u064A\u0641\u0648\u0646 \u0648\u0633\u0627\u0639\u0629 \u0622\u0628\u0644 \u0648\u0633\u0645\u0627\u0639\u0627\u062A \u0625\u064A\u0631\u0628\u0648\u062F\u0632 \u0628\u062A\u0635\u0645\u064A\u0645 \u0645\u062F\u0645\u062C \u0644\u0644\u062C\u064A\u0628.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 14,
+    specifications: [
+      { keyEn: "Wireless Speed", keyAr: "\u0633\u0631\u0639\u0629 \u0627\u0644\u0634\u062D\u0646 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A", valueEn: "15W Qi2 Certified Ultra-Fast", valueAr: "15 \u0648\u0627\u0637 \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629" },
+      { keyEn: "Design", keyAr: "\u0627\u0644\u062A\u0635\u0645\u064A\u0645", valueEn: "Ultra-Compact Foldable Travel Puck", valueAr: "\u062A\u0635\u0645\u064A\u0645 \u0641\u0627\u0626\u0642 \u0627\u0644\u0635\u063A\u0631 \u0642\u0627\u0628\u0644 \u0644\u0644\u0637\u064A \u0648\u0645\u062B\u0627\u0644\u064A \u0644\u0644\u0633\u0641\u0631" }
+    ],
+    variants: [
+      { name: "Arctic White", price: 399, originalPrice: 449, isDefault: true, stockQuantity: 8 },
+      { name: "Phantom Black", price: 399, originalPrice: 449, isDefault: false, stockQuantity: 6 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1622445268045-81d33c84d728?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:30:00.000Z"
+  },
+  {
+    id: 25,
+    slug: "anker-soundcore-liberty-4-nc-noise-cancelling-earbuds",
+    sku: "ANKER-SC-L4NC-NVY",
+    nameEn: "Anker Soundcore Liberty 4 NC Wireless Noise-Cancelling Earbuds",
+    nameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0623\u0646\u0643\u0631 \u0633\u0627\u0648\u0646\u062F \u0643\u0648\u0631 \u0644\u064A\u0628\u0631\u062A\u064A 4 NC \u0627\u0644\u0639\u0627\u0632\u0644\u0629 \u0644\u0644\u0636\u0648\u0636\u0627\u0621",
+    descriptionEn: "Reduce noise by up to 98.5% with Adaptive ANC 2.0. Equipped with 11mm custom drivers, Hi-Res wireless audio (LDAC), and 50 hours of total playtime.",
+    descriptionAr: "\u0639\u0632\u0644 \u0636\u0648\u0636\u0627\u0621 \u0641\u0627\u0626\u0642 \u064A\u0635\u0644 \u0625\u0644\u0649 98.5% \u0645\u0639 \u062A\u0642\u0646\u064A\u0629 ANC 2.0 \u0627\u0644\u062A\u0643\u064A\u0641\u064A\u0629\u060C \u0645\u0643\u0628\u0631\u0627\u062A \u0635\u0648\u062A 11 \u0645\u0644\u0645\u060C \u0635\u0648\u062A \u0639\u0627\u0644\u064A \u0627\u0644\u062F\u0642\u0629 \u0648\u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 50 \u0633\u0627\u0639\u0629.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 7,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 20,
+    specifications: [
+      { keyEn: "Noise Reduction", keyAr: "\u0639\u0632\u0644 \u0627\u0644\u0636\u0648\u0636\u0627\u0621", valueEn: "Adaptive ANC 2.0 (Up to 98.5%)", valueAr: "\u0639\u0632\u0644 \u0630\u0643\u064A \u062A\u0643\u064A\u0641\u064A \u062D\u062A\u0649 98.5%" },
+      { keyEn: "Battery Life", keyAr: "\u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "10H Earbuds / 50H with Wireless Case", valueAr: "10 \u0633\u0627\u0639\u0627\u062A \u0628\u0627\u0644\u0633\u0645\u0627\u0639\u0629 / 50 \u0633\u0627\u0639\u0629 \u0645\u0639 \u0627\u0644\u0639\u0644\u0628\u0629" }
+    ],
+    variants: [
+      { name: "Navy Blue", price: 299, originalPrice: 349, isDefault: true, stockQuantity: 10 },
+      { name: "Velvet Black", price: 299, originalPrice: 349, isDefault: false, stockQuantity: 10 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:35:00.000Z"
+  },
+  {
+    id: 26,
+    slug: "anker-powerline-iii-flow-usb-c-silicone-cable",
+    sku: "ANKER-PL-FLOW-100W",
+    nameEn: "Anker PowerLine III Flow USB-C to USB-C Silicone Cable (100W, 6ft)",
+    nameAr: "\u0643\u0627\u0628\u0644 \u0623\u0646\u0643\u0631 \u0628\u0627\u0648\u0631\u0644\u0627\u064A\u0646 3 \u0641\u0644\u0648 \u0633\u064A\u0644\u064A\u0643\u0648\u0646 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u0639\u0648\u0645\u0629 100 \u0648\u0627\u0637 (6 \u0623\u0642\u062F\u0627\u0645)",
+    descriptionEn: "Surprisingly soft silica gel finish that stays tangle-free even in pockets. Built to withstand 25,000 bends and supports 100W Power Delivery.",
+    descriptionAr: "\u0645\u0644\u0645\u0633 \u0646\u0627\u0639\u0645 \u0643\u0627\u0644\u062D\u0631\u064A\u0631 \u0644\u0627 \u064A\u062A\u0634\u0627\u0628\u0643 \u0641\u064A \u0627\u0644\u062C\u064A\u0628\u060C \u0645\u0635\u0645\u0645 \u0644\u062A\u062D\u0645\u0644 25 \u0623\u0644\u0641 \u0627\u0646\u062D\u0646\u0627\u0621 \u0645\u0639 \u062F\u0639\u0645 \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 \u0628\u0642\u062F\u0631\u0629 100 \u0648\u0627\u0637 PD.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 40,
+    specifications: [
+      { keyEn: "Max Wattage", keyAr: "\u0623\u0642\u0635\u0649 \u0637\u0627\u0642\u0629", valueEn: "100W Power Delivery Fast Charging", valueAr: "\u0634\u062D\u0646 \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629 \u0628\u0642\u062F\u0631\u0629 100 \u0648\u0627\u0637" },
+      { keyEn: "Durability", keyAr: "\u0627\u0644\u0645\u062A\u0627\u0646\u0629", valueEn: "25,000-Bend Lifespan Graphene Core", valueAr: "\u0639\u0645\u0631 \u0627\u0641\u062A\u0631\u0627\u0636\u064A 25,000 \u0627\u0646\u062D\u0646\u0627\u0621" }
+    ],
+    variants: [
+      { name: "Cloud White (6ft)", price: 59, originalPrice: 79, isDefault: true, stockQuantity: 20 },
+      { name: "Midnight Black (6ft)", price: 59, originalPrice: 79, isDefault: false, stockQuantity: 20 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:40:00.000Z"
+  },
+  {
+    id: 27,
+    slug: "anker-nano-ii-65w-gan-fast-charger",
+    sku: "ANKER-NANO2-65W",
+    nameEn: "Anker Nano II 65W GaN Fast Charger",
+    nameAr: "\u0634\u0627\u062D\u0646 \u0623\u0646\u0643\u0631 \u0646\u0627\u0646\u0648 2 \u0627\u0644\u0633\u0631\u064A\u0639 \u0628\u0642\u0648\u0629 65 \u0648\u0627\u0637 \u0628\u062A\u0642\u0646\u064A\u0629 \u062C\u0627\u0646",
+    descriptionEn: "Ultra-compact 65W pocket charger. Up to 59% smaller than typical 60W wall adapters, ideal for charging your phone, tablet, and USB-C notebook all with one tiny plug.",
+    descriptionAr: "\u0634\u0627\u062D\u0646 \u062C\u064A\u0628 \u0641\u0627\u0626\u0642 \u0627\u0644\u0635\u063A\u0631 \u0628\u0642\u0648\u0629 65 \u0648\u0627\u0637 \u0623\u0635\u063A\u0631 \u0628\u0646\u0633\u0628\u0629 59% \u0645\u0646 \u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0627\u0644\u062A\u0642\u0644\u064A\u062F\u064A\u0629\u060C \u0645\u0646\u0627\u0633\u0628 \u0644\u0634\u062D\u0646 \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0648\u0627\u0644\u0644\u0627\u0628\u062A\u0648\u0628\u0627\u062A.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 25,
+    specifications: [
+      { keyEn: "Output", keyAr: "\u0627\u0644\u0637\u0627\u0642\u0629", valueEn: "65W Max USB-C PD 3.0 / PPS", valueAr: "65 \u0648\u0627\u0637 \u0643\u062D\u062F \u0623\u0642\u0635\u0649 \u0628\u0645\u0646\u0641\u0630 \u062A\u0627\u064A\u0628 \u0633\u064A" },
+      { keyEn: "Technology", keyAr: "\u0627\u0644\u062A\u0642\u0646\u064A\u0629", valueEn: "Anker GaN II High-Efficiency Silicon", valueAr: "\u062A\u0642\u0646\u064A\u0629 GaN II \u0639\u0627\u0644\u064A\u0629 \u0627\u0644\u0643\u0641\u0627\u0621\u0629" }
+    ],
+    variants: [
+      { name: "Nano II 65W Black", price: 179, originalPrice: 209, isDefault: true, stockQuantity: 25 }
+    ],
+    images: [
+      "https://images.unsplash.com/photo-1609592424367-e9a03e3aeb5c?w=800&auto=format&fit=crop&q=80"
+    ],
+    createdAt: "2026-10-29T10:45:00.000Z"
+  }
+];
+var FALLBACK_SERVICES = [
+  {
+    id: 1,
+    slug: "screen-battery-replacement",
+    titleEn: "Express Screen & Battery Replacement",
+    titleAr: "\u0627\u0633\u062A\u0628\u062F\u0627\u0644 \u0641\u0648\u0631\u064A \u0644\u0644\u0634\u0627\u0634\u0627\u062A \u0648\u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0627\u062A",
+    descriptionEn: "Certified Grade-A display glass and genuine high-health battery replacements completed in 30 to 45 minutes with a 90-day Dubai warranty.",
+    descriptionAr: "\u0634\u0627\u0634\u0627\u062A \u0632\u062C\u0627\u062C\u064A\u0629 \u0645\u0639\u062A\u0645\u062F\u0629 \u0648\u0628\u0637\u0627\u0631\u064A\u0627\u062A \u0623\u0635\u0644\u064A\u0629 \u062C\u062F\u064A\u062F\u0629 \u064A\u062A\u0645 \u0627\u0633\u062A\u0628\u062F\u0627\u0644\u0647\u0627 \u062E\u0644\u0627\u0644 30 \u0625\u0644\u0649 45 \u062F\u0642\u064A\u0642\u0629 \u0645\u0639 \u0636\u0645\u0627\u0646 90 \u064A\u0648\u0645\u0627\u064B \u0641\u064A \u062F\u0628\u064A.",
+    icon: "Wrench",
+    turnaroundEn: "30 - 45 Minutes",
+    turnaroundAr: "30 - 45 \u062F\u0642\u064A\u0642\u0629",
+    badgeEn: "Same-Day Fast Repair",
+    badgeAr: "\u0635\u064A\u0627\u0646\u0629 \u0641\u0648\u0631\u064A\u0629 \u0628\u0646\u0641\u0633 \u0627\u0644\u064A\u0648\u0645",
+    featuresEn: [
+      "Original OLED & TrueTone calibration",
+      "100% Battery health restoration",
+      "Zero risk water-resistance seal renewal",
+      "90-Day warranty included"
+    ],
+    featuresAr: [
+      "\u0645\u0639\u0627\u064A\u0631\u0629 \u0623\u0635\u0644\u064A\u0629 \u0644\u0644\u0634\u0627\u0634\u0627\u062A \u0648\u062A\u0642\u0646\u064A\u0629 TrueTone",
+      "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0635\u062D\u0629 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629 \u0625\u0644\u0649 100%",
+      "\u062A\u062C\u062F\u064A\u062F \u0639\u0627\u0632\u0644 \u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0645\u0627\u0621 \u0648\u0627\u0644\u063A\u0628\u0627\u0631",
+      "\u0636\u0645\u0627\u0646 \u0645\u0639\u062A\u0645\u062F \u0644\u0645\u062F\u0629 90 \u064A\u0648\u0645\u0627\u064B"
+    ],
+    displayOrder: 1,
+    isActive: true
+  },
+  {
+    id: 2,
+    slug: "trade-in-device-valuation",
+    titleEn: "Instant Device Trade-In & Fair Valuation",
+    titleAr: "\u0627\u0633\u062A\u0628\u062F\u0627\u0644 \u0648\u062A\u0642\u064A\u064A\u0645 \u0641\u0648\u0631\u064A \u0644\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0645\u0633\u062A\u0639\u0645\u0644\u0629",
+    descriptionEn: "Upgrade your old smartphone, tablet, or smartwatch with the highest market valuation in Dubai. Immediate cash payout or instant upgrade credit.",
+    descriptionAr: "\u0642\u0645 \u0628\u062A\u0631\u0642\u064A\u0629 \u0647\u0627\u062A\u0641\u0643 \u0627\u0644\u0642\u062F\u064A\u0645 \u0623\u0648 \u062C\u0647\u0627\u0632\u0643 \u0627\u0644\u0644\u0648\u062D\u064A \u0628\u0623\u0639\u0644\u0649 \u0633\u0639\u0631 \u062A\u0642\u064A\u064A\u0645 \u0641\u064A \u0633\u0648\u0642 \u062F\u0628\u064A\u060C \u0645\u0639 \u062F\u0641\u0639 \u0646\u0642\u062F\u064A \u0641\u0648\u0631\u064A \u0623\u0648 \u062E\u0635\u0645 \u0639\u0644\u0649 \u062C\u0647\u0627\u0632\u0643 \u0627\u0644\u062C\u062F\u064A\u062F.",
+    icon: "RefreshCw",
+    turnaroundEn: "15 Minutes",
+    turnaroundAr: "15 \u062F\u0642\u064A\u0642\u0629",
+    badgeEn: "Best Market Value",
+    badgeAr: "\u0623\u0639\u0644\u0649 \u062A\u0642\u064A\u064A\u0645 \u0641\u0648\u0631\u064A",
+    featuresEn: [
+      "Instant WhatsApp quote based on photos",
+      "Complimentary military-grade data wipe",
+      "Accepts Apple, Samsung, Google & tablets",
+      "Immediate cash or direct trade credit"
+    ],
+    featuresAr: [
+      "\u062A\u0642\u064A\u064A\u0645 \u0641\u0648\u0631\u064A \u0639\u0628\u0631 \u0627\u0644\u0648\u0627\u062A\u0633\u0627\u0628 \u0645\u0646 \u0627\u0644\u0635\u0648\u0631",
+      "\u0645\u0633\u062D \u0622\u0645\u0646 \u0648\u0645\u0639\u062A\u0645\u062F \u0644\u0644\u0628\u064A\u0627\u0646\u0627\u062A \u0645\u062C\u0627\u0646\u0627\u064B",
+      "\u0646\u0642\u0628\u0644 \u0622\u0628\u0644\u060C \u0633\u0627\u0645\u0633\u0648\u0646\u062C\u060C \u062C\u0648\u062C\u0644 \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629",
+      "\u062A\u0633\u0644\u064A\u0645 \u0646\u0642\u062F\u064A \u0641\u0648\u0631\u064A \u0623\u0648 \u062E\u0635\u0645 \u0639\u0644\u0649 \u0627\u0644\u062C\u062F\u064A\u062F"
+    ],
+    displayOrder: 2,
+    isActive: true
+  },
+  {
+    id: 3,
+    slug: "smart-data-transfer-migration",
+    titleEn: "Seamless Data Transfer & Migration",
+    titleAr: "\u0646\u0642\u0644 \u0627\u0644\u0628\u064A\u0627\u0646\u0627\u062A \u0627\u0644\u0634\u0627\u0645\u0644 \u0648\u0625\u0639\u062F\u0627\u062F \u0627\u0644\u0623\u062C\u0647\u0632\u0629",
+    descriptionEn: "Switch between Android and iPhone without losing a single WhatsApp message, photo, contact, or app setting. Safe, private, and supervised.",
+    descriptionAr: "\u0627\u0646\u062A\u0642\u0644 \u0628\u0633\u0647\u0648\u0644\u0629 \u0628\u064A\u0646 \u0646\u0638\u0627\u0645\u064A \u0623\u0646\u062F\u0631\u0648\u064A\u062F \u0648\u0622\u064A\u0641\u0648\u0646 \u062F\u0648\u0646 \u0641\u0642\u062F\u0627\u0646 \u0623\u064A \u0631\u0633\u0627\u0644\u0629 \u0648\u0627\u062A\u0633\u0627\u0628 \u0623\u0648 \u0635\u0648\u0631\u0629 \u0623\u0648 \u062C\u0647\u0629 \u0627\u062A\u0635\u0627\u0644 \u0628\u0623\u0645\u0627\u0646 \u0648\u062E\u0635\u0648\u0635\u064A\u0629 \u062A\u0627\u0645\u0629.",
+    icon: "Smartphone",
+    turnaroundEn: "30 - 60 Minutes",
+    turnaroundAr: "30 - 60 \u062F\u0642\u064A\u0642\u0629",
+    badgeEn: "100% Zero Data Loss",
+    badgeAr: "\u0628\u062F\u0648\u0646 \u0623\u064A \u0641\u0642\u062F\u0627\u0646 \u0644\u0644\u0628\u064A\u0627\u0646\u0627\u062A",
+    featuresEn: [
+      "Full WhatsApp chat & media transfer",
+      "iCloud & Google account configuration",
+      "App layout & eSIM migration support",
+      "Absolute privacy and supervised setup"
+    ],
+    featuresAr: [
+      "\u0646\u0642\u0644 \u0643\u0627\u0645\u0644 \u0644\u0645\u062D\u0627\u062F\u062B\u0627\u062A \u0648\u0648\u0633\u0627\u0626\u0637 \u0627\u0644\u0648\u0627\u062A\u0633\u0627\u0628",
+      "\u0625\u0639\u062F\u0627\u062F \u062D\u0633\u0627\u0628\u0627\u062A iCloud \u0648 Google",
+      "\u0646\u0642\u0644 \u0627\u0644\u0634\u0631\u0627\u0626\u062D \u0627\u0644\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0629 eSIM \u0648\u0627\u0644\u062A\u0637\u0628\u064A\u0642\u0627\u062A",
+      "\u0633\u0631\u064A\u0629 \u0648\u062E\u0635\u0648\u0635\u064A\u0629 \u062A\u0627\u0645\u0629 \u0623\u062B\u0646\u0627\u0621 \u0627\u0644\u0646\u0642\u0644"
+    ],
+    displayOrder: 3,
+    isActive: true
+  },
+  {
+    id: 4,
+    slug: "software-diagnostics-os-restore",
+    titleEn: "Software Diagnostics & OS Recovery",
+    titleAr: "\u0641\u062D\u0635 \u0627\u0644\u0628\u0631\u0645\u062C\u064A\u0627\u062A \u0648\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0627\u0644\u0646\u0638\u0627\u0645 \u0627\u0644\u0631\u0633\u0645\u064A",
+    descriptionEn: "Fix boot loops, stuck Apple logo, corrupted updates, network glitches, or regional firmware configuration with authorized tools.",
+    descriptionAr: "\u0625\u0635\u0644\u0627\u062D \u0645\u0634\u0627\u0643\u0644 \u0627\u0644\u062A\u0648\u0642\u0641 \u0639\u0644\u0649 \u0627\u0644\u0634\u0639\u0627\u0631\u060C \u062A\u062D\u062F\u064A\u062B\u0627\u062A \u0627\u0644\u0646\u0638\u0627\u0645 \u0627\u0644\u0645\u0639\u0637\u0648\u0628\u0629\u060C \u0623\u062E\u0637\u0627\u0621 \u0627\u0644\u0634\u0628\u0643\u0629\u060C \u0648\u062A\u062B\u0628\u064A\u062A \u0627\u0644\u062A\u062D\u062F\u064A\u062B\u0627\u062A \u0627\u0644\u0631\u0633\u0645\u064A\u0629 \u0627\u0644\u0645\u0639\u062A\u0645\u062F\u0629.",
+    icon: "Cpu",
+    turnaroundEn: "Same-Day",
+    turnaroundAr: "\u0641\u064A \u0646\u0641\u0633 \u0627\u0644\u064A\u0648\u0645",
+    badgeEn: "Official Tools",
+    badgeAr: "\u0623\u062F\u0648\u0627\u062A \u0628\u0631\u0645\u062C\u064A\u0629 \u0645\u0639\u062A\u0645\u062F\u0629",
+    featuresEn: [
+      "Factory restore without bricking risk",
+      "Official GCC firmware flashes",
+      "Hardware diagnostics & error detection",
+      "Carrier unlock & SIM troubleshooting"
+    ],
+    featuresAr: [
+      "\u0627\u0633\u062A\u0639\u0627\u062F\u0629 \u0646\u0638\u0627\u0645 \u0631\u0633\u0645\u064A\u0629 \u0628\u062F\u0648\u0646 \u0623\u064A \u0645\u062E\u0627\u0637\u0631",
+      "\u062A\u062B\u0628\u064A\u062A \u0627\u0644\u0631\u0648\u0645\u0627\u062A \u0648\u0627\u0644\u0645\u0648\u0627\u0635\u0641\u0627\u062A \u0627\u0644\u062E\u0644\u064A\u062C\u064A\u0629 \u0627\u0644\u0631\u0633\u0645\u064A\u0629",
+      "\u0641\u062D\u0635 \u0634\u0627\u0645\u0644 \u0644\u0644\u0642\u0637\u0639 \u0648\u0627\u0643\u062A\u0634\u0627\u0641 \u0627\u0644\u0623\u0639\u0637\u0627\u0644",
+      "\u062D\u0644 \u0645\u0634\u0627\u0643\u0644 \u0627\u0644\u0634\u0628\u0643\u0629 \u0648\u0627\u0644\u0634\u0631\u0627\u0626\u062D"
+    ],
+    displayOrder: 4,
+    isActive: true
+  },
+  {
+    id: 5,
+    slug: "b2b-corporate-procurement",
+    titleEn: "Corporate Procurement & Mesh Wi-Fi Setup",
+    titleAr: "\u0627\u0644\u062A\u0648\u0631\u064A\u062F \u0627\u0644\u0645\u0624\u0633\u0633\u064A \u0648\u0625\u0639\u062F\u0627\u062F \u0634\u0628\u0643\u0627\u062A \u0627\u0644\u0645\u0643\u0627\u062A\u0628",
+    descriptionEn: "Wholesale bulk device purchases for businesses, office mesh Wi-Fi 6/7 router installations, and company phone deployments across the UAE.",
+    descriptionAr: "\u062A\u0648\u0631\u064A\u062F \u0623\u062C\u0647\u0632\u0629 \u0630\u0643\u064A\u0629 \u0644\u0644\u0634\u0631\u0643\u0627\u062A \u0628\u0623\u0633\u0639\u0627\u0631 \u0627\u0644\u062C\u0645\u0644\u0629\u060C \u062A\u0631\u0643\u064A\u0628 \u0631\u0627\u0648\u062A\u0631\u0627\u062A \u0648\u0634\u0628\u0643\u0627\u062A \u0648\u0627\u064A \u0641\u0627\u064A 6 \u0648 7 \u0627\u0644\u0645\u062A\u0637\u0648\u0631\u0629 \u0648\u062A\u062C\u0647\u064A\u0632 \u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0645\u0648\u0638\u0641\u064A\u0646 \u0641\u064A \u0627\u0644\u0625\u0645\u0627\u0631\u0627\u062A.",
+    icon: "Wifi",
+    turnaroundEn: "24 - 48 Hours",
+    turnaroundAr: "24 - 48 \u0633\u0627\u0639\u0629",
+    badgeEn: "B2B & Wholesale Rates",
+    badgeAr: "\u0623\u0633\u0639\u0627\u0631 \u062E\u0627\u0635\u0629 \u0628\u0627\u0644\u0634\u0631\u0643\u0627\u062A",
+    featuresEn: [
+      "Bulk wholesale quotation within 2 hours",
+      "High-speed TP-Link Archer / Mesh deployment",
+      "Official UAE VAT invoice provided",
+      "Dedicated account manager support"
+    ],
+    featuresAr: [
+      "\u0639\u0631\u0648\u0636 \u0623\u0633\u0639\u0627\u0631 \u062C\u0645\u0644\u0629 \u062E\u0644\u0627\u0644 \u0633\u0627\u0639\u062A\u064A\u0646",
+      "\u062A\u0631\u0643\u064A\u0628 \u0631\u0627\u0648\u062A\u0631\u0627\u062A \u062A\u064A \u0628\u064A \u0644\u064A\u0646\u0643 \u0648\u0634\u0628\u0643\u0627\u062A \u0627\u0644\u062A\u063A\u0637\u064A\u0629",
+      "\u0641\u0648\u0627\u062A\u064A\u0631 \u0631\u0633\u0645\u064A\u0629 \u062E\u0627\u0636\u0639\u0629 \u0644\u0636\u0631\u064A\u0628\u0629 \u0627\u0644\u0642\u064A\u0645\u0629 \u0627\u0644\u0645\u0636\u0627\u0641\u0629",
+      "\u0645\u062F\u064A\u0631 \u062D\u0633\u0627\u0628 \u0645\u062E\u0635\u0635 \u0644\u0644\u0634\u0631\u0643\u0627\u062A"
+    ],
+    displayOrder: 5,
+    isActive: true
+  },
+  {
+    id: 6,
+    slug: "vip-doorstep-express-delivery",
+    titleEn: "VIP Same-Day Doorstep Express Delivery",
+    titleAr: "\u062A\u0648\u0635\u064A\u0644 VIP \u0633\u0631\u064A\u0639 \u0625\u0644\u0649 \u0628\u0627\u0628 \u0645\u0646\u0632\u0644\u0643 \u0641\u064A \u062F\u0628\u064A",
+    descriptionEn: "Direct courier service delivering sealed devices, chargers, and accessories to your home, office, or hotel in Dubai within hours.",
+    descriptionAr: "\u062E\u062F\u0645\u0629 \u062A\u0648\u0635\u064A\u0644 \u0641\u0648\u0631\u064A\u0629 \u0648\u0645\u0628\u0627\u0634\u0631\u0629 \u0644\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0645\u063A\u0644\u0642\u0629 \u0648\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A \u0625\u0644\u0649 \u0645\u0646\u0632\u0644\u0643 \u0623\u0648 \u0645\u0643\u062A\u0628\u0643 \u0623\u0648 \u0641\u0646\u062F\u0642\u0643 \u0641\u064A \u062F\u0628\u064A \u062E\u0644\u0627\u0644 \u0633\u0627\u0639\u0627\u062A.",
+    icon: "ShieldCheck",
+    turnaroundEn: "2 - 4 Hours in Dubai",
+    turnaroundAr: "2 - 4 \u0633\u0627\u0639\u0627\u062A \u0641\u064A \u062F\u0628\u064A",
+    badgeEn: "Inspect Before Payment",
+    badgeAr: "\u0627\u0641\u062D\u0635 \u0648\u0627\u0633\u062A\u0644\u0645 \u062C\u0647\u0627\u0632\u0643",
+    featuresEn: [
+      "Instant tracking via WhatsApp direct link",
+      "On-delivery card payment machine available",
+      "Inspect sealed serial numbers in person",
+      "Coverage across Dubai, Sharjah, & Ajman"
+    ],
+    featuresAr: [
+      "\u0645\u062A\u0627\u0628\u0639\u0629 \u0641\u0648\u0631\u064A\u0629 \u0648\u0645\u0628\u0627\u0634\u0631\u0629 \u0639\u0628\u0631 \u0627\u0644\u0648\u0627\u062A\u0633\u0627\u0628",
+      "\u062F\u0641\u0639 \u0628\u0627\u0644\u0628\u0637\u0627\u0642\u0629 \u0623\u0648 \u0646\u0642\u062F\u0627\u064B \u0639\u0646\u062F \u0627\u0644\u0627\u0633\u062A\u0644\u0627\u0645",
+      "\u0641\u062D\u0635 \u0627\u0644\u0633\u064A\u0631\u064A\u0627\u0644 \u0648\u0627\u0644\u0631\u0642\u0645 \u0627\u0644\u062A\u0633\u0644\u0633\u0644\u064A \u0642\u0628\u0644 \u0627\u0644\u0627\u0633\u062A\u0644\u0627\u0645",
+      "\u062A\u063A\u0637\u064A\u0629 \u062F\u0628\u064A \u0648\u0627\u0644\u0634\u0627\u0631\u0642\u0629 \u0648\u0639\u062C\u0645\u0627\u0646"
+    ],
+    displayOrder: 6,
+    isActive: true
   }
 ];
 
@@ -652,6 +1609,7 @@ async function startServer() {
   let customBrands = [];
   let customCategories = [];
   let customProducts = [];
+  let customServices = [];
   let deletedProductIds = [];
   try {
     if (fs2.existsSync(DATA_STORE_FILE)) {
@@ -660,10 +1618,14 @@ async function startServer() {
       if (Array.isArray(parsed.brands)) customBrands = parsed.brands;
       if (Array.isArray(parsed.categories)) customCategories = parsed.categories;
       if (Array.isArray(parsed.products)) customProducts = parsed.products;
+      if (Array.isArray(parsed.services)) customServices = parsed.services;
       if (Array.isArray(parsed.deletedProductIds)) deletedProductIds = parsed.deletedProductIds.map(Number).filter((n) => !isNaN(n));
     }
   } catch (err) {
     console.warn("Note: Could not read data-store.json:", err);
+  }
+  if (customServices.length === 0) {
+    customServices = [...FALLBACK_SERVICES];
   }
   const persistDataStore = () => {
     try {
@@ -674,6 +1636,7 @@ async function startServer() {
             brands: customBrands,
             categories: customCategories,
             products: customProducts,
+            services: customServices,
             deletedProductIds
           },
           null,
@@ -688,6 +1651,124 @@ async function startServer() {
   const reconcileStores = async () => {
     if (!isPostgresAvailable) return;
     try {
+      const pool2 = global._postgresPool;
+      if (!pool2) return;
+      try {
+        await pool2.query(`
+          CREATE TABLE IF NOT EXISTS services (
+            id SERIAL PRIMARY KEY,
+            slug TEXT NOT NULL UNIQUE,
+            title_en TEXT NOT NULL,
+            title_ar TEXT NOT NULL,
+            description_en TEXT NOT NULL,
+            description_ar TEXT NOT NULL,
+            icon TEXT DEFAULT 'Wrench',
+            turnaround_en TEXT DEFAULT '30 - 45 Minutes',
+            turnaround_ar TEXT DEFAULT '30 - 45 \u062F\u0642\u064A\u0642\u0629',
+            badge_en TEXT DEFAULT 'Certified',
+            badge_ar TEXT DEFAULT '\u0645\u0639\u062A\u0645\u062F',
+            features_en JSONB DEFAULT '[]',
+            features_ar JSONB DEFAULT '[]',
+            display_order INTEGER DEFAULT 0,
+            is_active BOOLEAN DEFAULT true,
+            created_at TIMESTAMP DEFAULT NOW()
+          );
+        `);
+      } catch (tblErr) {
+        console.warn("Services table creation note:", tblErr);
+      }
+      for (const c of [...FALLBACK_CATEGORIES, ...customCategories]) {
+        try {
+          await pool2.query(`
+            INSERT INTO categories (id, slug, name_en, name_ar, description_en, description_ar, icon, display_order)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (id) DO NOTHING;
+          `, [c.id, c.slug, c.nameEn, c.nameAr, c.descriptionEn || "", c.descriptionAr || "", c.icon || "Smartphone", c.displayOrder || 0]);
+        } catch {
+        }
+      }
+      for (const b of [...FALLBACK_BRANDS, ...customBrands]) {
+        try {
+          await pool2.query(`
+            INSERT INTO brands (id, slug, name, logo_url)
+            VALUES ($1, $2, $3, $4)
+            ON CONFLICT (id) DO NOTHING;
+          `, [b.id, b.slug, b.name, b.logoUrl || ""]);
+        } catch {
+        }
+      }
+      for (const p of [...FALLBACK_PRODUCTS, ...customProducts]) {
+        if (!deletedProductIds.includes(p.id)) {
+          try {
+            await pool2.query(`
+              INSERT INTO products (
+                id, slug, sku, name_en, name_ar, description_en, description_ar,
+                condition, category_id, brand_id, is_featured, is_new_arrival,
+                status, specifications, variants, images, stock_quantity
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+              ON CONFLICT (id) DO NOTHING;
+            `, [
+              p.id,
+              p.slug,
+              p.sku,
+              p.nameEn,
+              p.nameAr,
+              p.descriptionEn || "",
+              p.descriptionAr || "",
+              p.condition || "New",
+              p.categoryId,
+              p.brandId,
+              Boolean(p.isFeatured),
+              Boolean(p.isNewArrival),
+              p.status || "published",
+              JSON.stringify(p.specifications || []),
+              JSON.stringify(p.variants || []),
+              JSON.stringify(p.images || []),
+              p.stockQuantity ?? 10
+            ]);
+          } catch {
+          }
+        }
+      }
+      for (const s of [...FALLBACK_SERVICES, ...customServices]) {
+        try {
+          await pool2.query(`
+            INSERT INTO services (
+              id, slug, title_en, title_ar, description_en, description_ar,
+              icon, turnaround_en, turnaround_ar, badge_en, badge_ar,
+              features_en, features_ar, display_order, is_active
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            ON CONFLICT (id) DO NOTHING;
+          `, [
+            s.id,
+            s.slug,
+            s.titleEn,
+            s.titleAr,
+            s.descriptionEn,
+            s.descriptionAr,
+            s.icon || "Wrench",
+            s.turnaroundEn || "30 - 45 Minutes",
+            s.turnaroundAr || "30 - 45 \u062F\u0642\u064A\u0642\u0629",
+            s.badgeEn || "Certified",
+            s.badgeAr || "\u0645\u0639\u062A\u0645\u062F",
+            JSON.stringify(s.featuresEn || []),
+            JSON.stringify(s.featuresAr || []),
+            s.displayOrder || 0,
+            s.isActive !== false
+          ]);
+        } catch {
+        }
+      }
+      try {
+        await pool2.query(`
+          SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1) + 1, false);
+          SELECT setval(pg_get_serial_sequence('categories', 'id'), COALESCE((SELECT MAX(id) FROM categories), 1) + 1, false);
+          SELECT setval(pg_get_serial_sequence('brands', 'id'), COALESCE((SELECT MAX(id) FROM brands), 1) + 1, false);
+          SELECT setval(pg_get_serial_sequence('services', 'id'), COALESCE((SELECT MAX(id) FROM services), 1) + 1, false);
+        `);
+      } catch (seqErr) {
+        console.warn("Sequence alignment note:", seqErr);
+      }
       const pgBrands = await db.select({
         id: brands.id,
         slug: brands.slug,
@@ -721,8 +1802,78 @@ async function startServer() {
           customCategories.push(c);
         }
       }
+      const pgProds = await db.select({
+        id: products.id,
+        slug: products.slug,
+        sku: products.sku,
+        nameEn: products.nameEn,
+        nameAr: products.nameAr,
+        descriptionEn: products.descriptionEn,
+        descriptionAr: products.descriptionAr,
+        condition: products.condition,
+        categoryId: products.categoryId,
+        brandId: products.brandId,
+        isFeatured: products.isFeatured,
+        isNewArrival: products.isNewArrival,
+        status: products.status,
+        specifications: products.specifications,
+        variants: products.variants,
+        images: products.images,
+        privateNotes: products.privateNotes,
+        purchaseCost: products.purchaseCost,
+        stockQuantity: products.stockQuantity,
+        imeiSerialNumbers: products.imeiSerialNumbers,
+        createdAt: products.createdAt,
+        updatedAt: products.updatedAt,
+        categoryNameEn: categories.nameEn,
+        categoryNameAr: categories.nameAr,
+        categorySlug: categories.slug,
+        brandName: brands.name,
+        brandSlug: brands.slug
+      }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id));
+      for (const p of pgProds) {
+        if (!deletedProductIds.includes(p.id)) {
+          const idx = customProducts.findIndex((cp) => cp.id === p.id);
+          if (idx !== -1) {
+            customProducts[idx] = { ...p, ...customProducts[idx] };
+          } else {
+            customProducts.push(p);
+          }
+        }
+      }
+      try {
+        const pgServs = await pool2.query("SELECT * FROM services ORDER BY display_order ASC, id ASC;");
+        for (const s of pgServs.rows) {
+          const item = {
+            id: s.id,
+            slug: s.slug,
+            titleEn: s.title_en,
+            titleAr: s.title_ar,
+            descriptionEn: s.description_en,
+            descriptionAr: s.description_ar,
+            icon: s.icon,
+            turnaroundEn: s.turnaround_en,
+            turnaroundAr: s.turnaround_ar,
+            badgeEn: s.badge_en,
+            badgeAr: s.badge_ar,
+            featuresEn: s.features_en || [],
+            featuresAr: s.features_ar || [],
+            displayOrder: s.display_order,
+            isActive: s.is_active,
+            createdAt: s.created_at
+          };
+          const idx = customServices.findIndex((cs) => cs.id === item.id || cs.slug === item.slug);
+          if (idx !== -1) {
+            customServices[idx] = { ...customServices[idx], ...item };
+          } else {
+            customServices.push(item);
+          }
+        }
+      } catch (sErr) {
+        console.warn("Services fetch note:", sErr);
+      }
       persistDataStore();
-      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories`);
+      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories, ${customProducts.length} products, ${customServices.length} services`);
     } catch (e) {
       console.warn("Store reconciliation note:", e?.message || e);
     }
@@ -731,7 +1882,7 @@ async function startServer() {
     reconcileStores();
   }).catch(() => {
   });
-  app.get("/api/categories", async (_req, res) => {
+  app.get(["/api/categories", "/api/admin/categories"], async (_req, res) => {
     let dbCategories = [];
     if (isPostgresAvailable) {
       try {
@@ -790,11 +1941,89 @@ async function startServer() {
     }
     res.json(merged);
   });
-  const filterFallbackProducts = (query, isPublic = true) => {
+  app.get(["/api/services", "/api/admin/services"], async (req, res) => {
+    const isPublic = !req.path.includes("/admin/");
+    let dbServices = [];
+    if (isPostgresAvailable) {
+      try {
+        const pool2 = global._postgresPool;
+        if (pool2) {
+          const sqlQuery = isPublic ? "SELECT * FROM services WHERE is_active = true ORDER BY display_order ASC, id ASC;" : "SELECT * FROM services ORDER BY display_order ASC, id ASC;";
+          const pgRes = await pool2.query(sqlQuery);
+          dbServices = pgRes.rows.map((s) => ({
+            id: s.id,
+            slug: s.slug,
+            titleEn: s.title_en,
+            titleAr: s.title_ar,
+            descriptionEn: s.description_en,
+            descriptionAr: s.description_ar,
+            icon: s.icon,
+            turnaroundEn: s.turnaround_en,
+            turnaroundAr: s.turnaround_ar,
+            badgeEn: s.badge_en,
+            badgeAr: s.badge_ar,
+            featuresEn: s.features_en || [],
+            featuresAr: s.features_ar || [],
+            displayOrder: s.display_order,
+            isActive: s.is_active,
+            createdAt: s.created_at
+          }));
+        }
+      } catch (err) {
+        console.warn("Services query fallback:", err?.message);
+      }
+    }
+    const merged = [...dbServices];
+    for (const s of customServices) {
+      if ((!isPublic || s.isActive !== false) && !merged.some((m) => m.slug === s.slug || m.id === s.id)) {
+        merged.push(s);
+      }
+    }
+    if (merged.length === 0) {
+      for (const fs3 of FALLBACK_SERVICES) {
+        if (!isPublic || fs3.isActive !== false) {
+          merged.push(fs3);
+        }
+      }
+    }
+    res.json(merged);
+  });
+  const filterFallbackProducts = (query, isPublic = true, dbItems = []) => {
     const { category, brand, condition, featured, newArrival, search, sort, status, categoryId, brandId } = query;
-    const activeFallbacks = FALLBACK_PRODUCTS.filter((p) => !deletedProductIds.includes(p.id));
-    const activeCustom = customProducts.filter((p) => !deletedProductIds.includes(p.id));
-    let allMerged = [...activeFallbacks, ...activeCustom];
+    const productMap = /* @__PURE__ */ new Map();
+    for (const fp of FALLBACK_PRODUCTS) {
+      if (!deletedProductIds.includes(fp.id)) {
+        productMap.set(fp.id, { ...fp, status: fp.status || "published" });
+      }
+    }
+    for (const p of dbItems || []) {
+      if (!deletedProductIds.includes(p.id)) {
+        const existing = productMap.get(p.id) || {};
+        productMap.set(p.id, { ...existing, ...p });
+      }
+    }
+    for (const cp of customProducts) {
+      if (!deletedProductIds.includes(cp.id)) {
+        const existing = productMap.get(cp.id) || {};
+        productMap.set(cp.id, { ...existing, ...cp });
+      }
+    }
+    let allMerged = Array.from(productMap.values());
+    allMerged = allMerged.map((p) => {
+      const cat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === p.categoryId || c.slug === p.categorySlug);
+      const br = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === p.brandId || b.slug === p.brandSlug);
+      return {
+        ...p,
+        categoryNameEn: p.categoryNameEn || cat?.nameEn || "General",
+        categoryNameAr: p.categoryNameAr || cat?.nameAr || "\u0639\u0627\u0645",
+        categorySlug: p.categorySlug || cat?.slug || "mobile-phones",
+        brandName: p.brandName || br?.name || "General",
+        brandSlug: p.brandSlug || br?.slug || "apple",
+        brandLogoUrl: p.brandLogoUrl || br?.logoUrl || "",
+        inStock: (p.stockQuantity ?? 1) > 0,
+        status: p.status || "published"
+      };
+    });
     if (isPublic) {
       allMerged = allMerged.filter((p) => !p.status || p.status === "published");
     } else if (status && status !== "all") {
@@ -802,14 +2031,26 @@ async function startServer() {
     }
     let filtered = [...allMerged];
     if (category && typeof category === "string") {
-      filtered = filtered.filter((p) => p.categorySlug === category || String(p.categoryId) === category);
+      const normCat = category.trim().toLowerCase();
+      filtered = filtered.filter((p) => {
+        const pSlug = (p.categorySlug || "").toLowerCase();
+        if (pSlug === normCat || String(p.categoryId) === normCat) return true;
+        if ((normCat === "smartphones" || normCat === "mobile-phones") && (pSlug === "smartphones" || pSlug === "mobile-phones")) return true;
+        if ((normCat === "tablets" || normCat === "tablets-laptops") && (pSlug === "tablets" || pSlug === "tablets-laptops")) return true;
+        return false;
+      });
     }
     if (categoryId && !isNaN(parseInt(categoryId, 10))) {
       const cid = parseInt(categoryId, 10);
       filtered = filtered.filter((p) => p.categoryId === cid);
     }
     if (brand && typeof brand === "string") {
-      filtered = filtered.filter((p) => p.brandSlug === brand || String(p.brandId) === brand);
+      const normBrand = brand.trim().toLowerCase();
+      filtered = filtered.filter((p) => {
+        const bSlug = (p.brandSlug || "").toLowerCase();
+        const bName = (p.brandName || "").toLowerCase();
+        return bSlug === normBrand || bName === normBrand || String(p.brandId) === normBrand;
+      });
     }
     if (brandId && !isNaN(parseInt(brandId, 10))) {
       const bid = parseInt(brandId, 10);
@@ -819,10 +2060,10 @@ async function startServer() {
       filtered = filtered.filter((p) => p.condition === condition);
     }
     if (featured === "true") {
-      filtered = filtered.filter((p) => p.isFeatured);
+      filtered = filtered.filter((p) => Boolean(p.isFeatured));
     }
     if (newArrival === "true") {
-      filtered = filtered.filter((p) => p.isNewArrival);
+      filtered = filtered.filter((p) => Boolean(p.isNewArrival));
     }
     if (search && typeof search === "string" && search.trim() !== "") {
       const q = search.trim().toLowerCase();
@@ -834,6 +2075,8 @@ async function startServer() {
       filtered.sort((a, b) => (a.nameEn || "").localeCompare(b.nameEn || ""));
     } else if (sort === "name-desc") {
       filtered.sort((a, b) => (b.nameEn || "").localeCompare(a.nameEn || ""));
+    } else {
+      filtered.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
     }
     if (isPublic) {
       return filtered.map((p) => ({
@@ -864,116 +2107,41 @@ async function startServer() {
     return filtered;
   };
   app.get("/api/products", async (req, res) => {
-    if (!isPostgresAvailable) {
-      return res.json(filterFallbackProducts(req.query));
-    }
     try {
-      const { category, brand, condition, featured, newArrival, search, sort } = req.query;
-      const conditions = [eq2(products.status, "published")];
-      if (category && typeof category === "string") {
-        const cat = await db.select().from(categories).where(eq2(categories.slug, category)).limit(1);
-        if (cat.length > 0) {
-          conditions.push(eq2(products.categoryId, cat[0].id));
+      let dbItems = [];
+      if (isPostgresAvailable) {
+        try {
+          dbItems = await db.select({
+            id: products.id,
+            slug: products.slug,
+            sku: products.sku,
+            nameEn: products.nameEn,
+            nameAr: products.nameAr,
+            descriptionEn: products.descriptionEn,
+            descriptionAr: products.descriptionAr,
+            condition: products.condition,
+            categoryId: products.categoryId,
+            brandId: products.brandId,
+            isFeatured: products.isFeatured,
+            isNewArrival: products.isNewArrival,
+            status: products.status,
+            specifications: products.specifications,
+            variants: products.variants,
+            images: products.images,
+            createdAt: products.createdAt,
+            categoryNameEn: categories.nameEn,
+            categoryNameAr: categories.nameAr,
+            categorySlug: categories.slug,
+            brandName: brands.name,
+            brandSlug: brands.slug
+          }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id));
+        } catch (dbErr) {
+          console.warn("DB query note in /api/products:", dbErr);
         }
       }
-      if (brand && typeof brand === "string") {
-        const br = await db.select().from(brands).where(eq2(brands.slug, brand)).limit(1);
-        if (br.length > 0) {
-          conditions.push(eq2(products.brandId, br[0].id));
-        }
-      }
-      if (condition && typeof condition === "string" && ["New", "Used", "Refurbished"].includes(condition)) {
-        conditions.push(eq2(products.condition, condition));
-      }
-      if (featured === "true") {
-        conditions.push(eq2(products.isFeatured, true));
-      }
-      if (newArrival === "true") {
-        conditions.push(eq2(products.isNewArrival, true));
-      }
-      if (search && typeof search === "string" && search.trim() !== "") {
-        const query2 = `%${search.trim()}%`;
-        conditions.push(
-          or(
-            ilike(products.nameEn, query2),
-            ilike(products.nameAr, query2),
-            ilike(products.sku, query2),
-            ilike(products.descriptionEn, query2),
-            ilike(products.descriptionAr, query2)
-          )
-        );
-      }
-      let query = db.select({
-        id: products.id,
-        slug: products.slug,
-        sku: products.sku,
-        nameEn: products.nameEn,
-        nameAr: products.nameAr,
-        descriptionEn: products.descriptionEn,
-        descriptionAr: products.descriptionAr,
-        condition: products.condition,
-        categoryId: products.categoryId,
-        brandId: products.brandId,
-        isFeatured: products.isFeatured,
-        isNewArrival: products.isNewArrival,
-        specifications: products.specifications,
-        variants: products.variants,
-        images: products.images,
-        createdAt: products.createdAt,
-        categoryNameEn: categories.nameEn,
-        categoryNameAr: categories.nameAr,
-        categorySlug: categories.slug,
-        brandName: brands.name,
-        brandSlug: brands.slug
-      }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id)).where(and(...conditions));
-      if (sort === "name-asc") {
-        query = query.orderBy(asc(products.nameEn));
-      } else if (sort === "name-desc") {
-        query = query.orderBy(desc(products.nameEn));
-      } else {
-        query = query.orderBy(desc(products.createdAt));
-      }
-      const results = await query;
-      const finalProducts = (results || []).filter((p) => !deletedProductIds.includes(p.id));
-      for (const cp of customProducts) {
-        if (!deletedProductIds.includes(cp.id) && (!cp.status || cp.status === "published")) {
-          if (!finalProducts.some((p) => p.id === cp.id || p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase())) {
-            finalProducts.unshift({
-              id: cp.id,
-              slug: cp.slug,
-              sku: cp.sku,
-              nameEn: cp.nameEn,
-              nameAr: cp.nameAr,
-              descriptionEn: cp.descriptionEn || "",
-              descriptionAr: cp.descriptionAr || "",
-              condition: cp.condition || "New",
-              categoryId: cp.categoryId,
-              brandId: cp.brandId,
-              categoryNameEn: cp.categoryNameEn || "General",
-              categoryNameAr: cp.categoryNameAr || "\u0639\u0627\u0645",
-              categorySlug: cp.categorySlug,
-              brandName: cp.brandName || "",
-              brandSlug: cp.brandSlug,
-              brandLogoUrl: cp.brandLogoUrl,
-              isFeatured: Boolean(cp.isFeatured),
-              isNewArrival: Boolean(cp.isNewArrival),
-              specifications: cp.specifications || [],
-              variants: cp.variants || [],
-              images: cp.images || [],
-              inStock: (cp.stockQuantity ?? 1) > 0
-            });
-          }
-        }
-      }
-      if (finalProducts.length > 0) {
-        return res.json(finalProducts);
-      }
-      if (deletedProductIds.length > 0 || results && Array.isArray(results)) {
-        return res.json([]);
-      }
-      res.json(filterFallbackProducts(req.query));
+      res.json(filterFallbackProducts(req.query, true, dbItems));
     } catch {
-      res.json(filterFallbackProducts(req.query));
+      res.json(filterFallbackProducts(req.query, true));
     }
   });
   app.get("/api/products/:slug", async (req, res) => {
@@ -1633,79 +2801,44 @@ async function startServer() {
   });
   app.get("/api/admin/products", requireAuth, async (req, res) => {
     try {
-      if (!isPostgresAvailable) {
-        return res.json(filterFallbackProducts(req.query));
-      }
-      const { search, status, categoryId, brandId } = req.query;
-      const conditions = [];
-      if (status && typeof status === "string" && status !== "all") {
-        conditions.push(eq2(products.status, status));
-      }
-      if (categoryId && !isNaN(parseInt(categoryId, 10))) {
-        conditions.push(eq2(products.categoryId, parseInt(categoryId, 10)));
-      }
-      if (brandId && !isNaN(parseInt(brandId, 10))) {
-        conditions.push(eq2(products.brandId, parseInt(brandId, 10)));
-      }
-      const { condition } = req.query;
-      if (condition && typeof condition === "string" && ["New", "Used", "Refurbished"].includes(condition)) {
-        conditions.push(eq2(products.condition, condition));
-      }
-      if (search && typeof search === "string" && search.trim() !== "") {
-        const query2 = `%${search.trim()}%`;
-        conditions.push(
-          or(
-            ilike(products.nameEn, query2),
-            ilike(products.nameAr, query2),
-            ilike(products.sku, query2),
-            ilike(products.descriptionEn, query2)
-          )
-        );
-      }
-      const query = db.select({
-        id: products.id,
-        slug: products.slug,
-        sku: products.sku,
-        nameEn: products.nameEn,
-        nameAr: products.nameAr,
-        descriptionEn: products.descriptionEn,
-        descriptionAr: products.descriptionAr,
-        condition: products.condition,
-        categoryId: products.categoryId,
-        brandId: products.brandId,
-        isFeatured: products.isFeatured,
-        isNewArrival: products.isNewArrival,
-        status: products.status,
-        specifications: products.specifications,
-        variants: products.variants,
-        images: products.images,
-        // Private administrative fields
-        privateNotes: products.privateNotes,
-        purchaseCost: products.purchaseCost,
-        stockQuantity: products.stockQuantity,
-        imeiSerialNumbers: products.imeiSerialNumbers,
-        createdAt: products.createdAt,
-        updatedAt: products.updatedAt,
-        categoryNameEn: categories.nameEn,
-        categoryNameAr: categories.nameAr,
-        brandName: brands.name
-      }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id));
-      const results = conditions.length > 0 ? await query.where(and(...conditions)).orderBy(desc(products.createdAt)) : await query.orderBy(desc(products.createdAt));
-      const finalProducts = (results || []).filter((p) => !deletedProductIds.includes(p.id));
-      for (const cp of customProducts) {
-        if (!deletedProductIds.includes(cp.id)) {
-          if (!finalProducts.some((p) => p.id === cp.id || p.sku && cp.sku && p.sku.toUpperCase() === cp.sku.toUpperCase())) {
-            finalProducts.unshift(cp);
-          }
+      let dbItems = [];
+      if (isPostgresAvailable) {
+        try {
+          dbItems = await db.select({
+            id: products.id,
+            slug: products.slug,
+            sku: products.sku,
+            nameEn: products.nameEn,
+            nameAr: products.nameAr,
+            descriptionEn: products.descriptionEn,
+            descriptionAr: products.descriptionAr,
+            condition: products.condition,
+            categoryId: products.categoryId,
+            brandId: products.brandId,
+            isFeatured: products.isFeatured,
+            isNewArrival: products.isNewArrival,
+            status: products.status,
+            specifications: products.specifications,
+            variants: products.variants,
+            images: products.images,
+            // Private administrative fields
+            privateNotes: products.privateNotes,
+            purchaseCost: products.purchaseCost,
+            stockQuantity: products.stockQuantity,
+            imeiSerialNumbers: products.imeiSerialNumbers,
+            createdAt: products.createdAt,
+            updatedAt: products.updatedAt,
+            categoryNameEn: categories.nameEn,
+            categoryNameAr: categories.nameAr,
+            categorySlug: categories.slug,
+            brandName: brands.name,
+            brandSlug: brands.slug
+          }).from(products).leftJoin(categories, eq2(products.categoryId, categories.id)).leftJoin(brands, eq2(products.brandId, brands.id));
+        } catch (dbErr) {
+          console.warn("DB query note in /api/admin/products:", dbErr);
         }
       }
-      if (finalProducts.length > 0) {
-        return res.json(finalProducts);
-      }
-      if (deletedProductIds.length > 0 || results && Array.isArray(results)) {
-        return res.json([]);
-      }
-      res.json(filterFallbackProducts(req.query, false));
+      res.json(filterFallbackProducts(req.query, false, dbItems));
     } catch (error) {
       console.warn("Database note: Using fallback admin products:", error?.message);
       res.json(filterFallbackProducts(req.query, false));
@@ -1980,42 +3113,40 @@ async function startServer() {
           console.warn("PostgreSQL product update note:", dbErr);
         }
       }
-      if (!updatedProd) {
-        const idx = customProducts.findIndex((p) => p.id === id);
-        if (idx !== -1) {
-          customProducts[idx] = {
-            ...customProducts[idx],
-            ...sku ? { sku: sku.trim().toUpperCase() } : {},
-            ...nameEn ? { nameEn: nameEn.trim() } : {},
-            ...nameAr ? { nameAr: nameAr.trim() } : {},
-            ...descriptionEn !== void 0 ? { descriptionEn } : {},
-            ...descriptionAr !== void 0 ? { descriptionAr } : {},
-            ...condition ? { condition } : {},
-            ...categoryId !== void 0 ? { categoryId: categoryId ? parseInt(categoryId, 10) : null } : {},
-            ...brandId !== void 0 ? { brandId: brandId ? parseInt(brandId, 10) : null } : {},
-            ...isFeatured !== void 0 ? { isFeatured: Boolean(isFeatured) } : {},
-            ...isNewArrival !== void 0 ? { isNewArrival: Boolean(isNewArrival) } : {},
-            ...status ? { status } : {},
-            ...specifications !== void 0 ? { specifications } : {},
-            ...variants !== void 0 ? { variants } : {},
-            ...productImages !== void 0 ? { images: productImages } : {},
-            ...privateNotes !== void 0 ? { privateNotes } : {},
-            ...purchaseCost !== void 0 ? { purchaseCost } : {},
-            ...stockQuantity !== void 0 ? { stockQuantity: parseInt(stockQuantity, 10) } : {},
-            ...imeiSerialNumbers !== void 0 ? { imeiSerialNumbers } : {},
-            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-          };
-          updatedProd = customProducts[idx];
-          persistDataStore();
-        } else {
-          updatedProd = {
-            id,
-            sku: (sku || `SKU-${id}`).toUpperCase(),
-            nameEn: nameEn || "Product",
-            nameAr: nameAr || nameEn || "Product",
-            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-          };
-        }
+      const idx = customProducts.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        customProducts[idx] = {
+          ...customProducts[idx],
+          ...sku ? { sku: sku.trim().toUpperCase() } : {},
+          ...nameEn ? { nameEn: nameEn.trim() } : {},
+          ...nameAr ? { nameAr: nameAr.trim() } : {},
+          ...descriptionEn !== void 0 ? { descriptionEn } : {},
+          ...descriptionAr !== void 0 ? { descriptionAr } : {},
+          ...condition ? { condition } : {},
+          ...categoryId !== void 0 ? { categoryId: categoryId ? parseInt(categoryId, 10) : null } : {},
+          ...brandId !== void 0 ? { brandId: brandId ? parseInt(brandId, 10) : null } : {},
+          ...isFeatured !== void 0 ? { isFeatured: Boolean(isFeatured) } : {},
+          ...isNewArrival !== void 0 ? { isNewArrival: Boolean(isNewArrival) } : {},
+          ...status ? { status } : {},
+          ...specifications !== void 0 ? { specifications } : {},
+          ...variants !== void 0 ? { variants } : {},
+          ...productImages !== void 0 ? { images: productImages } : {},
+          ...privateNotes !== void 0 ? { privateNotes } : {},
+          ...purchaseCost !== void 0 ? { purchaseCost } : {},
+          ...stockQuantity !== void 0 ? { stockQuantity: parseInt(stockQuantity, 10) } : {},
+          ...imeiSerialNumbers !== void 0 ? { imeiSerialNumbers } : {},
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        if (!updatedProd) updatedProd = customProducts[idx];
+        persistDataStore();
+      } else if (!updatedProd) {
+        updatedProd = {
+          id,
+          sku: (sku || `SKU-${id}`).toUpperCase(),
+          nameEn: nameEn || "Product",
+          nameAr: nameAr || nameEn || "Product",
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
       }
       await logAudit(
         "PRODUCT_UPDATE",
@@ -2031,48 +3162,133 @@ async function startServer() {
   app.post("/api/admin/products/:id/duplicate", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id, 10);
-      const original = await db.select().from(products).where(eq2(products.id, id)).limit(1);
-      if (original.length === 0) {
+      let prod = null;
+      if (isPostgresAvailable) {
+        try {
+          const original = await db.select().from(products).where(eq2(products.id, id)).limit(1);
+          if (original.length > 0) {
+            prod = original[0];
+          }
+        } catch (dbErr) {
+          console.warn("PostgreSQL duplicate lookup note:", dbErr);
+        }
+      }
+      if (!prod) {
+        prod = customProducts.find((p) => p.id === id);
+      }
+      if (!prod) {
+        prod = FALLBACK_PRODUCTS.find((p) => p.id === id);
+      }
+      if (!prod) {
         return res.status(404).json({ error: "Original product not found" });
       }
-      const prod = original[0];
-      const newSku = `${prod.sku}-COPY-${Math.floor(1e3 + Math.random() * 9e3)}`;
-      const baseSlug = `${prod.slug}-copy`;
+      const randomSuffix = Math.floor(1e3 + Math.random() * 9e3);
+      const newSku = `${prod.sku || "SKU"}-COPY-${randomSuffix}`;
+      const baseSlug = `${prod.slug || makeSlug(prod.nameEn || "product")}-copy-${randomSuffix}`;
       let finalSlug = baseSlug;
-      let counter = 1;
-      while (true) {
-        const slugCheck = await db.select().from(products).where(eq2(products.slug, finalSlug)).limit(1);
-        if (slugCheck.length === 0) break;
-        finalSlug = `${baseSlug}-${counter++}`;
+      let safeCategoryId = null;
+      let safeBrandId = null;
+      const parsedCatId = prod.categoryId ? parseInt(String(prod.categoryId), 10) : null;
+      const parsedBrandId = prod.brandId ? parseInt(String(prod.brandId), 10) : null;
+      if (isPostgresAvailable) {
+        if (parsedCatId && !isNaN(parsedCatId)) {
+          try {
+            const dbCat = await db.select().from(categories).where(eq2(categories.id, parsedCatId)).limit(1);
+            if (dbCat.length > 0) safeCategoryId = dbCat[0].id;
+          } catch {
+          }
+        }
+        if (parsedBrandId && !isNaN(parsedBrandId)) {
+          try {
+            const dbBrand = await db.select().from(brands).where(eq2(brands.id, parsedBrandId)).limit(1);
+            if (dbBrand.length > 0) safeBrandId = dbBrand[0].id;
+          } catch {
+          }
+        }
       }
-      const duplicated = await db.insert(products).values({
-        slug: finalSlug,
-        sku: newSku,
-        nameEn: `${prod.nameEn} (Copy)`,
-        nameAr: `${prod.nameAr} (\u0646\u0633\u062E\u0629)`,
-        descriptionEn: prod.descriptionEn,
-        descriptionAr: prod.descriptionAr,
-        condition: prod.condition,
-        categoryId: prod.categoryId,
-        brandId: prod.brandId,
-        isFeatured: false,
-        isNewArrival: false,
-        status: "draft",
-        // duplicated items start in draft mode
-        specifications: prod.specifications,
-        variants: prod.variants,
-        images: prod.images,
-        privateNotes: prod.privateNotes,
-        purchaseCost: prod.purchaseCost,
-        stockQuantity: 0,
-        imeiSerialNumbers: []
-      }).returning();
+      let duplicatedProd = null;
+      if (isPostgresAvailable) {
+        try {
+          const inserted = await db.insert(products).values({
+            slug: finalSlug,
+            sku: newSku,
+            nameEn: `${prod.nameEn || "Product"} (Copy)`,
+            nameAr: `${prod.nameAr || prod.nameEn || "Product"} (\u0646\u0633\u062E\u0629)`,
+            descriptionEn: prod.descriptionEn || "",
+            descriptionAr: prod.descriptionAr || "",
+            condition: prod.condition || "New",
+            categoryId: safeCategoryId,
+            brandId: safeBrandId,
+            isFeatured: false,
+            isNewArrival: false,
+            status: "draft",
+            // duplicated items start in draft mode
+            specifications: prod.specifications || [],
+            variants: prod.variants || [],
+            images: prod.images || [],
+            privateNotes: prod.privateNotes || "",
+            purchaseCost: prod.purchaseCost || "",
+            stockQuantity: 0,
+            imeiSerialNumbers: []
+          }).returning();
+          if (inserted && inserted.length > 0) {
+            duplicatedProd = {
+              ...inserted[0],
+              categoryId: parsedCatId || safeCategoryId,
+              brandId: parsedBrandId || safeBrandId,
+              categoryNameEn: prod.categoryNameEn,
+              categoryNameAr: prod.categoryNameAr,
+              brandName: prod.brandName
+            };
+          }
+        } catch (dbErr) {
+          console.warn("PostgreSQL duplicate insert error, falling back to data-store:", dbErr?.message);
+        }
+      }
+      if (!duplicatedProd) {
+        const nextId = Math.max(
+          9e4,
+          ...customProducts.map((p) => Number(p.id) || 0),
+          ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0)
+        ) + 1;
+        duplicatedProd = {
+          id: nextId,
+          slug: finalSlug,
+          sku: newSku,
+          nameEn: `${prod.nameEn || "Product"} (Copy)`,
+          nameAr: `${prod.nameAr || prod.nameEn || "Product"} (\u0646\u0633\u062E\u0629)`,
+          descriptionEn: prod.descriptionEn || "",
+          descriptionAr: prod.descriptionAr || "",
+          condition: prod.condition || "New",
+          categoryId: parsedCatId,
+          brandId: parsedBrandId,
+          categoryNameEn: prod.categoryNameEn || "",
+          categoryNameAr: prod.categoryNameAr || "",
+          brandName: prod.brandName || "",
+          isFeatured: false,
+          isNewArrival: false,
+          status: "draft",
+          specifications: prod.specifications || [],
+          variants: prod.variants || [],
+          images: prod.images || [],
+          privateNotes: prod.privateNotes || "",
+          purchaseCost: prod.purchaseCost || "",
+          stockQuantity: 0,
+          imeiSerialNumbers: [],
+          createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      }
+      if (!customProducts.some((p) => p.id === duplicatedProd.id)) {
+        customProducts.unshift(duplicatedProd);
+        persistDataStore();
+      }
       await logAudit(
         "PRODUCT_DUPLICATE",
-        `Duplicated product ID ${id} to "${duplicated[0].nameEn}" [SKU: ${newSku}]`,
+        `Duplicated product ID ${id} to "${duplicatedProd.nameEn}" [SKU: ${newSku}]`,
         req.user?.email
       );
-      res.status(201).json(duplicated[0]);
+      res.status(201).json(duplicatedProd);
     } catch (error) {
       console.error("Error duplicating product:", error);
       res.status(500).json({ error: error.message || "Failed to duplicate product" });
@@ -2119,16 +3335,41 @@ async function startServer() {
       if (!["published", "draft", "archived"].includes(status)) {
         return res.status(400).json({ error: "Invalid status" });
       }
-      const updated = await db.update(products).set({ status, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(products.id, id)).returning();
-      if (updated.length === 0) {
+      let updatedProd = null;
+      if (isPostgresAvailable) {
+        try {
+          const updated = await db.update(products).set({ status, updatedAt: /* @__PURE__ */ new Date() }).where(eq2(products.id, id)).returning();
+          if (updated && updated.length > 0) {
+            updatedProd = updated[0];
+          }
+        } catch (dbErr) {
+          console.warn("PostgreSQL status update note:", dbErr);
+        }
+      }
+      const idx = customProducts.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        customProducts[idx] = { ...customProducts[idx], status, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+        if (!updatedProd) updatedProd = customProducts[idx];
+        persistDataStore();
+      } else {
+        const fallbackProd = FALLBACK_PRODUCTS.find((p) => p.id === id);
+        if (fallbackProd || updatedProd) {
+          const baseProd = updatedProd || fallbackProd;
+          const newCustomProd = { ...baseProd, status, updatedAt: (/* @__PURE__ */ new Date()).toISOString() };
+          customProducts.push(newCustomProd);
+          if (!updatedProd) updatedProd = newCustomProd;
+          persistDataStore();
+        }
+      }
+      if (!updatedProd) {
         return res.status(404).json({ error: "Product not found" });
       }
       await logAudit(
         "PRODUCT_STATUS_CHANGE",
-        `Changed status of "${updated[0].nameEn}" to ${status}`,
+        `Changed status of "${updatedProd.nameEn || `Product #${id}`}" to ${status}`,
         req.user?.email
       );
-      res.json(updated[0]);
+      res.json(updatedProd);
     } catch (error) {
       console.error("Error changing product status:", error);
       res.status(500).json({ error: error.message || "Failed to update status" });
@@ -2141,20 +3382,61 @@ async function startServer() {
       const updateData = { updatedAt: /* @__PURE__ */ new Date() };
       if (isFeatured !== void 0) updateData.isFeatured = Boolean(isFeatured);
       if (isNewArrival !== void 0) updateData.isNewArrival = Boolean(isNewArrival);
-      if (stockQuantity !== void 0) updateData.stockQuantity = Math.max(0, parseInt(stockQuantity, 10) || 0);
+      if (stockQuantity !== void 0) {
+        updateData.stockQuantity = Math.max(0, parseInt(String(stockQuantity), 10) || 0);
+      }
       if (status !== void 0 && ["published", "draft", "archived"].includes(status)) {
         updateData.status = status;
       }
-      const updated = await db.update(products).set(updateData).where(eq2(products.id, id)).returning();
-      if (updated.length === 0) {
+      let updatedProd = null;
+      if (isPostgresAvailable) {
+        try {
+          const updated = await db.update(products).set(updateData).where(eq2(products.id, id)).returning();
+          if (updated && updated.length > 0) {
+            updatedProd = updated[0];
+          }
+        } catch (dbErr) {
+          console.warn("PostgreSQL quick-update note:", dbErr);
+        }
+      }
+      const idx = customProducts.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        customProducts[idx] = {
+          ...customProducts[idx],
+          ...isFeatured !== void 0 ? { isFeatured: Boolean(isFeatured) } : {},
+          ...isNewArrival !== void 0 ? { isNewArrival: Boolean(isNewArrival) } : {},
+          ...stockQuantity !== void 0 ? { stockQuantity: Math.max(0, parseInt(String(stockQuantity), 10) || 0) } : {},
+          ...status !== void 0 && ["published", "draft", "archived"].includes(status) ? { status } : {},
+          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+        if (!updatedProd) updatedProd = customProducts[idx];
+        persistDataStore();
+      } else {
+        const fallbackProd = FALLBACK_PRODUCTS.find((p) => p.id === id);
+        if (fallbackProd || updatedProd) {
+          const baseProd = updatedProd || fallbackProd;
+          const newCustomProd = {
+            ...baseProd,
+            ...isFeatured !== void 0 ? { isFeatured: Boolean(isFeatured) } : {},
+            ...isNewArrival !== void 0 ? { isNewArrival: Boolean(isNewArrival) } : {},
+            ...stockQuantity !== void 0 ? { stockQuantity: Math.max(0, parseInt(String(stockQuantity), 10) || 0) } : {},
+            ...status !== void 0 && ["published", "draft", "archived"].includes(status) ? { status } : {},
+            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+          };
+          customProducts.push(newCustomProd);
+          if (!updatedProd) updatedProd = newCustomProd;
+          persistDataStore();
+        }
+      }
+      if (!updatedProd) {
         return res.status(404).json({ error: "Product not found" });
       }
       await logAudit(
         "PRODUCT_QUICK_UPDATE",
-        `Quick updated "${updated[0].nameEn}" (stock: ${updated[0].stockQuantity}, featured: ${updated[0].isFeatured})`,
+        `Quick updated "${updatedProd.nameEn || `Product #${id}`}" (stock: ${updatedProd.stockQuantity ?? 0}, status: ${updatedProd.status})`,
         req.user?.email
       );
-      res.json(updated[0]);
+      res.json(updatedProd);
     } catch (error) {
       console.error("Error quick updating product:", error);
       res.status(500).json({ error: error.message || "Failed to quick update product" });
@@ -2600,6 +3882,295 @@ async function startServer() {
       res.json({ success: true });
     } catch (error) {
       res.json({ success: true });
+    }
+  });
+  app.post("/api/admin/services", requireAuth, async (req, res) => {
+    try {
+      const {
+        titleEn,
+        titleAr,
+        descriptionEn,
+        descriptionAr,
+        icon,
+        turnaroundEn,
+        turnaroundAr,
+        badgeEn,
+        badgeAr,
+        featuresEn,
+        featuresAr,
+        displayOrder,
+        isActive
+      } = req.body;
+      if (!titleEn || !titleEn.trim()) {
+        return res.status(400).json({ error: "Service English title is required" });
+      }
+      let baseSlug = makeSlug(titleEn.trim());
+      if (!baseSlug) baseSlug = `service-${Date.now().toString(36)}`;
+      let finalSlug = baseSlug;
+      let savedService = null;
+      if (isPostgresAvailable) {
+        try {
+          const pool2 = global._postgresPool;
+          if (pool2) {
+            let counter = 1;
+            while (counter <= 50) {
+              const check = await pool2.query("SELECT id FROM services WHERE slug = $1 LIMIT 1;", [finalSlug]);
+              if (check.rows.length === 0) break;
+              finalSlug = `${baseSlug}-${counter++}`;
+            }
+            const insertRes = await pool2.query(`
+              INSERT INTO services (
+                slug, title_en, title_ar, description_en, description_ar,
+                icon, turnaround_en, turnaround_ar, badge_en, badge_ar,
+                features_en, features_ar, display_order, is_active
+              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+              RETURNING *;
+            `, [
+              finalSlug,
+              titleEn.trim(),
+              titleAr?.trim() || titleEn.trim(),
+              descriptionEn?.trim() || "",
+              descriptionAr?.trim() || descriptionEn?.trim() || "",
+              icon || "Wrench",
+              turnaroundEn?.trim() || "30 - 45 Minutes",
+              turnaroundAr?.trim() || "30 - 45 \u062F\u0642\u064A\u0642\u0629",
+              badgeEn?.trim() || "Certified",
+              badgeAr?.trim() || "\u0645\u0639\u062A\u0645\u062F",
+              JSON.stringify(featuresEn || []),
+              JSON.stringify(featuresAr || []),
+              parseInt(displayOrder, 10) || 0,
+              isActive !== false
+            ]);
+            if (insertRes.rows.length > 0) {
+              const row = insertRes.rows[0];
+              savedService = {
+                id: row.id,
+                slug: row.slug,
+                titleEn: row.title_en,
+                titleAr: row.title_ar,
+                descriptionEn: row.description_en,
+                descriptionAr: row.description_ar,
+                icon: row.icon,
+                turnaroundEn: row.turnaround_en,
+                turnaroundAr: row.turnaround_ar,
+                badgeEn: row.badge_en,
+                badgeAr: row.badge_ar,
+                featuresEn: row.features_en || [],
+                featuresAr: row.features_ar || [],
+                displayOrder: row.display_order,
+                isActive: row.is_active,
+                createdAt: row.created_at
+              };
+            }
+          }
+        } catch (dbErr) {
+          console.warn("DB service create note:", dbErr);
+        }
+      }
+      if (!savedService) {
+        const nextId = Math.max(100, ...customServices.map((s) => Number(s.id) || 0)) + 1;
+        savedService = {
+          id: nextId,
+          slug: finalSlug,
+          titleEn: titleEn.trim(),
+          titleAr: titleAr?.trim() || titleEn.trim(),
+          descriptionEn: descriptionEn?.trim() || "",
+          descriptionAr: descriptionAr?.trim() || descriptionEn?.trim() || "",
+          icon: icon || "Wrench",
+          turnaroundEn: turnaroundEn?.trim() || "30 - 45 Minutes",
+          turnaroundAr: turnaroundAr?.trim() || "30 - 45 \u062F\u0642\u064A\u0642\u0629",
+          badgeEn: badgeEn?.trim() || "Certified",
+          badgeAr: badgeAr?.trim() || "\u0645\u0639\u062A\u0645\u062F",
+          featuresEn: featuresEn || [],
+          featuresAr: featuresAr || [],
+          displayOrder: parseInt(displayOrder, 10) || 0,
+          isActive: isActive !== false,
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      }
+      customServices.push(savedService);
+      persistDataStore();
+      await logAudit("SERVICE_CREATE", `Created service "${savedService.titleEn}"`, req.user?.email);
+      res.status(201).json(savedService);
+    } catch (error) {
+      console.error("Error creating service:", error);
+      res.status(500).json({ error: error.message || "Failed to create service" });
+    }
+  });
+  app.put("/api/admin/services/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      const {
+        titleEn,
+        titleAr,
+        descriptionEn,
+        descriptionAr,
+        icon,
+        turnaroundEn,
+        turnaroundAr,
+        badgeEn,
+        badgeAr,
+        featuresEn,
+        featuresAr,
+        displayOrder,
+        isActive
+      } = req.body;
+      let updatedService = null;
+      if (isPostgresAvailable) {
+        try {
+          const pool2 = global._postgresPool;
+          if (pool2) {
+            const updateRes = await pool2.query(`
+              UPDATE services SET
+                title_en = COALESCE($1, title_en),
+                title_ar = COALESCE($2, title_ar),
+                description_en = COALESCE($3, description_en),
+                description_ar = COALESCE($4, description_ar),
+                icon = COALESCE($5, icon),
+                turnaround_en = COALESCE($6, turnaround_en),
+                turnaround_ar = COALESCE($7, turnaround_ar),
+                badge_en = COALESCE($8, badge_en),
+                badge_ar = COALESCE($9, badge_ar),
+                features_en = COALESCE($10, features_en),
+                features_ar = COALESCE($11, features_ar),
+                display_order = COALESCE($12, display_order),
+                is_active = COALESCE($13, is_active)
+              WHERE id = $14
+              RETURNING *;
+            `, [
+              titleEn !== void 0 ? titleEn.trim() : null,
+              titleAr !== void 0 ? titleAr.trim() : null,
+              descriptionEn !== void 0 ? descriptionEn.trim() : null,
+              descriptionAr !== void 0 ? descriptionAr.trim() : null,
+              icon !== void 0 ? icon : null,
+              turnaroundEn !== void 0 ? turnaroundEn.trim() : null,
+              turnaroundAr !== void 0 ? turnaroundAr.trim() : null,
+              badgeEn !== void 0 ? badgeEn.trim() : null,
+              badgeAr !== void 0 ? badgeAr.trim() : null,
+              featuresEn !== void 0 ? JSON.stringify(featuresEn) : null,
+              featuresAr !== void 0 ? JSON.stringify(featuresAr) : null,
+              displayOrder !== void 0 ? parseInt(displayOrder, 10) : null,
+              isActive !== void 0 ? Boolean(isActive) : null,
+              id
+            ]);
+            if (updateRes.rows.length > 0) {
+              const row = updateRes.rows[0];
+              updatedService = {
+                id: row.id,
+                slug: row.slug,
+                titleEn: row.title_en,
+                titleAr: row.title_ar,
+                descriptionEn: row.description_en,
+                descriptionAr: row.description_ar,
+                icon: row.icon,
+                turnaroundEn: row.turnaround_en,
+                turnaroundAr: row.turnaround_ar,
+                badgeEn: row.badge_en,
+                badgeAr: row.badge_ar,
+                featuresEn: row.features_en || [],
+                featuresAr: row.features_ar || [],
+                displayOrder: row.display_order,
+                isActive: row.is_active,
+                createdAt: row.created_at
+              };
+            }
+          }
+        } catch (dbErr) {
+          console.warn("DB service update note:", dbErr);
+        }
+      }
+      const idx = customServices.findIndex((s) => s.id === id);
+      if (idx !== -1) {
+        customServices[idx] = {
+          ...customServices[idx],
+          ...titleEn !== void 0 ? { titleEn: titleEn.trim() } : {},
+          ...titleAr !== void 0 ? { titleAr: titleAr.trim() } : {},
+          ...descriptionEn !== void 0 ? { descriptionEn: descriptionEn.trim() } : {},
+          ...descriptionAr !== void 0 ? { descriptionAr: descriptionAr.trim() } : {},
+          ...icon !== void 0 ? { icon } : {},
+          ...turnaroundEn !== void 0 ? { turnaroundEn: turnaroundEn.trim() } : {},
+          ...turnaroundAr !== void 0 ? { turnaroundAr: turnaroundAr.trim() } : {},
+          ...badgeEn !== void 0 ? { badgeEn: badgeEn.trim() } : {},
+          ...badgeAr !== void 0 ? { badgeAr: badgeAr.trim() } : {},
+          ...featuresEn !== void 0 ? { featuresEn } : {},
+          ...featuresAr !== void 0 ? { featuresAr } : {},
+          ...displayOrder !== void 0 ? { displayOrder: parseInt(displayOrder, 10) } : {},
+          ...isActive !== void 0 ? { isActive: Boolean(isActive) } : {}
+        };
+        if (!updatedService) updatedService = customServices[idx];
+      } else if (!updatedService) {
+        updatedService = {
+          id,
+          slug: `service-${id}`,
+          titleEn: titleEn || "Service",
+          titleAr: titleAr || titleEn || "\u062E\u062F\u0645\u0629",
+          descriptionEn: descriptionEn || "",
+          descriptionAr: descriptionAr || "",
+          icon: icon || "Wrench",
+          turnaroundEn: turnaroundEn || "30 - 45 Minutes",
+          turnaroundAr: turnaroundAr || "30 - 45 \u062F\u0642\u064A\u0642\u0629",
+          badgeEn: badgeEn || "Certified",
+          badgeAr: badgeAr || "\u0645\u0639\u062A\u0645\u062F",
+          featuresEn: featuresEn || [],
+          featuresAr: featuresAr || [],
+          displayOrder: parseInt(displayOrder, 10) || 0,
+          isActive: isActive !== false
+        };
+        customServices.push(updatedService);
+      }
+      persistDataStore();
+      await logAudit("SERVICE_UPDATE", `Updated service "${updatedService.titleEn || id}"`, req.user?.email);
+      res.json(updatedService);
+    } catch (error) {
+      console.error("Error updating service:", error);
+      res.status(500).json({ error: error.message || "Failed to update service" });
+    }
+  });
+  app.delete("/api/admin/services/:id", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      if (isPostgresAvailable) {
+        try {
+          const pool2 = global._postgresPool;
+          if (pool2) {
+            await pool2.query("DELETE FROM services WHERE id = $1;", [id]);
+          }
+        } catch (dbErr) {
+          console.warn("DB service delete note:", dbErr);
+        }
+      }
+      customServices = customServices.filter((s) => s.id !== id);
+      persistDataStore();
+      await logAudit("SERVICE_DELETE", `Deleted service ID ${id}`, req.user?.email);
+      res.json({ success: true, id });
+    } catch (error) {
+      res.json({ success: true, id: parseInt(req.params.id, 10) });
+    }
+  });
+  app.patch("/api/admin/services/:id/toggle", requireAuth, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id, 10);
+      let newStatus = true;
+      const idx = customServices.findIndex((s) => s.id === id);
+      if (idx !== -1) {
+        newStatus = !customServices[idx].isActive;
+        customServices[idx].isActive = newStatus;
+      }
+      if (isPostgresAvailable) {
+        try {
+          const pool2 = global._postgresPool;
+          if (pool2) {
+            await pool2.query("UPDATE services SET is_active = $1 WHERE id = $2;", [newStatus, id]);
+          }
+        } catch (dbErr) {
+          console.warn("DB service toggle note:", dbErr);
+        }
+      }
+      persistDataStore();
+      await logAudit("SERVICE_TOGGLE", `Toggled service ID ${id} active to ${newStatus}`, req.user?.email);
+      res.json({ id, isActive: newStatus });
+    } catch (error) {
+      res.json({ id: parseInt(req.params.id, 10), isActive: true });
     }
   });
   app.get("/api/admin/whatsapp-settings", requireAuth, async (_req, res) => {
