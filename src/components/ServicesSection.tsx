@@ -135,7 +135,8 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
             const desc = language === 'ar' ? service.descriptionAr : service.descriptionEn;
             const turnaround = language === 'ar' ? service.turnaroundAr : service.turnaroundEn;
             const badge = language === 'ar' ? service.badgeAr : service.badgeEn;
-            const features = (language === 'ar' ? service.featuresAr : service.featuresEn) || [];
+            const rawFeatures = language === 'ar' ? service.featuresAr : service.featuresEn;
+            const features = Array.isArray(rawFeatures) ? rawFeatures : [];
 
             return (
               <motion.div
@@ -179,7 +180,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
                   </p>
 
                   {/* Feature Highlights */}
-                  {features.length > 0 && (
+                  {Array.isArray(features) && features.length > 0 && (
                     <ul className="space-y-2 pt-2 border-t border-white/5">
                       {features.map((feat, i) => (
                         <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">

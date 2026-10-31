@@ -37,10 +37,33 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 }) => {
   const { language, t } = useLanguage();
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
   const [copied, setCopied] = useState(false);
   const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
   const [customNote, setCustomNote] = useState('');
+
+  // Reset and initialize when product changes
+  useEffect(() => {
+    setSelectedImageIndex(0);
+    setSelectedQuestions([]);
+    setCustomNote('');
+    if (product?.variants && Array.isArray(product.variants) && product.variants.length > 0) {
+      const defaultIdx = product.variants.findIndex((v: any) => v.isDefault);
+      setSelectedVariantIndex(defaultIdx !== -1 ? defaultIdx : 0);
+      const initial: Record<string, string> = {};
+      product.variants.forEach((v: any, idx: number) => {
+        if (Array.isArray(v.options) && v.options.length > 0) {
+          const vName = language === 'ar' ? v.nameAr || v.nameEn : v.nameEn || `Option ${idx + 1}`;
+          initial[vName] = v.options[0];
+        }
+      });
+      setSelectedVariants(initial);
+    } else {
+      setSelectedVariantIndex(0);
+      setSelectedVariants({});
+    }
+  }, [product?.id, language]);
 
   // Lightbox / Zoom State
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -59,10 +82,24 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const images = product.images && product.images.length > 0 ? product.images : [];
   const activeImage = images[selectedImageIndex] || null;
 
+  const isOptionGroup = Boolean(
+    product.variants &&
+    Array.isArray(product.variants) &&
+    product.variants.some((v: any) => Array.isArray(v.options) && v.options.length > 0)
+  );
+
+  const currentVariant = product.variants && Array.isArray(product.variants) && product.variants.length > 0
+    ? (product.variants[selectedVariantIndex] as any)
+    : null;
+
   // Selected variant string for WhatsApp message
-  const variantSummary = Object.entries(selectedVariants)
-    .map(([key, val]) => `${key}: ${val}`)
-    .join(', ');
+  const variantSummary = isOptionGroup
+    ? Object.entries(selectedVariants)
+        .map(([key, val]) => `${key}: ${val}`)
+        .join(', ')
+    : currentVariant
+    ? `${language === 'ar' ? currentVariant.nameAr || currentVariant.name || currentVariant.nameEn : currentVariant.name || currentVariant.nameEn}`
+    : '';
 
   const whatsappUrl = buildWhatsAppUrl({
     settings: whatsAppSettings,
@@ -257,67 +294,104 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               </p>
 
               {/* Variants Selector */}
-              {product.variants && product.variants.length > 0 && (
-                <div className="space-y-4 mb-6 p-4 rounded-2xl bg-[#151419] border border-white/5">
+              {product.variants && Array.isArray(product.variants) && product.variants.length > 0 && (
+                <div className="space-y-3 mb-6 p-4 rounded-2xl bg-[#151419] border border-white/5">
                   <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     {language === 'ar' ? 'خيارات الجهاز والمواصفات' : 'Available Options & Configurations'}
                   </h4>
-                  {product.variants.map((v, vIdx) => {
-                    const variantName = language === 'ar' ? v.nameAr || v.nameEn : v.nameEn;
-                    return (
-                      <div key={vIdx} className="space-y-2">
-                        <label className="text-xs font-semibold text-zinc-300">{variantName}</label>
-                        <div className="flex flex-wrap gap-2">
-                          {v.options.map((opt, oIdx) => {
-                            const isSelected = selectedVariants[variantName] === opt;
-                            return (
-                              <button
-                                key={oIdx}
-                                onClick={() =>
-                                  setSelectedVariants((prev) => ({
-                                    ...prev,
-                                    [variantName]: opt,
-                                  }))
-                                }
-                                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
-                                  isSelected
-                                    ? 'bg-[#B7F34B] text-[#151419] shadow-[0_0_15px_rgba(183,243,75,0.3)]'
-                                    : 'bg-[#242129] text-zinc-300 hover:text-white border border-white/5'
-                                }`}
-                              >
-                                {opt}
-                              </button>
-                            );
-                          })}
+
+                  {isOptionGroup ? (
+                    // Option groups with options array (e.g. Storage, Color)
+                    product.variants.map((v: any, vIdx: number) => {
+                      const groupName = language === 'ar' ? v.nameAr || v.nameEn : v.nameEn || `Option ${vIdx + 1}`;
+                      const optionsList = Array.isArray(v.options) ? v.options : [];
+                      if (optionsList.length === 0) return null;
+
+                      return (
+                        <div key={vIdx} className="space-y-2">
+                          <label className="text-xs font-semibold text-zinc-300">{groupName}</label>
+                          <div className="flex flex-wrap gap-2">
+                            {optionsList.map((opt: string, oIdx: number) => {
+                              const isSelected = selectedVariants[groupName] === opt;
+                              return (
+                                <button
+                                  key={oIdx}
+                                  type="button"
+                                  onClick={() =>
+                                    setSelectedVariants((prev) => ({
+                                      ...prev,
+                                      [groupName]: opt,
+                                    }))
+                                  }
+                                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+                                    isSelected
+                                      ? 'bg-[#B7F34B] text-[#151419] shadow-[0_0_15px_rgba(183,243,75,0.3)]'
+                                      : 'bg-[#242129] text-zinc-300 hover:text-white border border-white/5'
+                                  }`}
+                                >
+                                  {opt}
+                                </button>
+                              );
+                            })}
+                          </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    })
+                  ) : (
+                    // Flat SKU variants
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      {product.variants.map((v: any, vIdx: number) => {
+                        const variantTitle = language === 'ar' ? v.nameAr || v.name || v.nameEn : v.name || v.nameEn;
+                        const isSelected = selectedVariantIndex === vIdx;
+                        return (
+                          <button
+                            key={vIdx}
+                            type="button"
+                            onClick={() => setSelectedVariantIndex(vIdx)}
+                            className={`p-3 rounded-xl text-left rtl:text-right border transition-all cursor-pointer flex items-center justify-between gap-2 ${
+                              isSelected
+                                ? 'bg-[#B7F34B]/10 border-[#B7F34B] shadow-[0_0_15px_rgba(183,243,75,0.2)]'
+                                : 'bg-[#242129] border-white/5 hover:border-white/20 text-zinc-300'
+                            }`}
+                          >
+                            <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-[#B7F34B]' : 'text-white'}`}>
+                              {variantTitle}
+                            </span>
+                            {isSelected && (
+                              <CheckCircle className="w-3.5 h-3.5 text-[#B7F34B] shrink-0" />
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
               {/* Technical Specifications */}
-              {product.specifications && product.specifications.length > 0 && (
+              {product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0 && (
                 <div className="space-y-2.5 mb-6">
                   <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
                     {t('specs_title')}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    {product.specifications.map((spec, sIdx) => {
-                      const specKey = language === 'ar' ? spec.keyAr || spec.keyEn : spec.keyEn;
-                      const specVal = language === 'ar' ? spec.valueAr || spec.valueEn : spec.valueEn;
-                      return (
-                        <div
-                          key={sIdx}
-                          className="p-2.5 rounded-xl bg-[#151419] border border-white/5 flex flex-col justify-between"
-                        >
-                          <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
-                            {specKey}
-                          </span>
-                          <span className="text-xs font-semibold text-white mt-0.5">{specVal}</span>
-                        </div>
-                      );
-                    })}
+                    {product.specifications
+                      .filter((s: any) => s && !s.keyEn?.startsWith('_'))
+                      .map((spec: any, sIdx: number) => {
+                        const specKey = language === 'ar' ? spec.keyAr || spec.keyEn : spec.keyEn;
+                        const specVal = language === 'ar' ? spec.valueAr || spec.valueEn : spec.valueEn;
+                        return (
+                          <div
+                            key={sIdx}
+                            className="p-2.5 rounded-xl bg-[#151419] border border-white/5 flex flex-col justify-between"
+                          >
+                            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                              {specKey}
+                            </span>
+                            <span className="text-xs font-semibold text-white mt-0.5">{specVal}</span>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
               )}
@@ -366,7 +440,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
         </div>
 
         {/* Related Products Footer */}
-        {relatedProducts && relatedProducts.length > 0 && (
+        {Array.isArray(relatedProducts) && relatedProducts.length > 0 && (
           <div className="p-6 bg-[#151419] border-t border-white/5">
             <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">
               {t('related_products')}

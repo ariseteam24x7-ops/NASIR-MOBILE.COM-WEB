@@ -596,6 +596,12 @@ var FALLBACK_BRANDS = [
     slug: "razer",
     name: "Razer",
     logoUrl: ""
+  },
+  {
+    id: 18,
+    slug: "harman-kardon",
+    name: "Harman Kardon",
+    logoUrl: ""
   }
 ];
 var FALLBACK_WHATSAPP = {
@@ -1408,6 +1414,283 @@ var FALLBACK_PRODUCTS = [
       "https://images.unsplash.com/photo-1609592424367-e9a03e3aeb5c?w=800&auto=format&fit=crop&q=80"
     ],
     createdAt: "2026-10-29T10:45:00.000Z"
+  },
+  {
+    id: 28,
+    slug: "jbl-charge-5-waterproof-speaker",
+    sku: "JBL-CHG5-WTR",
+    nameEn: "JBL Charge 5 Portable Waterproof Bluetooth Speaker",
+    nameAr: "\u0645\u0643\u0628\u0631 \u0635\u0648\u062A \u0628\u0644\u0648\u062A\u0648\u062B \u0645\u062D\u0645\u0648\u0644 \u0645\u0642\u0627\u0648\u0645 \u0644\u0644\u0645\u0627\u0621 JBL Charge 5",
+    descriptionEn: "Take the party with you no matter what the weather. The JBL Charge 5 speaker delivers bold JBL Original Pro Sound, with an optimized long excursion driver, separate tweeter and dual JBL bass radiators. Up to 20 hours of playtime and a handy built-in powerbank.",
+    descriptionAr: "\u0627\u0635\u0637\u062D\u0628 \u0627\u0644\u0645\u0648\u0633\u064A\u0642\u0649 \u0645\u0639\u0643 \u0641\u064A \u0643\u0644 \u0645\u0643\u0627\u0646 \u0648\u0641\u064A \u0623\u064A \u0637\u0642\u0633. \u064A\u0645\u0646\u062D\u0643 JBL Charge 5 \u0635\u0648\u062A\u0627\u064B \u0646\u0642\u064A\u0627\u064B \u0648\u0642\u0648\u064A\u0627\u064B \u0645\u0639 \u0645\u0636\u062E\u0645 \u0635\u0648\u062A \u0645\u062A\u0637\u0648\u0631 \u0648\u0645\u0643\u0628\u0631 \u062A\u0631\u062F\u062F\u0627\u062A \u0639\u0627\u0644\u064A\u0629 \u0645\u0646\u0641\u0635\u0644 \u0648\u0645\u0634\u0639\u0627\u0639\u064A \u0635\u0648\u062A \u062C\u0647\u064A\u0631. \u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 20 \u0633\u0627\u0639\u0629 \u0645\u0639 \u0645\u064A\u0632\u0629 \u0628\u0646\u0643 \u0627\u0644\u0637\u0627\u0642\u0629 \u0627\u0644\u0645\u062F\u0645\u062C.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 8,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 30,
+    specifications: [
+      { keyEn: "Output Power", keyAr: "\u0642\u0648\u0629 \u0627\u0644\u0625\u062E\u0631\u0627\u062C", valueEn: "30W RMS Woofer + 10W RMS Tweeter", valueAr: "\u0645\u0636\u062E\u0645 30 \u0648\u0627\u0637 + \u062A\u0631\u064A\u0628\u0644 10 \u0648\u0627\u0637" },
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 20 Hours + Built-in Powerbank", valueAr: "\u062D\u062A\u0649 20 \u0633\u0627\u0639\u0629 + \u0645\u064A\u0632\u0629 \u0634\u062D\u0646 \u0627\u0644\u0647\u0648\u0627\u062A\u0641" },
+      { keyEn: "Waterproof Rating", keyAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0645\u0627\u0621", valueEn: "IP67 Waterproof and Dustproof", valueAr: "\u0645\u0639\u064A\u0627\u0631 IP67 \u0645\u0642\u0627\u0648\u0645 \u0644\u0644\u0645\u0627\u0621 \u0648\u0627\u0644\u063A\u0628\u0627\u0631" },
+      { keyEn: "Connectivity", keyAr: "\u0627\u0644\u0627\u062A\u0635\u0627\u0644", valueEn: "Bluetooth 5.1 & JBL PartyBoost", valueAr: "\u0628\u0644\u0648\u062A\u0648\u062B 5.1 \u0645\u0639 \u062A\u0642\u0646\u064A\u0629 \u0628\u0627\u0631\u062A\u064A \u0628\u0648\u0633\u062A" }
+    ],
+    variants: [
+      { name: "Squad Camouflage", price: 335, originalPrice: 389, isDefault: true, stockQuantity: 10 },
+      { name: "Midnight Black", price: 335, originalPrice: 389, isDefault: false, stockQuantity: 10 },
+      { name: "Deep Ocean Blue", price: 335, originalPrice: 389, isDefault: false, stockQuantity: 10 }
+    ],
+    images: [
+      "/src/assets/images/jbl_charge_5_1793460501717.jpg"
+    ],
+    createdAt: "2026-10-31T08:00:00.000Z"
+  },
+  {
+    id: 29,
+    slug: "jbl-partybox-110-portable-speaker",
+    sku: "JBL-PB110-160W",
+    nameEn: "JBL PartyBox 110 Portable Party Speaker with Dynamic Light Show",
+    nameAr: "\u0645\u0643\u0628\u0631 \u0635\u0648\u062A \u0645\u062A\u0646\u0642\u0644 \u0644\u0644\u062D\u0641\u0644\u0627\u062A JBL PartyBox 110 \u0645\u0639 \u0625\u0636\u0627\u0621\u0629 \u062F\u064A\u0646\u0627\u0645\u064A\u0643\u064A\u0629",
+    descriptionEn: "Bring a whole new dimension to any party with the unique dynamic LED lights, synced to the powerful sound and deep bass of the PartyBox 110. 160W RMS output, splashproof IPX4 design, and 12-hour battery life.",
+    descriptionAr: "\u0623\u0636\u0641 \u0623\u0628\u0639\u0627\u062F\u0627\u064B \u0633\u0627\u062D\u0631\u0629 \u0644\u062D\u0641\u0644\u0627\u062A\u0643 \u0645\u0639 \u0645\u0643\u0628\u0631 \u0627\u0644\u0635\u0648\u062A JBL PartyBox 110 \u0628\u0642\u0648\u0629 160 \u0648\u0627\u0637 \u0645\u0639 \u0625\u0636\u0627\u0621\u0629 \u062D\u0631\u0643\u064A\u0629 LED \u0645\u062A\u0632\u0627\u0645\u0646\u0629 \u0645\u0639 \u0627\u0644\u0625\u064A\u0642\u0627\u0639\u060C \u0648\u0645\u0642\u0627\u0648\u0645\u0629 \u0644\u0631\u0630\u0627\u0630 \u0627\u0644\u0645\u0627\u0621 IPX4 \u0648\u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 12 \u0633\u0627\u0639\u0629.",
+    condition: "New",
+    categoryId: 8,
+    brandId: 8,
+    categoryNameEn: "Other Electronics",
+    categoryNameAr: "\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0623\u062E\u0631\u0649",
+    categorySlug: "other-electronics",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 15,
+    specifications: [
+      { keyEn: "Power Output", keyAr: "\u0627\u0644\u0642\u0648\u0629 \u0627\u0644\u0635\u0648\u062A\u064A\u0629", valueEn: "160W RMS Powerful JBL Pro Sound", valueAr: "160 \u0648\u0627\u0637 \u0635\u0648\u062A \u0627\u062D\u062A\u0631\u0627\u0641\u064A \u0646\u0642\u064A" },
+      { keyEn: "Dynamic Lights", keyAr: "\u0627\u0644\u0645\u0624\u062B\u0631\u0627\u062A \u0627\u0644\u0636\u0648\u0626\u064A\u0629", valueEn: "Synchronized dynamic LED rings & strobes", valueAr: "\u062D\u0644\u0642\u0627\u062A \u0625\u0636\u0627\u0621\u0629 LED \u062A\u0641\u0627\u0639\u0644\u064A\u0629 \u0645\u0639 \u0627\u0644\u0625\u064A\u0642\u0627\u0639" },
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 12 Hours Rechargeable Battery", valueAr: "\u062D\u062A\u0649 12 \u0633\u0627\u0639\u0629 \u062A\u0634\u063A\u064A\u0644 \u0645\u0633\u062A\u0645\u0631" },
+      { keyEn: "Inputs", keyAr: "\u0627\u0644\u0645\u062F\u0627\u062E\u0644", valueEn: "Mic and Guitar inputs with volume gain", valueAr: "\u0645\u062F\u062E\u0644 \u0645\u0627\u064A\u0643 \u0648\u062C\u064A\u062A\u0627\u0631 \u0645\u0639 \u062A\u062D\u0643\u0645 \u0628\u0627\u0644\u0635\u0648\u062A" }
+    ],
+    variants: [
+      { name: "PartyBox 110 Black (160W)", price: 800, originalPrice: 950, isDefault: true, stockQuantity: 15 }
+    ],
+    images: [
+      "/src/assets/images/jbl_partybox_110_1793460517128.jpg"
+    ],
+    createdAt: "2026-10-31T08:05:00.000Z"
+  },
+  {
+    id: 30,
+    slug: "jbl-boombox-3-portable-speaker",
+    sku: "JBL-BMBX3-BLK",
+    nameEn: "JBL Boombox 3 Massive Portable Bluetooth Speaker",
+    nameAr: "\u0645\u0643\u0628\u0631 \u0635\u0648\u062A \u0628\u0644\u0648\u062A\u0648\u062B \u0639\u0645\u0644\u0627\u0642 JBL Boombox 3 \u0628\u0642\u0648\u0629 \u0635\u0648\u062A \u062C\u0628\u0627\u0631\u0629",
+    descriptionEn: "We updated the iconic silhouette of the JBL Boombox 3 with a bold new update featuring a sturdy metal handle with silicone grips, twin sidecaps and signature waterproof and dustproof fabric. Enjoy monstrous 3-way JBL Original Pro sound with 24 hours of non-stop battery life.",
+    descriptionAr: "\u0627\u0644\u062A\u0635\u0645\u064A\u0645 \u0627\u0644\u0623\u064A\u0642\u0648\u0646\u064A \u0627\u0644\u0645\u062D\u062F\u062B \u0644\u0645\u0643\u0628\u0631 \u0627\u0644\u0635\u0648\u062A JBL Boombox 3 \u0645\u0639 \u0645\u0642\u0628\u0636 \u0645\u0639\u062F\u0646\u064A \u0645\u062A\u064A\u0646 \u0648\u0645\u0633\u0643\u0627\u062A \u0633\u064A\u0644\u064A\u0643\u0648\u0646\u060C \u0648\u0635\u0648\u062A \u062B\u0644\u0627\u062B\u064A \u0627\u0644\u0627\u062A\u062C\u0627\u0647\u0627\u062A \u0647\u0627\u0626\u0644 \u0648\u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 24 \u0633\u0627\u0639\u0629 \u0645\u062A\u0648\u0627\u0635\u0644\u0629 \u0645\u0639 \u0645\u0642\u0627\u0648\u0645\u0629 \u062A\u0627\u0645\u0629 \u0644\u0644\u0645\u0627\u0621 \u0648\u0627\u0644\u063A\u0628\u0627\u0631 IP67.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 8,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 12,
+    specifications: [
+      { keyEn: "Acoustic Setup", keyAr: "\u0627\u0644\u0646\u0638\u0627\u0645 \u0627\u0644\u0635\u0648\u062A\u064A", valueEn: "3-way speaker system (Subwoofer + 2 Midrange + 2 Tweeters)", valueAr: "\u0646\u0638\u0627\u0645 \u062B\u0644\u0627\u062B\u064A \u0627\u0644\u0627\u062A\u062C\u0627\u0647\u0627\u062A \u0644\u0645\u0636\u062E\u0645 \u0627\u0644\u0635\u0648\u062A \u0648\u0627\u0644\u062A\u0631\u064A\u0628\u0644" },
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 24 Hours with Built-in Powerbank", valueAr: "\u062D\u062A\u0649 24 \u0633\u0627\u0639\u0629 \u0645\u0639 \u0634\u0627\u062D\u0646 \u0628\u0646\u0643 \u0637\u0627\u0642\u0629 \u0645\u062F\u0645\u062C" },
+      { keyEn: "Waterproof", keyAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0645\u0627\u0621", valueEn: "IP67 Dust and Waterproof", valueAr: "\u0645\u0642\u0627\u0648\u0645 \u0644\u0644\u0645\u0627\u0621 \u0648\u0627\u0644\u063A\u0628\u0627\u0631 \u0628\u0645\u0639\u064A\u0627\u0631 IP67" }
+    ],
+    variants: [
+      { name: "Signature Black", price: 990, originalPrice: 1199, isDefault: true, stockQuantity: 6 },
+      { name: "Squad Camo", price: 990, originalPrice: 1199, isDefault: false, stockQuantity: 6 }
+    ],
+    images: [
+      "/src/assets/images/jbl_boombox_3_1793460532693.jpg"
+    ],
+    createdAt: "2026-10-31T08:10:00.000Z"
+  },
+  {
+    id: 31,
+    slug: "jbl-bar-500-mk2-dolby-atmos-soundbar",
+    sku: "JBL-BAR500-MK2",
+    nameEn: "JBL Bar 500 MK2 Dolby Atmos Soundbar with Wireless Subwoofer",
+    nameAr: "\u0633\u0627\u0648\u0646\u062F \u0628\u0627\u0631 \u0633\u064A\u0646\u0645\u0627\u0626\u064A JBL Bar 500 MK2 \u0645\u0639 \u0635\u0628 \u0648\u0648\u0641\u0631 \u0644\u0627\u0633\u0644\u0643\u064A \u0648\u062F\u0648\u0644\u0628\u064A \u0623\u062A\u0645\u0648\u0633",
+    descriptionEn: 'Transform movie nights and music listening with 590 watts of total system power and a 10" down-firing wireless subwoofer. MultiBeam technology and Dolby Atmos 3D surround sound create an immersive cinematic stage without extra surround speakers.',
+    descriptionAr: "\u062D\u0648\u0644 \u063A\u0631\u0641\u0629 \u0627\u0644\u0645\u0639\u064A\u0634\u0629 \u0625\u0644\u0649 \u0635\u0627\u0644\u0629 \u0633\u064A\u0646\u0645\u0627 \u0645\u0639 \u0633\u0627\u0648\u0646\u062F \u0628\u0627\u0631 JBL Bar 500 MK2 \u0628\u0642\u0648\u0629 590 \u0648\u0627\u0637 \u0648\u0645\u0636\u062E\u0645 \u0635\u0648\u062A \u0644\u0627\u0633\u0644\u0643\u064A 10 \u0625\u0646\u0634 \u0628\u062A\u0642\u0646\u064A\u0629 \u062F\u0648\u0644\u0628\u064A \u0623\u062A\u0645\u0648\u0633 \u0648\u062A\u0642\u0646\u064A\u0629 MultiBeam \u0644\u062A\u062C\u0631\u0628\u0629 \u0635\u0648\u062A \u0645\u062D\u064A\u0637\u064A \u062B\u0644\u0627\u062B\u064A \u0627\u0644\u0623\u0628\u0639\u0627\u062F.",
+    condition: "New",
+    categoryId: 10,
+    brandId: 8,
+    categoryNameEn: "Smart Audio",
+    categoryNameAr: "\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629",
+    categorySlug: "smart-audio",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 10,
+    specifications: [
+      { keyEn: "Total Power", keyAr: "\u0627\u0644\u0642\u0648\u0629 \u0627\u0644\u0643\u0644\u064A\u0629", valueEn: "590W RMS Cinematic Output", valueAr: "590 \u0648\u0627\u0637 \u0642\u062F\u0631\u0629 \u0635\u0648\u062A \u0633\u064A\u0646\u0645\u0627\u0626\u064A\u0629" },
+      { keyEn: "Subwoofer", keyAr: "\u0645\u0636\u062E\u0645 \u0627\u0644\u0635\u0648\u062A", valueEn: "10-inch Wireless Down-Firing Subwoofer", valueAr: "\u0635\u0628 \u0648\u0648\u0641\u0631 \u0644\u0627\u0633\u0644\u0643\u064A \u0645\u0642\u0627\u0633 10 \u0628\u0648\u0635\u0629" },
+      { keyEn: "Sound Technology", keyAr: "\u0627\u0644\u062A\u0642\u0646\u064A\u0627\u062A \u0627\u0644\u0635\u0648\u062A\u064A\u0629", valueEn: "Dolby Atmos 3D & MultiBeam Surround", valueAr: "\u062F\u0648\u0644\u0628\u064A \u0623\u062A\u0645\u0648\u0633 \u0648\u062A\u0642\u0646\u064A\u0629 MultiBeam" },
+      { keyEn: "Smart Connectivity", keyAr: "\u0627\u0644\u062A\u0648\u0635\u064A\u0644 \u0627\u0644\u0630\u0643\u064A", valueEn: "AirPlay, Alexa MRM, Chromecast built-in, Wi-Fi & HDMI eARC", valueAr: "\u0648\u0627\u064A \u0641\u0627\u064A\u060C \u0625\u064A\u0631\u0628\u0644\u0627\u064A\u060C \u0643\u0631\u0648\u0645 \u0643\u0627\u0633\u062A\u060C \u0648\u0645\u0646\u0641\u0630 HDMI eARC" }
+    ],
+    variants: [
+      { name: "Bar 500 MK2 System (590W)", price: 1360, originalPrice: 1599, isDefault: true, stockQuantity: 10 }
+    ],
+    images: [
+      "/src/assets/images/jbl_bar_500_1793460574890.jpg"
+    ],
+    createdAt: "2026-10-31T08:15:00.000Z"
+  },
+  {
+    id: 32,
+    slug: "harman-kardon-onyx-studio-9-wireless-speaker",
+    sku: "HK-ONYX9-BLK",
+    nameEn: "Harman Kardon Onyx Studio 9 Premium Bluetooth Speaker",
+    nameAr: "\u0645\u0643\u0628\u0631 \u0635\u0648\u062A \u0628\u0644\u0648\u062A\u0648\u062B \u0641\u0627\u062E\u0631 \u0647\u0627\u0631\u0645\u0627\u0646 \u0643\u0627\u0631\u062F\u0648\u0646 \u0623\u0648\u0646\u064A\u0643\u0633 \u0633\u062A\u0648\u062F\u064A\u0648 9",
+    descriptionEn: "The Harman Kardon Onyx Studio 9 pairs artful circular design with exceptional acoustic fidelity. Crafted with premium sustainable materials, an integrated aluminum carrying handle, and dual tweeters that create a wide, detailed stereo soundscape with self-tuning room calibration.",
+    descriptionAr: "\u064A\u062C\u0645\u0639 \u0645\u0643\u0628\u0631 \u0627\u0644\u0635\u0648\u062A \u0647\u0627\u0631\u0645\u0627\u0646 \u0643\u0627\u0631\u062F\u0648\u0646 \u0623\u0648\u0646\u064A\u0643\u0633 \u0633\u062A\u0648\u062F\u064A\u0648 9 \u0628\u064A\u0646 \u0627\u0644\u062A\u0635\u0645\u064A\u0645 \u0627\u0644\u062F\u0627\u0626\u0631\u064A \u0627\u0644\u0641\u0646\u064A \u0627\u0644\u0641\u0627\u062E\u0631 \u0648\u0627\u0644\u0623\u062F\u0627\u0621 \u0627\u0644\u0635\u0648\u062A\u064A \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u0642\u0627\u0621. \u0645\u0635\u0646\u0648\u0639 \u0645\u0646 \u0645\u0648\u0627\u062F \u0645\u0633\u062A\u062F\u0627\u0645\u0629 \u0648\u0645\u0642\u0628\u0636 \u0623\u0644\u0648\u0645\u0646\u064A\u0648\u0645 \u0645\u062F\u0645\u062C\u060C \u0645\u0639 \u0635\u0648\u062A \u0633\u062A\u064A\u0631\u064A\u0648 \u0645\u062A\u0643\u0627\u0645\u0644 \u0648\u0645\u0639\u0627\u064A\u0631\u0629 \u0635\u0648\u062A\u064A\u0629 \u0630\u0627\u062A\u064A\u0629.",
+    condition: "New",
+    categoryId: 10,
+    brandId: 18,
+    categoryNameEn: "Smart Audio",
+    categoryNameAr: "\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A \u0627\u0644\u0630\u0643\u064A\u0629",
+    categorySlug: "smart-audio",
+    brandName: "Harman Kardon",
+    brandSlug: "harman-kardon",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 18,
+    specifications: [
+      { keyEn: "Transducers", keyAr: "\u0627\u0644\u0645\u062D\u0648\u0644\u0627\u062A \u0627\u0644\u0635\u0648\u062A\u064A\u0629", valueEn: "1x 120mm Woofer + 2x 20mm Tweeters", valueAr: "\u0648\u0648\u0641\u0631 120 \u0645\u0644\u0645 + \u062A\u0648\u064A\u062A\u0631 \u0645\u0632\u062F\u0648\u062C 20 \u0645\u0644\u0645" },
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 8 Hours Playtime", valueAr: "\u062D\u062A\u0649 8 \u0633\u0627\u0639\u0627\u062A \u062A\u0634\u063A\u064A\u0644 \u0645\u0633\u062A\u0645\u0631" },
+      { keyEn: "Features", keyAr: "\u0627\u0644\u0645\u064A\u0632\u0627\u062A", valueEn: "Auto Room Calibration & Wireless Dual Sound", valueAr: "\u0645\u0639\u0627\u064A\u0631\u0629 \u062A\u0644\u0642\u0627\u0626\u064A\u0629 \u0644\u0628\u064A\u0626\u0629 \u0627\u0644\u063A\u0631\u0641\u0629 \u0648\u0635\u0648\u062A \u0645\u0632\u062F\u0648\u062C" },
+      { keyEn: "Design", keyAr: "\u0627\u0644\u062A\u0635\u0645\u064A\u0645", valueEn: "Signature circular silhouette with anodized aluminum handle", valueAr: "\u062A\u0635\u0645\u064A\u0645 \u062F\u0627\u0626\u0631\u064A \u0623\u064A\u0642\u0648\u0646\u064A \u0645\u0639 \u0645\u0642\u0628\u0636 \u0623\u0644\u0648\u0645\u0646\u064A\u0648\u0645 \u0645\u0624\u0643\u0633\u062F" }
+    ],
+    variants: [
+      { name: "Charcoal Black", price: 490, originalPrice: 599, isDefault: true, stockQuantity: 10 },
+      { name: "Pearl Gray", price: 490, originalPrice: 599, isDefault: false, stockQuantity: 8 }
+    ],
+    images: [
+      "/src/assets/images/harman_onyx_9_1793460588892.jpg"
+    ],
+    createdAt: "2026-10-31T08:20:00.000Z"
+  },
+  {
+    id: 33,
+    slug: "jbl-live-770nc-wireless-headphones",
+    sku: "JBL-LIVE770NC",
+    nameEn: "JBL Live 770NC Wireless Adaptive Noise-Cancelling Headphones",
+    nameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0631\u0623\u0633 \u0644\u0627\u0633\u0644\u0643\u064A\u0629 JBL Live 770NC \u0645\u0639 \u0625\u0644\u063A\u0627\u0621 \u0627\u0644\u0636\u0648\u0636\u0627\u0621 \u0627\u0644\u062A\u0643\u064A\u0641\u064A",
+    descriptionEn: "Immerse yourself in JBL Signature Sound with True Adaptive Noise Cancelling and Smart Ambient technology. Up to 65 hours of battery life (50h with ANC on), speed charge (5 mins = 4 hours), Personi-Fi 2.0 sound personalization, and seamless multi-point Bluetooth 5.3 connectivity.",
+    descriptionAr: "\u0627\u0646\u063A\u0645\u0633 \u0641\u064A \u0646\u0642\u0627\u0621 \u0627\u0644\u0635\u0648\u062A \u0645\u0639 \u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0631\u0623\u0633 JBL Live 770NC \u0628\u062A\u0642\u0646\u064A\u0629 \u0625\u0644\u063A\u0627\u0621 \u0627\u0644\u0636\u0648\u0636\u0627\u0621 \u0627\u0644\u062A\u0643\u064A\u0641\u064A\u0629 \u0627\u0644\u062D\u0642\u064A\u0642\u064A\u0629 \u0648\u062A\u0642\u0646\u064A\u0629 \u0627\u0644\u0635\u0648\u062A \u0627\u0644\u0645\u062D\u064A\u0637\u064A \u0627\u0644\u0630\u0643\u064A. \u0628\u0637\u0627\u0631\u064A\u0629 \u0623\u0633\u0637\u0648\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 65 \u0633\u0627\u0639\u0629\u060C \u0648\u0634\u062D\u0646 \u0633\u0631\u064A\u0639 (5 \u062F\u0642\u0627\u0626\u0642 \u062A\u0645\u0646\u062D\u0643 4 \u0633\u0627\u0639\u0627\u062A) \u0648\u062F\u0639\u0645 \u0628\u0644\u0648\u062A\u0648\u062B 5.3 \u0645\u062A\u0639\u062F\u062F \u0627\u0644\u0646\u0642\u0627\u0637.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 8,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 25,
+    specifications: [
+      { keyEn: "Noise Cancellation", keyAr: "\u0639\u0632\u0644 \u0627\u0644\u0636\u0648\u0636\u0627\u0621", valueEn: "True Adaptive Noise Cancelling with Smart Ambient", valueAr: "\u0625\u0644\u063A\u0627\u0621 \u0636\u0648\u0636\u0627\u0621 \u062A\u0643\u064A\u0641\u064A \u062D\u0642\u064A\u0642\u064A \u0645\u0639 \u062A\u0642\u0646\u064A\u0629 \u0627\u0644\u0635\u0648\u062A \u0627\u0644\u0645\u062D\u064A\u0637\u064A" },
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 65 Hours (50 Hours with ANC on)", valueAr: "\u062D\u062A\u0649 65 \u0633\u0627\u0639\u0629 (50 \u0633\u0627\u0639\u0629 \u0645\u0639 \u062A\u0634\u063A\u064A\u0644 \u0627\u0644\u0639\u0632\u0644)" },
+      { keyEn: "Fast Charging", keyAr: "\u0627\u0644\u0634\u062D\u0646 \u0627\u0644\u0633\u0631\u064A\u0639", valueEn: "5-minute speed charge provides 4 hours playback", valueAr: "\u0634\u062D\u0646 5 \u062F\u0642\u0627\u0626\u0642 \u064A\u0645\u0646\u062D 4 \u0633\u0627\u0639\u0627\u062A \u062A\u0634\u063A\u064A\u0644" },
+      { keyEn: "Drivers", keyAr: "\u062D\u062C\u0645 \u0627\u0644\u0645\u0643\u0628\u0631", valueEn: "40mm Dynamic Drivers with JBL Spatial Sound", valueAr: "\u0645\u0634\u063A\u0644\u0627\u062A \u062F\u064A\u0646\u0627\u0645\u064A\u0643\u064A\u0629 40 \u0645\u0644\u0645 \u0648\u0635\u0648\u062A \u0645\u0643\u0627\u0646\u064A" }
+    ],
+    variants: [
+      { name: "Matte Black", price: 295, originalPrice: 360, isDefault: true, stockQuantity: 15 },
+      { name: "Desert Sand", price: 295, originalPrice: 360, isDefault: false, stockQuantity: 10 }
+    ],
+    images: [
+      "/src/assets/images/jbl_live_770nc_1793460604696.jpg"
+    ],
+    createdAt: "2026-10-31T08:22:00.000Z"
+  },
+  {
+    id: 34,
+    slug: "jbl-live-pro-2-tws-earbuds",
+    sku: "JBL-LIVEPRO2-TWS",
+    nameEn: "JBL Live Pro 2 True Wireless Noise-Cancelling Earbuds",
+    nameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0623\u0630\u0646 \u0644\u0627\u0633\u0644\u0643\u064A\u0629 \u0628\u0627\u0644\u0643\u0627\u0645\u0644 JBL Live Pro 2 \u0645\u0639 \u0639\u0632\u0644 \u0627\u0644\u0636\u0648\u0636\u0627\u0621 \u0627\u0644\u062A\u0643\u064A\u0641\u064A",
+    descriptionEn: "Stay in the groove all day long with stylish companions for work and play. JBL Live Pro 2 earbuds deliver up to 40 hours of incredible JBL Signature Sound (10h in buds + 30h in case), True Adaptive Noise Cancelling, and 6 microphones for crystal-clear phone calls.",
+    descriptionAr: "\u0627\u0633\u062A\u0645\u062A\u0639 \u0628\u0635\u0648\u062A \u0646\u0642\u064A \u0637\u0648\u0627\u0644 \u0627\u0644\u064A\u0648\u0645 \u0645\u0639 \u0633\u0645\u0627\u0639\u0627\u062A JBL Live Pro 2 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A\u0629. \u0628\u0637\u0627\u0631\u064A\u0629 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 40 \u0633\u0627\u0639\u0629 (10 \u0633\u0627\u0639\u0627\u062A \u0628\u0627\u0644\u0633\u0645\u0627\u0639\u0629 + 30 \u0633\u0627\u0639\u0629 \u0628\u0627\u0644\u0639\u0644\u0628\u0629)\u060C \u0645\u0639 \u0639\u0632\u0644 \u0636\u0648\u0636\u0627\u0621 \u0645\u062A\u0643\u064A\u0641\u060C \u06486 \u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646\u0627\u062A \u0644\u0644\u0645\u0643\u0627\u0644\u0645\u0627\u062A \u0641\u0627\u0626\u0642\u0629 \u0627\u0644\u0648\u0636\u0648\u062D\u060C \u0648\u062F\u0639\u0645 \u0627\u0644\u0634\u062D\u0646 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A \u0627\u0644\u0633\u0631\u064A\u0639.",
+    condition: "New",
+    categoryId: 5,
+    brandId: 8,
+    categoryNameEn: "Earbuds & Audio",
+    categoryNameAr: "\u0633\u0645\u0627\u0639\u0627\u062A \u0627\u0644\u0623\u0630\u0646 \u0648\u0627\u0644\u0635\u0648\u062A\u064A\u0627\u062A",
+    categorySlug: "earbuds-audio",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 20,
+    specifications: [
+      { keyEn: "ANC & Ambient", keyAr: "\u0627\u0644\u0639\u0632\u0644 \u0648\u0627\u0644\u0645\u062D\u064A\u0637", valueEn: "True Adaptive Noise Cancelling & Smart Ambient", valueAr: "\u0639\u0632\u0644 \u062A\u0643\u064A\u0641\u064A \u0630\u0643\u064A \u0648\u0645\u064A\u0632\u0629 \u0627\u0644\u0627\u0633\u062A\u0645\u0627\u0639 \u0644\u0644\u0628\u064A\u0626\u0629" },
+      { keyEn: "Battery Life", keyAr: "\u0639\u0645\u0631 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "Up to 40 Hours (10h buds + 30h case) + Qi Wireless", valueAr: "\u062D\u062A\u0649 40 \u0633\u0627\u0639\u0629 \u0645\u0639 \u062F\u0639\u0645 \u0627\u0644\u0634\u062D\u0646 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A Qi" },
+      { keyEn: "Microphones", keyAr: "\u0627\u0644\u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646\u0627\u062A", valueEn: "6 Beamforming Mics with VoiceAware", valueAr: "6 \u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646\u0627\u062A \u0645\u0639 \u062A\u0642\u0646\u064A\u0629 \u0636\u0628\u0637 \u0646\u0642\u0627\u0621 \u0627\u0644\u0635\u0648\u062A" },
+      { keyEn: "Water Resistance", keyAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0627\u0644\u0645\u0627\u0621", valueEn: "IPX5 Water Resistant", valueAr: "\u0645\u0642\u0627\u0648\u0645\u0629 \u0644\u0644\u0631\u0630\u0627\u0630 \u0648\u0627\u0644\u0639\u0631\u0642 \u0628\u0645\u0639\u064A\u0627\u0631 IPX5" }
+    ],
+    variants: [
+      { name: "Metallic Silver", price: 360, originalPrice: 420, isDefault: true, stockQuantity: 10 },
+      { name: "Midnight Black", price: 360, originalPrice: 420, isDefault: false, stockQuantity: 10 }
+    ],
+    images: [
+      "/src/assets/images/jbl_live_pro_2_1793460621732.jpg"
+    ],
+    createdAt: "2026-10-31T08:24:00.000Z"
+  },
+  {
+    id: 35,
+    slug: "jbl-partybox-wireless-dual-microphones",
+    sku: "JBL-PB-DUALMIC",
+    nameEn: "JBL PartyBox Wireless Dual Microphones System",
+    nameAr: "\u0637\u0642\u0645 \u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0645\u0632\u062F\u0648\u062C JBL PartyBox \u0645\u0639 \u0645\u0633\u062A\u0642\u0628\u0644 \u0625\u0634\u0627\u0631\u0629",
+    descriptionEn: "Sing along to your favorite tunes with pristine voice clarity and no cords attached. The JBL PartyBox Wireless Dual Microphones deliver clear vocal performance with minimal feedback, plug-and-play 2.4GHz wireless dongle receiver, and up to 20 hours of rechargeable playtime.",
+    descriptionAr: "\u0627\u0633\u062A\u0645\u062A\u0639 \u0628\u0627\u0644\u063A\u0646\u0627\u0621 \u0648\u0625\u0644\u0642\u0627\u0621 \u0627\u0644\u0643\u0644\u0645\u0627\u062A \u0628\u0635\u0648\u062A \u0646\u0642\u064A \u0648\u0628\u062F\u0648\u0646 \u0623\u0633\u0644\u0627\u0643. \u064A\u0648\u0641\u0631 \u0637\u0642\u0645 \u0627\u0644\u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646 \u0627\u0644\u0645\u0632\u062F\u0648\u062C JBL PartyBox \u0635\u0648\u062A\u0627\u064B \u0639\u0627\u0644\u064A \u0627\u0644\u062F\u0642\u0629 \u0628\u0646\u0645\u0637 \u0645\u0627\u0646\u0639 \u0644\u0644\u062A\u0634\u0648\u064A\u0634 \u0645\u0639 \u0645\u0633\u062A\u0642\u0628\u0644 \u0644\u0627\u0633\u0644\u0643\u064A 2.4 \u062C\u064A\u062C\u0627\u0647\u0631\u062A\u0632 \u0648\u0628\u0637\u0627\u0631\u064A\u0629 \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u0634\u062D\u0646 \u062A\u062F\u0648\u0645 \u062D\u062A\u0649 20 \u0633\u0627\u0639\u0629.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 8,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "JBL",
+    brandSlug: "jbl",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 25,
+    specifications: [
+      { keyEn: "Included", keyAr: "\u0627\u0644\u0645\u062D\u062A\u0648\u064A\u0627\u062A", valueEn: "2x Wireless Microphones + 1x Wireless 6.35mm Receiver Dongle", valueAr: "\u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646\u064A\u0646 \u0644\u0627\u0633\u0644\u0643\u064A\u064A\u0646 + \u062F\u0648\u0646\u062C\u0644 \u0627\u0633\u062A\u0642\u0628\u0627\u0644 6.35 \u0645\u0644\u0645" },
+      { keyEn: "Playtime", keyAr: "\u0648\u0642\u062A \u0627\u0644\u062A\u0634\u063A\u064A\u0644", valueEn: "Up to 20 Hours per Mic (Rechargeable)", valueAr: "\u062D\u062A\u0649 20 \u0633\u0627\u0639\u0629 \u062A\u0634\u063A\u064A\u0644 \u0644\u0643\u0644 \u0645\u064A\u0643\u0631\u0648\u0641\u0648\u0646" },
+      { keyEn: "Pickup Pattern", keyAr: "\u0646\u0645\u0637 \u0627\u0644\u0627\u0644\u062A\u0642\u0627\u0637", valueEn: "Cardioid Pattern with Internal Shock Mount", valueAr: "\u0646\u0645\u0637 \u0642\u0644\u0628\u064A \u0639\u0627\u0632\u0644 \u0644\u0644\u0627\u0647\u062A\u0632\u0627\u0632\u0627\u062A \u0648\u0627\u0644\u0636\u0648\u0636\u0627\u0621" },
+      { keyEn: "Compatibility", keyAr: "\u0627\u0644\u062A\u0648\u0627\u0641\u0642", valueEn: "All JBL PartyBox speakers & standard 6.35mm mic inputs", valueAr: "\u0645\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 \u0633\u0645\u0627\u0639\u0627\u062A PartyBox \u0648\u0645\u062F\u0627\u062E\u0644 \u0627\u0644\u0645\u0627\u064A\u0643 \u0627\u0644\u0642\u064A\u0627\u0633\u064A\u0629" }
+    ],
+    variants: [
+      { name: "Dual Mic Set + Receiver", price: 310, originalPrice: 380, isDefault: true, stockQuantity: 25 }
+    ],
+    images: [
+      "/src/assets/images/jbl_dual_mic_1793460635586.jpg"
+    ],
+    createdAt: "2026-10-31T08:26:00.000Z"
   }
 ];
 var FALLBACK_SERVICES = [
@@ -1777,11 +2060,18 @@ async function startServer() {
         createdAt: brands.createdAt
       }).from(brands);
       for (const b of pgBrands) {
+        const item = {
+          id: b.id,
+          slug: b.slug,
+          name: b.name,
+          logoUrl: b.logoUrl || "",
+          createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : void 0
+        };
         const idx = customBrands.findIndex((cb) => cb.id === b.id || cb.slug === b.slug);
         if (idx !== -1) {
-          customBrands[idx] = { ...customBrands[idx], ...b };
+          customBrands[idx] = { ...customBrands[idx], ...item };
         } else {
-          customBrands.push(b);
+          customBrands.push(item);
         }
       }
       const pgCats = await db.select({
@@ -1795,11 +2085,21 @@ async function startServer() {
         displayOrder: categories.displayOrder
       }).from(categories);
       for (const c of pgCats) {
+        const item = {
+          id: c.id,
+          slug: c.slug,
+          nameEn: c.nameEn,
+          nameAr: c.nameAr,
+          descriptionEn: c.descriptionEn || "",
+          descriptionAr: c.descriptionAr || "",
+          icon: c.icon || "Smartphone",
+          displayOrder: c.displayOrder || 0
+        };
         const idx = customCategories.findIndex((cc) => cc.id === c.id || cc.slug === c.slug);
         if (idx !== -1) {
-          customCategories[idx] = { ...customCategories[idx], ...c };
+          customCategories[idx] = { ...customCategories[idx], ...item };
         } else {
-          customCategories.push(c);
+          customCategories.push(item);
         }
       }
       const pgProds = await db.select({

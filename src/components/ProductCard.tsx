@@ -140,19 +140,22 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         </h3>
 
         {/* Specification Highlights Preview */}
-        {product.specifications && product.specifications.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 mb-4">
-            {product.specifications.slice(0, 3).map((spec, idx) => {
-              const val = language === 'ar' ? spec.valueAr || spec.valueEn : spec.valueEn;
-              return (
-                <span
-                  key={idx}
-                  className="px-2 py-0.5 rounded-md bg-[#151419] border border-white/5 text-[11px] text-zinc-300 font-medium"
-                >
-                  {val}
-                </span>
-              );
-            })}
+        {product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0 && (
+          <div className="flex flex-wrap gap-1.5 mb-3">
+            {product.specifications
+              .filter((s: any) => s && !s.keyEn?.startsWith('_'))
+              .slice(0, 3)
+              .map((spec, idx) => {
+                const val = language === 'ar' ? spec.valueAr || spec.valueEn : spec.valueEn;
+                return (
+                  <span
+                    key={idx}
+                    className="px-2 py-0.5 rounded-md bg-[#151419] border border-white/5 text-[11px] text-zinc-300 font-medium"
+                  >
+                    {val}
+                  </span>
+                );
+              })}
           </div>
         )}
 

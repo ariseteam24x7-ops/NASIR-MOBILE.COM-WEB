@@ -253,11 +253,18 @@ async function startServer() {
         .from(brands);
 
       for (const b of pgBrands) {
+        const item = {
+          id: b.id,
+          slug: b.slug,
+          name: b.name,
+          logoUrl: b.logoUrl || '',
+          createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : undefined,
+        };
         const idx = customBrands.findIndex((cb) => cb.id === b.id || cb.slug === b.slug);
         if (idx !== -1) {
-          customBrands[idx] = { ...customBrands[idx], ...b };
+          customBrands[idx] = { ...customBrands[idx], ...item };
         } else {
-          customBrands.push(b as any);
+          customBrands.push(item);
         }
       }
 
@@ -275,11 +282,21 @@ async function startServer() {
         .from(categories);
 
       for (const c of pgCats) {
+        const item = {
+          id: c.id,
+          slug: c.slug,
+          nameEn: c.nameEn,
+          nameAr: c.nameAr,
+          descriptionEn: c.descriptionEn || '',
+          descriptionAr: c.descriptionAr || '',
+          icon: c.icon || 'Smartphone',
+          displayOrder: c.displayOrder || 0,
+        };
         const idx = customCategories.findIndex((cc) => cc.id === c.id || cc.slug === c.slug);
         if (idx !== -1) {
-          customCategories[idx] = { ...customCategories[idx], ...c };
+          customCategories[idx] = { ...customCategories[idx], ...item };
         } else {
-          customCategories.push(c as any);
+          customCategories.push(item);
         }
       }
 
