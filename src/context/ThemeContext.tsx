@@ -14,15 +14,16 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 const THEME_STORAGE_KEY = 'nasir_theme';
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Light Mode is strictly the default for all visitors
+  // Black / Dark Mode is the default theme for all storefront visitors
   const [theme, setThemeState] = useState<Theme>(() => {
     if (typeof window !== 'undefined') {
+      const isManual = localStorage.getItem('nasir_theme_manual');
       const saved = localStorage.getItem(THEME_STORAGE_KEY);
-      if (saved === 'dark' || saved === 'light') {
+      if (isManual === 'true' && (saved === 'dark' || saved === 'light')) {
         return saved;
       }
     }
-    return 'light'; // Default: Light Mode (white theme)
+    return 'dark'; // Default: Black / Studio Dark (#151419)
   });
 
   useEffect(() => {
@@ -59,10 +60,21 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, [theme]);
 
   const toggleTheme = () => {
-    setThemeState((prev) => (prev === 'light' ? 'dark' : 'light'));
+    setThemeState((prev) => {
+      const next = prev === 'light' ? 'dark' : 'light';
+      try {
+        localStorage.setItem('nasir_theme_manual', 'true');
+        localStorage.setItem(THEME_STORAGE_KEY, next);
+      } catch {}
+      return next;
+    });
   };
 
   const setTheme = (newTheme: Theme) => {
+    try {
+      localStorage.setItem('nasir_theme_manual', 'true');
+      localStorage.setItem(THEME_STORAGE_KEY, newTheme);
+    } catch {}
     setThemeState(newTheme);
   };
 

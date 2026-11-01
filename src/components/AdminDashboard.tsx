@@ -75,7 +75,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onViewPublicSite,
 }) => {
   const { language, setLanguage } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'services' | 'whatsapp' | 'content' | 'audit' | 'security' | 'visitors'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'services' | 'whatsapp' | 'content' | 'audit' | 'security'>('overview');
 
   // Visitor Analytics State
   const [visitorAnalytics, setVisitorAnalytics] = useState<AdminVisitorAnalytics | null>(null);
@@ -519,7 +519,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (activeTab === 'services') fetchServices();
     if (activeTab === 'overview') fetchOverview();
     if (activeTab === 'audit') fetchAuditLogs();
-    if (activeTab === 'visitors') fetchVisitorAnalytics();
     if (activeTab === 'security') fetchMasterKeyInfo();
   }, [activeTab, productStatusFilter, productCategoryFilter, productBrandFilter, productConditionFilter]);
 
@@ -1581,23 +1580,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           >
             <Clock className="w-4 h-4" />
             <span>Audit Logs</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('visitors')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'visitors'
-                ? 'bg-[#922CB5] text-white shadow-md'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Activity className="w-4 h-4 text-[#B7F34B]" />
-            <span>Visitor Analytics</span>
-            {visitorAnalytics && (
-              <span className="ml-auto bg-black/40 px-2 py-0.5 rounded-full text-[10px] font-mono text-[#B7F34B]">
-                {visitorAnalytics.displayTodayVisitors}
-              </span>
-            )}
           </button>
 
           <button
@@ -3542,8 +3524,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB 8: VISITOR ANALYTICS & COUNTER CONTROL */}
-          {activeTab === 'visitors' && (
+          {/* TAB: VISITOR ANALYTICS & COUNTER CONTROL (DEACTIVATED) */}
+          {(activeTab as string) === 'visitors' && (
             <div className="space-y-8">
               {/* Header */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">

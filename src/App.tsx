@@ -17,7 +17,6 @@ import { AboutSection } from './components/AboutSection.tsx';
 import { FaqSection } from './components/FaqSection.tsx';
 import { ContactSection } from './components/ContactSection.tsx';
 import { Footer } from './components/Footer.tsx';
-import { VisitorCounter } from './components/VisitorCounter.tsx';
 import { AdminLogin } from './components/AdminLogin.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import {
@@ -476,7 +475,7 @@ function StoreApp() {
   });
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 dark:bg-[#151419] dark:text-white flex flex-col selection:bg-[#922CB5] selection:text-white transition-colors duration-200">
+    <div className="min-h-screen bg-[#151419] text-white dark:bg-[#151419] dark:text-white flex flex-col selection:bg-[#922CB5] selection:text-white transition-colors duration-200">
       {/* Scroll-based Reading Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#922CB5] via-[#B7F34B] to-[#922CB5] origin-left z-50 pointer-events-none"
@@ -724,9 +723,6 @@ function StoreApp() {
         whatsAppSettings={whatsAppSettings}
         siteContent={siteContent}
       />
-
-      {/* Real-time Website Visitor Counter */}
-      <VisitorCounter />
 
       {/* Footer */}
       <Footer
