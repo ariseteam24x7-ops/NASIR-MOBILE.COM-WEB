@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <linearGradient id="nmCircleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#922CB5" />
+      <stop offset="60%" stop-color="#391548" />
+      <stop offset="100%" stop-color="#151419" />
+    </linearGradient>
+    <linearGradient id="nmLimeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#B7F34B" />
+      <stop offset="100%" stop-color="#8AC620" />
+    </linearGradient>
+    <linearGradient id="nmSlashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" />
+      <stop offset="100%" stop-color="#B7F34B" />
+    </linearGradient>
+  </defs>
+
+  <!-- Deep Dark Rounded Background for tab visibility -->
+  <rect width="100" height="100" rx="24" fill="#151419" />
+
+  <!-- Outer Purple & Lime Tech Ring -->
+  <circle cx="50" cy="50" r="44" stroke="url(#nmCircleGrad)" stroke-width="4" opacity="0.95" />
+  <path d="M 50 6 A 44 44 0 0 1 94 50" stroke="#B7F34B" stroke-width="4.5" stroke-linecap="round" stroke-dasharray="8 12" />
+  <path d="M 50 94 A 44 44 0 0 1 6 50" stroke="#922CB5" stroke-width="4.5" stroke-linecap="round" />
+
+  <!-- Inner Dark Circle Shield -->
+  <circle cx="50" cy="50" r="37" fill="#1b1920" />
+
+  <!-- Geometric Angular 'N' & 'Z' Interlocking Monogram -->
+  <!-- N Left Pillar -->
+  <path d="M 28 70 L 28 30 L 36 30 L 36 70 Z" fill="url(#nmCircleGrad)" />
+  <!-- N Diagonal / Z Diagonal -->
+  <path d="M 33 30 L 67 70 L 59 70 L 25 30 Z" fill="url(#nmSlashGrad)" />
+  <!-- Z Top Horizontal Bar -->
+  <path d="M 40 30 L 72 30 L 72 38 L 48 38 Z" fill="#B7F34B" />
+  <!-- Z Bottom Horizontal Bar -->
+  <path d="M 28 62 L 52 62 L 52 70 L 28 70 Z" fill="#B7F34B" />
+  <!-- Z Right Pillar -->
+  <path d="M 64 30 L 72 30 L 72 70 L 64 70 Z" fill="url(#nmCircleGrad)" />
+
+  <!-- Central Precision Tech Dot -->
+  <circle cx="50" cy="50" r="5" fill="#B7F34B" />
+</svg>

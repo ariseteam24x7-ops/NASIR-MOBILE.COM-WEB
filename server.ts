@@ -49,6 +49,13 @@ async function startServer() {
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
+  // Ensure persistent public uploads folder exists and is mounted statically
+  const UPLOADS_DIR = path.resolve(__dirname, 'public', 'uploads');
+  if (!fs.existsSync(UPLOADS_DIR)) {
+    fs.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+  app.use('/uploads', express.static(UPLOADS_DIR));
+
   // Health check endpoints for host reverse proxies and uptime monitors
   app.get(['/health', '/api/health'], (_req, res) => {
     res.status(200).json({ status: 'ok', server: 'Nasir Mobile Dubai', timestamp: new Date().toISOString() });
@@ -884,8 +891,17 @@ async function startServer() {
         }
 
         res.setHeader('Content-Type', mime);
-        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
         return res.send(buffer);
+      }
+
+      // Check if file exists in persistent public/uploads directory
+      if (fs.existsSync(UPLOADS_DIR)) {
+        const files = fs.readdirSync(UPLOADS_DIR);
+        const match = files.find((f) => f.includes(rawId));
+        if (match) {
+          return res.sendFile(path.join(UPLOADS_DIR, match));
+        }
       }
 
       if (isNaN(numId)) {
@@ -920,7 +936,7 @@ async function startServer() {
             });
 
             res.setHeader('Content-Type', mime);
-            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+            res.setHeader('Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400');
             return res.send(buffer);
           }
         } catch (dbErr) {
@@ -2387,7 +2403,7 @@ async function startServer() {
     }
   });
 
-  // Admin: Upload Single Image (with database persistence & fallback cache)
+  // Admin: Upload Single Image (with persistent disk storage & database backup)
   app.post('/api/admin/upload-image', requireAuth, async (req: AuthRequest, res) => {
     try {
       const { fileName, mimeType, data } = req.body;
@@ -2396,58 +2412,67 @@ async function startServer() {
       }
 
       const safeMime = mimeType || 'image/jpeg';
-      const safeName = fileName || `image-${Date.now()}.jpg`;
+      const ext = safeMime.includes('png') ? 'png' : safeMime.includes('webp') ? 'webp' : 'jpg';
+      const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+      const diskFilePath = path.join(UPLOADS_DIR, diskFileName);
 
-      // 1. Try PostgreSQL persistence first
+      // Decode base64 buffer safely
+      let buffer: Buffer;
+      if (data.startsWith('data:')) {
+        const matches = data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          buffer = Buffer.from(matches[2], 'base64');
+        } else {
+          buffer = Buffer.from(data, 'base64');
+        }
+      } else {
+        buffer = Buffer.from(data, 'base64');
+      }
+
+      // 1. Write file to persistent disk storage immediately (accessible via /uploads/...)
+      fs.writeFileSync(diskFilePath, buffer);
+      const imageUrl = `/uploads/${diskFileName}`;
+
+      // 2. Also register in PostgreSQL if available
+      let imageId: number | null = null;
       if (isPostgresAvailable) {
         try {
           const savedImage = await db
             .insert(images)
             .values({
-              fileName: safeName,
+              fileName: diskFileName,
               mimeType: safeMime,
-              data: data, // base64 string
+              data: data,
             })
             .returning();
 
           if (savedImage && savedImage.length > 0) {
-            const imageId = savedImage[0].id;
-            const imageUrl = `/api/images/${imageId}`;
-            fallbackImagesStore.set(imageId, { fileName: safeName, mimeType: safeMime, data });
-
-            return res.status(201).json({
-              id: imageId,
-              url: imageUrl,
-              fileName: savedImage[0].fileName,
-            });
+            imageId = savedImage[0].id;
           }
         } catch (dbErr) {
-          console.warn('PostgreSQL image insertion error, routing to fallback store:', dbErr);
+          console.warn('PostgreSQL image insertion error (persisted to disk successfully):', dbErr);
         }
       }
 
-      // 2. Resilient memory fallback so admin never experiences 500 error
-      const fallbackId = ++fallbackImageCounter;
-      fallbackImagesStore.set(fallbackId, { fileName: safeName, mimeType: safeMime, data });
-      const imageUrl = `/api/images/${fallbackId}`;
+      // 3. Cache in fallback store for backward compatibility
+      fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: safeMime, data });
+      if (imageId) {
+        fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: safeMime, data });
+      }
 
       res.status(201).json({
-        id: fallbackId,
+        id: imageId || uniqueToken,
         url: imageUrl,
-        fileName: safeName,
+        fileName: diskFileName,
       });
     } catch (error: any) {
       console.error('Error storing image:', error);
-      // Graceful degraded response: return the data URI directly so the UI continues working
-      res.status(200).json({
-        id: Date.now(),
-        url: req.body?.data || '',
-        fileName: req.body?.fileName || 'image.jpg',
-      });
+      res.status(500).json({ error: error?.message || 'Failed to process and store image' });
     }
   });
 
-  // Admin: Upload Multiple Images in Batch
+  // Admin: Upload Multiple Images in Batch (with 1080x1080 persistent disk storage)
   app.post('/api/admin/upload-images', requireAuth, async (req: AuthRequest, res) => {
     try {
       const { items } = req.body;
@@ -2458,8 +2483,28 @@ async function startServer() {
       const uploadedResults = [];
       for (const item of items) {
         if (!item.data) continue;
-        const safeName = item.fileName || `batch-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const safeMime = item.mimeType || 'image/jpeg';
+        const ext = safeMime.includes('png') ? 'png' : safeMime.includes('webp') ? 'webp' : 'jpg';
+        const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+        const diskFilePath = path.join(UPLOADS_DIR, diskFileName);
+
+        // Decode base64 buffer safely
+        let buffer: Buffer;
+        if (item.data.startsWith('data:')) {
+          const matches = item.data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            buffer = Buffer.from(matches[2], 'base64');
+          } else {
+            buffer = Buffer.from(item.data, 'base64');
+          }
+        } else {
+          buffer = Buffer.from(item.data, 'base64');
+        }
+
+        // Write directly to disk
+        fs.writeFileSync(diskFilePath, buffer);
+        const imageUrl = `/uploads/${diskFileName}`;
 
         let imageId: number | null = null;
         if (isPostgresAvailable) {
@@ -2467,7 +2512,7 @@ async function startServer() {
             const savedImage = await db
               .insert(images)
               .values({
-                fileName: safeName,
+                fileName: diskFileName,
                 mimeType: safeMime,
                 data: item.data,
               })
@@ -2476,19 +2521,19 @@ async function startServer() {
               imageId = savedImage[0].id;
             }
           } catch (dbErr) {
-            console.warn('DB batch item error:', dbErr);
+            console.warn('DB batch item error (persisted to disk successfully):', dbErr);
           }
         }
 
-        if (!imageId) {
-          imageId = ++fallbackImageCounter;
+        fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: safeMime, data: item.data });
+        if (imageId) {
+          fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: safeMime, data: item.data });
         }
 
-        fallbackImagesStore.set(imageId, { fileName: safeName, mimeType: safeMime, data: item.data });
         uploadedResults.push({
-          id: imageId,
-          url: `/api/images/${imageId}`,
-          fileName: safeName,
+          id: imageId || uniqueToken,
+          url: imageUrl,
+          fileName: diskFileName,
         });
       }
 

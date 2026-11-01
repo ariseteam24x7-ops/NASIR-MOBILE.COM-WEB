@@ -19,7 +19,7 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ siteContent }) => {
         'Nasir Mobile is Dubai’s trusted destination for smartphones, tablets, premium accessories, and certified electronics. Located in the heart of Dubai, UAE, we deliver exceptional customer care, guaranteed authentic hardware, and personalized consultation for both new and refurbished devices.';
 
   return (
-    <section id="about" className="py-16 sm:py-24 bg-[#151419] border-b border-white/5 relative overflow-hidden">
+    <section id="about" className="py-16 sm:py-24 bg-slate-50 dark:bg-[#151419] border-b border-slate-200 dark:border-white/5 relative overflow-hidden transition-colors duration-200">
       {/* Decorative Brand Accent */}
       <motion.div
         animate={{ scale: [1, 1.15, 1], opacity: [0.08, 0.16, 0.08] }}
@@ -37,30 +37,30 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ siteContent }) => {
             transition={{ duration: 0.6, ease: 'easeOut' }}
             className="lg:col-span-7 space-y-6"
           >
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest">
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest shadow-sm">
               <span>{t('about_us')}</span>
             </div>
 
-            <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight leading-tight">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight leading-tight">
               {language === 'ar'
                 ? 'وجهتكم المعتمدة لأحدث الأجهزة الذكية في دبي'
                 : 'Your Premier Technology & Mobile Destination in Dubai'}
             </h2>
 
-            <p className="text-zinc-300 text-base sm:text-lg leading-relaxed font-normal">
+            <p className="text-slate-600 dark:text-zinc-300 text-base sm:text-lg leading-relaxed font-normal">
               {aboutText}
             </p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-              <div className="p-4 rounded-2xl bg-[#242129] border border-white/5 flex items-start gap-3.5">
-                <div className="p-2.5 rounded-xl bg-[#151419] text-[#B7F34B] shrink-0">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/5 flex items-start gap-3.5 shadow-sm dark:shadow-none">
+                <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-[#151419] text-[#922CB5] dark:text-[#B7F34B] shrink-0">
                   <ShieldCheck className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white mb-1">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
                     {language === 'ar' ? 'أجهزة أصلية معتمدة' : '100% Genuine Hardware'}
                   </h4>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-slate-500 dark:text-zinc-400">
                     {language === 'ar'
                       ? 'ضمان كامل على جميع الهواتف الجديدة والمجددة مع فحص شامل'
                       : 'Authentic international & regional specs with multi-point quality inspection.'}
@@ -68,15 +68,15 @@ export const AboutSection: React.FC<AboutSectionProps> = ({ siteContent }) => {
                 </div>
               </div>
 
-              <div className="p-4 rounded-2xl bg-[#242129] border border-white/5 flex items-start gap-3.5">
-                <div className="p-2.5 rounded-xl bg-[#151419] text-[#922CB5] shrink-0">
+              <div className="p-4 rounded-2xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/5 flex items-start gap-3.5 shadow-sm dark:shadow-none">
+                <div className="p-2.5 rounded-xl bg-slate-100 dark:bg-[#151419] text-[#922CB5] shrink-0">
                   <Headphones className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-white mb-1">
+                  <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-1">
                     {language === 'ar' ? 'استشارة فورية عبر واتساب' : 'Direct WhatsApp Consultation'}
                   </h4>
-                  <p className="text-xs text-zinc-400">
+                  <p className="text-xs text-slate-500 dark:text-zinc-400">
                     {language === 'ar'
                       ? 'تواصل مباشر مع المتخصصين للحصول على المواصفات والأسعار التنافسية'
                       : 'Immediate responses, real photos of in-stock devices, and custom orders.'}

@@ -1,0 +1,17 @@
+{
+  "name": "Nasir Mobile Dubai",
+  "short_name": "Nasir Mobile",
+  "description": "Certified premium electronics & smart devices catalogue in Dubai, UAE.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#151419",
+  "theme_color": "#151419",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

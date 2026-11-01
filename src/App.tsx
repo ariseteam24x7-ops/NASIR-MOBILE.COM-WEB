@@ -476,7 +476,7 @@ function StoreApp() {
   });
 
   return (
-    <div className="min-h-screen bg-[#151419] text-white flex flex-col selection:bg-[#922CB5] selection:text-white">
+    <div className="min-h-screen bg-[#F8FAFC] text-slate-900 dark:bg-[#151419] dark:text-white flex flex-col selection:bg-[#922CB5] selection:text-white transition-colors duration-200">
       {/* Scroll-based Reading Progress Bar */}
       <motion.div
         className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#922CB5] via-[#B7F34B] to-[#922CB5] origin-left z-50 pointer-events-none"
@@ -510,7 +510,7 @@ function StoreApp() {
       />
 
       {/* MAIN CATALOGUE SECTION */}
-      <section id="catalogue" className="py-16 bg-[#18161d] border-b border-white/5 scroll-mt-24">
+      <section id="catalogue" className="py-16 bg-[#F1F5F9]/60 dark:bg-[#18161d] border-b border-slate-200 dark:border-white/5 scroll-mt-24 transition-colors duration-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {/* Section Header with In-View Animation */}
           <motion.div
@@ -521,16 +521,16 @@ function StoreApp() {
             className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8"
           >
             <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-3 shadow-sm">
                 <Sparkles className="w-3.5 h-3.5" />
                 <span>{t('catalogue')}</span>
               </div>
-              <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
                 {selectedCategorySlug
                   ? categories.find((c) => c.slug === selectedCategorySlug)?.nameEn || t('all_products')
                   : t('all_products')}
               </h2>
-              <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 mt-1">
                 {language === 'ar'
                   ? 'كتالوج الأجهزة المعتمدة في دبي • يتم تأكيد السعر والتوفر فورياً عبر واتساب'
                   : 'Certified devices available at Nasir Mobile Dubai • Inquire directly on WhatsApp'}
@@ -538,13 +538,13 @@ function StoreApp() {
             </div>
 
             {/* Filter Tabs: All, Featured, New Arrivals */}
-            <div className="flex items-center gap-2 bg-[#242129] p-1.5 rounded-2xl border border-white/5 self-start md:self-auto">
+            <div className="flex items-center gap-2 bg-slate-200/80 dark:bg-[#242129] p-1.5 rounded-2xl border border-slate-300/50 dark:border-white/5 self-start md:self-auto">
               <button
                 onClick={() => setSelectedTab('all')}
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedTab === 'all'
                     ? 'bg-[#922CB5] text-white shadow-md'
-                    : 'text-zinc-400 hover:text-white'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {t('all_products')}
@@ -554,7 +554,7 @@ function StoreApp() {
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedTab === 'featured'
                     ? 'bg-[#922CB5] text-white shadow-md'
-                    : 'text-zinc-400 hover:text-white'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {t('featured_products')}
@@ -564,7 +564,7 @@ function StoreApp() {
                 className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
                   selectedTab === 'new-arrivals'
                     ? 'bg-[#922CB5] text-white shadow-md'
-                    : 'text-zinc-400 hover:text-white'
+                    : 'text-slate-600 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white'
                 }`}
               >
                 {t('new_arrivals')}
@@ -580,34 +580,34 @@ function StoreApp() {
           />
 
           {/* Sub-Filters: Condition, Brand, Sorting */}
-          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-[#242129] border border-white/5 mb-8">
+          <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-2xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/5 shadow-sm dark:shadow-none mb-8">
             <div className="flex flex-wrap items-center gap-3">
               {/* Condition Filter */}
-              <div className="flex items-center gap-1.5 bg-[#151419] px-3 py-1.5 rounded-xl border border-white/5 text-xs">
-                <span className="text-zinc-400 font-semibold">{t('condition_label')}:</span>
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#151419] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/5 text-xs">
+                <span className="text-slate-500 dark:text-zinc-400 font-semibold">{t('condition_label')}:</span>
                 <select
                   value={selectedCondition}
                   onChange={(e) => setSelectedCondition(e.target.value)}
-                  className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
                 >
-                  <option value="all" className="bg-[#151419]">{t('all_conditions')}</option>
-                  <option value="New" className="bg-[#151419]">{t('cond_new')}</option>
-                  <option value="Refurbished" className="bg-[#151419]">{t('cond_refurbished')}</option>
-                  <option value="Used" className="bg-[#151419]">{t('cond_used')}</option>
+                  <option value="all" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('all_conditions')}</option>
+                  <option value="New" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('cond_new')}</option>
+                  <option value="Refurbished" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('cond_refurbished')}</option>
+                  <option value="Used" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('cond_used')}</option>
                 </select>
               </div>
 
               {/* Brand Filter */}
-              <div className="flex items-center gap-1.5 bg-[#151419] px-3 py-1.5 rounded-xl border border-white/5 text-xs">
-                <span className="text-zinc-400 font-semibold">Brand:</span>
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#151419] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/5 text-xs">
+                <span className="text-slate-500 dark:text-zinc-400 font-semibold">Brand:</span>
                 <select
                   value={selectedBrandSlug}
                   onChange={(e) => setSelectedBrandSlug(e.target.value)}
-                  className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
                 >
-                  <option value="" className="bg-[#151419]">{t('all_brands')}</option>
+                  <option value="" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('all_brands')}</option>
                   {brands.map((b) => (
-                    <option key={b.id} value={b.slug} className="bg-[#151419]">
+                    <option key={b.id} value={b.slug} className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">
                       {b.name}
                     </option>
                   ))}
@@ -623,7 +623,7 @@ function StoreApp() {
                     setSelectedCondition('all');
                     setSearchQuery('');
                   }}
-                  className="text-xs font-bold text-amber-400 hover:text-amber-300 underline cursor-pointer"
+                  className="text-xs font-bold text-[#922CB5] dark:text-amber-400 hover:underline cursor-pointer"
                 >
                   {t('clear_filters')}
                 </button>
@@ -632,20 +632,20 @@ function StoreApp() {
 
             {/* Sort & Count */}
             <div className="flex items-center gap-4 text-xs">
-              <span className="text-zinc-400 font-mono">
+              <span className="text-slate-500 dark:text-zinc-400 font-mono">
                 {products.length} {t('products_count')}
               </span>
 
-              <div className="flex items-center gap-1.5 bg-[#151419] px-3 py-1.5 rounded-xl border border-white/5">
-                <span className="text-zinc-400 font-semibold">{t('sort_by')}:</span>
+              <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-[#151419] px-3 py-1.5 rounded-xl border border-slate-200 dark:border-white/5">
+                <span className="text-slate-500 dark:text-zinc-400 font-semibold">{t('sort_by')}:</span>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value as any)}
-                  className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                  className="bg-transparent text-slate-900 dark:text-white font-bold focus:outline-none cursor-pointer"
                 >
-                  <option value="newest" className="bg-[#151419]">{t('sort_newest')}</option>
-                  <option value="name-asc" className="bg-[#151419]">{t('sort_name_asc')}</option>
-                  <option value="name-desc" className="bg-[#151419]">{t('sort_name_desc')}</option>
+                  <option value="newest" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('sort_newest')}</option>
+                  <option value="name-asc" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('sort_name_asc')}</option>
+                  <option value="name-desc" className="bg-white dark:bg-[#151419] text-slate-900 dark:text-white">{t('sort_name_desc')}</option>
                 </select>
               </div>
             </div>
@@ -655,7 +655,7 @@ function StoreApp() {
           {loadingProducts ? (
             <div className="py-24 text-center">
               <div className="w-10 h-10 border-4 border-[#922CB5] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-xs text-zinc-400 uppercase tracking-widest font-bold">
+              <p className="text-xs text-slate-500 dark:text-zinc-400 uppercase tracking-widest font-bold">
                 Loading Nasir Mobile Catalogue...
               </p>
             </div>
@@ -672,14 +672,14 @@ function StoreApp() {
             </div>
           ) : (
             /* Professional Empty State */
-            <div className="py-16 sm:py-24 px-6 text-center max-w-xl mx-auto rounded-3xl bg-[#242129]/60 border border-white/5">
-              <div className="w-16 h-16 rounded-2xl bg-[#151419] border border-white/10 flex items-center justify-center text-[#B7F34B] mx-auto mb-5 shadow-inner">
+            <div className="py-16 sm:py-24 px-6 text-center max-w-xl mx-auto rounded-3xl bg-white dark:bg-[#242129]/60 border border-slate-200 dark:border-white/5 shadow-sm">
+              <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-[#151419] border border-slate-200 dark:border-white/10 flex items-center justify-center text-[#922CB5] dark:text-[#B7F34B] mx-auto mb-5 shadow-inner">
                 <Smartphone className="w-8 h-8" />
               </div>
-              <h3 className="text-xl sm:text-2xl font-black text-white uppercase tracking-tight mb-2">
+              <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-2">
                 {t('no_products_title')}
               </h3>
-              <p className="text-sm text-zinc-300 leading-relaxed mb-8">
+              <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed mb-8">
                 {t('no_products_desc')}
               </p>
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
@@ -700,7 +700,7 @@ function StoreApp() {
                     setSelectedCondition('all');
                     setSearchQuery('');
                   }}
-                  className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-white/5 hover:bg-white/10 text-zinc-300 text-xs font-bold uppercase tracking-wider"
+                  className="w-full sm:w-auto px-6 py-3.5 rounded-full bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 text-xs font-bold uppercase tracking-wider"
                 >
                   {t('clear_filters')}
                 </button>

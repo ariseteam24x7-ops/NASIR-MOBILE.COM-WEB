@@ -66,7 +66,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
   };
 
   return (
-    <section id="categories" className="py-12 bg-[#151419] border-b border-white/5">
+    <section id="categories" className="py-12 bg-white dark:bg-[#151419] border-b border-slate-200 dark:border-white/5 transition-colors duration-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 15 }}
@@ -76,10 +76,10 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
           className="flex flex-col sm:flex-row sm:items-end justify-between mb-8 gap-4"
         >
           <div>
-            <h2 className="text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
               {t('categories')}
             </h2>
-            <p className="text-sm text-zinc-400 mt-1">
+            <p className="text-sm text-slate-600 dark:text-zinc-400 mt-1">
               {language === 'ar'
                 ? 'تصفح أحدث الأجهزة والإلكترونيات حسب الفئة المحددة'
                 : 'Browse cutting-edge electronics and certified devices by category'}
@@ -89,7 +89,7 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
           {selectedCategorySlug && (
             <button
               onClick={() => onSelectCategory('')}
-              className="text-xs font-bold text-[#B7F34B] hover:underline uppercase tracking-wider self-start sm:self-auto cursor-pointer"
+              className="text-xs font-bold text-[#922CB5] dark:text-[#B7F34B] hover:underline uppercase tracking-wider self-start sm:self-auto cursor-pointer"
             >
               {t('clear_filters')}
             </button>
@@ -112,22 +112,22 @@ export const CategoryNav: React.FC<CategoryNavProps> = ({
                 onClick={() => onSelectCategory(isSelected ? '' : cat.slug)}
                 className={`flex flex-col items-center text-center p-3.5 sm:p-4 rounded-2xl border transition-all duration-200 group cursor-pointer ${
                   isSelected
-                    ? 'bg-[#922CB5] border-[#B7F34B] shadow-[0_0_20px_rgba(146,44,181,0.5)] translate-y-[-2px]'
-                    : 'bg-[#242129] border-white/5 hover:border-[#922CB5]/50 hover:bg-[#2d2934]'
+                    ? 'bg-[#922CB5] border-[#B7F34B] text-white shadow-[0_0_20px_rgba(146,44,181,0.4)] translate-y-[-2px]'
+                    : 'bg-slate-50 dark:bg-[#242129] border-slate-200 dark:border-white/5 hover:border-[#922CB5]/50 hover:bg-slate-100 dark:hover:bg-[#2d2934] shadow-sm dark:shadow-none'
                 }`}
               >
                 <div
                   className={`w-11 h-11 rounded-xl flex items-center justify-center mb-2.5 transition-colors ${
                     isSelected
                       ? 'bg-white text-[#922CB5]'
-                      : 'bg-[#151419] text-[#B7F34B] group-hover:text-white group-hover:bg-[#922CB5]'
+                      : 'bg-white dark:bg-[#151419] text-[#922CB5] dark:text-[#B7F34B] shadow-sm dark:shadow-none group-hover:text-white group-hover:bg-[#922CB5]'
                   }`}
                 >
                   {getIcon(cat.icon)}
                 </div>
                 <span
                   className={`text-xs font-bold leading-tight line-clamp-2 ${
-                    isSelected ? 'text-white' : 'text-zinc-200 group-hover:text-white'
+                    isSelected ? 'text-white' : 'text-slate-800 dark:text-zinc-200 group-hover:text-[#922CB5] dark:group-hover:text-white'
                   }`}
                 >
                   {name}

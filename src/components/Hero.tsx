@@ -34,20 +34,20 @@ export const Hero: React.FC<HeroProps> = ({
   });
 
   return (
-    <section className="relative overflow-hidden pt-8 pb-16 lg:pt-16 lg:pb-24 border-b border-white/5 bg-[#151419]">
+    <section className="relative overflow-hidden pt-8 pb-16 lg:pt-16 lg:pb-24 border-b border-slate-200 dark:border-white/5 bg-slate-50 dark:bg-[#151419] transition-colors duration-200">
       {/* Geometric Ambient Gradients with subtle floating motion */}
       <motion.div
-        animate={{ scale: [1, 1.08, 1], opacity: [0.15, 0.22, 0.15] }}
+        animate={{ scale: [1, 1.08, 1], opacity: [0.08, 0.15, 0.08] }}
         transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
         className="absolute top-0 right-1/4 w-96 h-96 bg-[#922CB5] rounded-full blur-3xl pointer-events-none"
       />
       <motion.div
-        animate={{ scale: [1, 1.12, 1], opacity: [0.3, 0.45, 0.3] }}
+        animate={{ scale: [1, 1.12, 1], opacity: [0.12, 0.22, 0.12] }}
         transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
         className="absolute bottom-0 left-10 w-80 h-80 bg-[#391548] rounded-full blur-2xl pointer-events-none"
       />
-      <div className="absolute -top-20 -right-20 w-64 h-64 border-4 border-[#B7F34B]/10 rounded-full pointer-events-none" />
-      <div className="absolute top-1/2 left-4 w-40 h-40 border border-[#922CB5]/20 rotate-45 pointer-events-none" />
+      <div className="absolute -top-20 -right-20 w-64 h-64 border-4 border-[#B7F34B]/20 rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-4 w-40 h-40 border border-[#922CB5]/15 rotate-45 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="max-w-3xl">
@@ -56,7 +56,7 @@ export const Hero: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 15 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, ease: 'easeOut' }}
-            className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#391548]/60 border border-[#922CB5]/40 text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-6 backdrop-blur-md"
+            className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-6 shadow-sm"
           >
             <span className="w-2 h-2 rounded-full bg-[#B7F34B] animate-pulse" />
             <span>{t('brand_tagline')}</span>
@@ -67,7 +67,7 @@ export const Hero: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1, ease: 'easeOut' }}
-            className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1] mb-6"
+            className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] mb-6"
           >
             {title}
           </motion.h1>
@@ -77,7 +77,7 @@ export const Hero: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2, ease: 'easeOut' }}
-            className="text-lg sm:text-xl text-zinc-300 leading-relaxed mb-8 max-w-2xl font-normal"
+            className="text-lg sm:text-xl text-slate-600 dark:text-zinc-300 leading-relaxed mb-8 max-w-2xl font-normal"
           >
             {subtitle}
           </motion.p>
@@ -91,7 +91,7 @@ export const Hero: React.FC<HeroProps> = ({
           >
             <button
               onClick={onExploreClick}
-              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#922CB5] hover:bg-[#8023a0] text-white font-bold text-sm uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(146,44,181,0.4)] hover:shadow-[0_0_35px_rgba(146,44,181,0.6)] cursor-pointer hover:scale-102 active:scale-98"
+              className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#922CB5] hover:bg-[#8023a0] text-white font-bold text-sm uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(146,44,181,0.35)] hover:shadow-[0_0_35px_rgba(146,44,181,0.55)] cursor-pointer hover:scale-102 active:scale-98"
             >
               <span>{t('hero_cta_browse')}</span>
               <ArrowRight className="w-4 h-4" />
@@ -102,7 +102,7 @@ export const Hero: React.FC<HeroProps> = ({
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#242129] hover:bg-[#2d2934] border border-emerald-500/30 text-emerald-400 hover:text-emerald-300 font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:scale-102 active:scale-98"
+                className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-white dark:bg-[#242129] hover:bg-slate-100 dark:hover:bg-[#2d2934] border border-emerald-600/30 dark:border-emerald-500/30 text-emerald-700 dark:text-emerald-400 hover:text-emerald-800 dark:hover:text-emerald-300 font-bold text-sm uppercase tracking-wider transition-all duration-200 hover:scale-102 active:scale-98 shadow-sm"
               >
                 <MessageCircle className="w-5 h-5 fill-current" />
                 <span>{t('hero_cta_whatsapp')}</span>
@@ -115,41 +115,41 @@ export const Hero: React.FC<HeroProps> = ({
             initial={{ opacity: 0, y: 25 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.4, ease: 'easeOut' }}
-            className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-white/10"
+            className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-slate-200 dark:border-white/10"
           >
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#242129] border border-white/10 flex items-center justify-center shrink-0 text-[#B7F34B]">
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 text-[#922CB5] dark:text-[#B7F34B] shadow-sm">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   {t('badge_authenticity')}
                 </h4>
-                <p className="text-[11px] text-zinc-400">100% Genuine Brands</p>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">100% Genuine Brands</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#242129] border border-white/10 flex items-center justify-center shrink-0 text-[#922CB5]">
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 text-[#922CB5] shadow-sm">
                 <Award className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   {t('badge_tested')}
                 </h4>
-                <p className="text-[11px] text-zinc-400">Multi-point Inspection</p>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">Multi-point Inspection</p>
               </div>
             </div>
 
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#242129] border border-white/10 flex items-center justify-center shrink-0 text-[#B7F34B]">
+              <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/10 flex items-center justify-center shrink-0 text-emerald-600 dark:text-[#B7F34B] shadow-sm">
                 <Zap className="w-5 h-5" />
               </div>
               <div>
-                <h4 className="text-xs font-bold text-white uppercase tracking-wider">
+                <h4 className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider">
                   {t('badge_dubai')}
                 </h4>
-                <p className="text-[11px] text-zinc-400">Instant WhatsApp Quotes</p>
+                <p className="text-[11px] text-slate-500 dark:text-zinc-400">Instant WhatsApp Quotes</p>
               </div>
             </div>
           </motion.div>

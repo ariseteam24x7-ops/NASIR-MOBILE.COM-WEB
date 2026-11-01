@@ -59,6 +59,7 @@ import {
 } from 'lucide-react';
 import { ProductMultiImageUploader, ImageAspectRatio, ImageFitMode } from './ProductMultiImageUploader.tsx';
 import { IconImageUploader } from './IconImageUploader.tsx';
+import { processImageTo1080x1080 } from '../lib/image-processing.ts';
 
 interface AdminDashboardProps {
   token: string;
@@ -878,43 +879,41 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Handle Image Upload via Base64 to PostgreSQL
-  const handleImageFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Handle Image Upload via 1080x1080 formatting
+  const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (file.size > 8 * 1024 * 1024) {
-      showNotification('File exceeds 8MB limit. Please choose a smaller image.', true);
+    if (file.size > 20 * 1024 * 1024) {
+      showNotification('File exceeds 20MB limit. Please choose a smaller image.', true);
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = async () => {
-      const base64Data = reader.result as string;
-      try {
-        setLoading(true);
-        const res = await fetch('/api/admin/upload-image', {
-          method: 'POST',
-          headers: authHeaders,
-          body: JSON.stringify({
-            fileName: file.name,
-            mimeType: file.type,
-            data: base64Data,
-          }),
-        });
+    try {
+      setLoading(true);
+      // Auto-format to 1080x1080 HD square
+      const processed = await processImageTo1080x1080(file, formImageFitMode);
 
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        headers: authHeaders,
+        body: JSON.stringify({
+          fileName: processed.fileName,
+          mimeType: processed.mimeType,
+          data: processed.data,
+        }),
+      });
 
-        setFormImages((prev) => [...prev, data.url]);
-        showNotification('Image uploaded and persisted to PostgreSQL!');
-      } catch (err: any) {
-        showNotification(err.message, true);
-      } finally {
-        setLoading(false);
-      }
-    };
-    reader.readAsDataURL(file);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to upload image');
+
+      setFormImages((prev) => [...prev, data.url]);
+      showNotification('Image formatted to 1080 × 1080 and uploaded successfully!');
+    } catch (err: any) {
+      showNotification(err.message, true);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Add Spec Row

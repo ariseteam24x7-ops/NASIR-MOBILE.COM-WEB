@@ -41,7 +41,7 @@ export const FaqSection: React.FC = () => {
   ];
 
   return (
-    <section id="faq" className="py-16 sm:py-24 bg-[#151419] border-b border-white/5">
+    <section id="faq" className="py-16 sm:py-24 bg-white dark:bg-[#151419] border-b border-slate-200 dark:border-white/5 transition-colors duration-200">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -50,14 +50,14 @@ export const FaqSection: React.FC = () => {
           transition={{ duration: 0.5 }}
           className="text-center mb-12"
         >
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-4">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#391548] text-[#B7F34B] text-xs font-bold uppercase tracking-widest mb-4 shadow-sm">
             <HelpCircle className="w-3.5 h-3.5" />
             <span>{t('faq')}</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-black text-white uppercase tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
             {language === 'ar' ? 'الأسئلة الشائعة والاستفسارات' : 'Frequently Asked Questions'}
           </h2>
-          <p className="text-zinc-400 text-sm mt-2">
+          <p className="text-slate-600 dark:text-zinc-400 text-sm mt-2">
             {language === 'ar'
               ? 'كل ما تود معرفته عن أجهزة ناصر موبايل، الشراء، وطرق التواصل'
               : 'Everything you need to know about our devices, pricing policy, and Dubai orders'}
@@ -77,22 +77,22 @@ export const FaqSection: React.FC = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-20px' }}
                 transition={{ duration: 0.4, delay: idx * 0.05 }}
-                className="rounded-2xl bg-[#242129] border border-white/5 overflow-hidden transition-colors"
+                className="rounded-2xl bg-slate-50 dark:bg-[#242129] border border-slate-200 dark:border-white/5 overflow-hidden transition-colors shadow-sm dark:shadow-none"
               >
                 <button
                   onClick={() => setOpenIndex(isOpen ? null : idx)}
-                  className="w-full p-5 text-left flex items-center justify-between gap-4 text-white font-bold text-base hover:text-[#B7F34B] transition-colors cursor-pointer"
+                  className="w-full p-5 text-left flex items-center justify-between gap-4 text-slate-900 dark:text-white font-bold text-base hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors cursor-pointer"
                 >
                   <span className="leading-snug">{question}</span>
                   <ChevronDown
-                    className={`w-5 h-5 text-zinc-400 shrink-0 transition-transform duration-200 ${
-                      isOpen ? 'rotate-180 text-[#B7F34B]' : ''
+                    className={`w-5 h-5 text-slate-400 dark:text-zinc-400 shrink-0 transition-transform duration-200 ${
+                      isOpen ? 'rotate-180 text-[#922CB5] dark:text-[#B7F34B]' : ''
                     }`}
                   />
                 </button>
 
                 {isOpen && (
-                  <div className="px-5 pb-5 text-zinc-300 text-sm leading-relaxed border-t border-white/5 pt-3">
+                  <div className="px-5 pb-5 text-slate-600 dark:text-zinc-300 text-sm leading-relaxed border-t border-slate-200/70 dark:border-white/5 pt-3">
                     {answer}
                   </div>
                 )}

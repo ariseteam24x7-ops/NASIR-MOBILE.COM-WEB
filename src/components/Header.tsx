@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Logo } from './Logo.tsx';
+import { ThemeToggle } from './ThemeToggle.tsx';
 import { useLanguage } from '../context/LanguageContext.tsx';
 import { WhatsAppSettings, SiteContent } from '../types/index.ts';
 import { buildWhatsAppUrl, formatDisplayNumber } from '../lib/whatsapp.ts';
@@ -62,10 +63,10 @@ export const Header: React.FC<HeaderProps> = ({
   const showAnnouncement = siteContent?.announcementActive !== false;
 
   return (
-    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-[#151419]/90 border-b border-white/5 transition-all">
+    <header className="sticky top-0 z-40 w-full backdrop-blur-xl bg-white/90 dark:bg-[#151419]/90 border-b border-slate-200 dark:border-white/5 transition-colors duration-200">
       {/* Announcement Top Bar */}
       {showAnnouncement && (
-        <div className="bg-gradient-to-r from-[#391548] via-[#922CB5]/40 to-[#151419] border-b border-[#922CB5]/30 text-xs py-1.5 px-4 text-center text-zinc-200">
+        <div className="bg-gradient-to-r from-[#391548] via-[#5B1675] to-[#151419] border-b border-[#922CB5]/30 text-xs py-1.5 px-4 text-center text-white">
           <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 font-medium">
             <span className="w-2 h-2 rounded-full bg-[#B7F34B] animate-ping" />
             <span>{announcement}</span>
@@ -89,13 +90,13 @@ export const Header: React.FC<HeaderProps> = ({
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('search_placeholder')}
-                className="w-full bg-[#242129]/80 border border-white/10 rounded-full py-2.5 px-10 text-sm text-white placeholder-zinc-400 focus:outline-none focus:border-[#922CB5] focus:ring-1 focus:ring-[#922CB5] transition-all"
+                className="w-full bg-slate-100 dark:bg-[#242129]/80 border border-slate-200 dark:border-white/10 rounded-full py-2.5 px-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-400 focus:outline-none focus:border-[#922CB5] focus:ring-1 focus:ring-[#922CB5] transition-all"
               />
-              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white text-xs bg-white/10 rounded-full w-4 h-4 flex items-center justify-center"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-white text-xs bg-slate-200 dark:bg-white/10 rounded-full w-4 h-4 flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -104,49 +105,55 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-zinc-300">
-            <a href="#catalogue" className="hover:text-[#B7F34B] transition-colors">
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-600 dark:text-zinc-300">
+            <a href="#catalogue" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('catalogue')}
             </a>
-            <a href="#categories" className="hover:text-[#B7F34B] transition-colors">
+            <a href="#categories" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('categories')}
             </a>
-            <a href="#services" className="hover:text-[#B7F34B] transition-colors">
+            <a href="#services" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('services')}
             </a>
-            <a href="#about" className="hover:text-[#B7F34B] transition-colors">
+            <a href="#about" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('about_us')}
             </a>
-            <a href="#faq" className="hover:text-[#B7F34B] transition-colors">
+            <a href="#faq" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('faq')}
             </a>
-            <a href="#contact" className="hover:text-[#B7F34B] transition-colors">
+            <a href="#contact" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('contact')}
             </a>
-            <a href="#visitor-counter" className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#242129] border border-white/10 hover:border-[#B7F34B]/50 hover:text-[#B7F34B] transition-colors text-xs font-semibold text-zinc-300">
-              <span className="w-1.5 h-1.5 rounded-full bg-[#B7F34B] animate-ping" />
+            <a
+              href="#visitor-counter"
+              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 hover:border-[#922CB5]/50 dark:hover:border-[#B7F34B]/50 hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors text-xs font-semibold text-slate-700 dark:text-zinc-300"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-[#922CB5] dark:bg-[#B7F34B] animate-ping" />
               <span>{language === 'ar' ? 'الزوار' : 'Live Traffic'}</span>
             </a>
           </nav>
 
-          {/* Actions: WhatsApp CTA + Language Toggle + Admin Link */}
-          <div className="flex items-center gap-2.5 sm:gap-3">
+          {/* Actions: Theme Toggle + Language Switcher + WhatsApp CTA */}
+          <div className="flex items-center gap-2 sm:gap-2.5">
             {/* Mobile Search Button */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="md:hidden p-2 text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg"
+              className="md:hidden p-2 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg"
               title="Search"
             >
               <Search className="w-5 h-5" />
             </button>
 
+            {/* Light / Dark Mode Toggle Button */}
+            <ThemeToggle />
+
             {/* Language Switcher */}
             <button
               onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-[#242129] border border-white/10 text-zinc-200 hover:text-white hover:border-[#922CB5] transition-all cursor-pointer"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:border-[#922CB5] transition-all cursor-pointer"
               title="Switch Language"
             >
-              <Globe className="w-3.5 h-3.5 text-[#B7F34B]" />
+              <Globe className="w-3.5 h-3.5 text-[#922CB5] dark:text-[#B7F34B]" />
               <span>{language === 'en' ? 'عربي' : 'EN'}</span>
             </button>
 
@@ -166,7 +173,7 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-zinc-300 hover:text-white hover:bg-white/5 rounded-lg"
+              className="lg:hidden p-2 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
@@ -175,20 +182,20 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* Mobile Search Input Drawer */}
         {searchOpen && (
-          <div className="md:hidden py-3 border-t border-white/10">
+          <div className="md:hidden py-3 border-t border-slate-200 dark:border-white/10">
             <div className="relative w-full">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder={t('search_placeholder')}
-                className="w-full bg-[#242129] border border-white/10 rounded-full py-2 px-10 text-sm text-white placeholder-zinc-400 focus:outline-none focus:border-[#922CB5]"
+                className="w-full bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 rounded-full py-2 px-10 text-sm text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-400 focus:outline-none focus:border-[#922CB5]"
               />
-              <Search className="w-4 h-4 text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+              <Search className="w-4 h-4 text-slate-400 dark:text-zinc-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-zinc-400 text-xs bg-white/10 rounded-full w-4 h-4 flex items-center justify-center"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 dark:text-zinc-400 text-xs bg-slate-200 dark:bg-white/10 rounded-full w-4 h-4 flex items-center justify-center"
                 >
                   ✕
                 </button>
@@ -200,61 +207,68 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
-        <div className="lg:hidden border-t border-white/10 bg-[#151419] px-4 pt-3 pb-6 space-y-3">
-          <nav className="flex flex-col space-y-2 text-base font-medium text-zinc-300">
+        <div className="lg:hidden border-t border-slate-200 dark:border-white/10 bg-white dark:bg-[#151419] px-4 pt-3 pb-6 space-y-3 shadow-xl">
+          <nav className="flex flex-col space-y-1 text-base font-medium text-slate-700 dark:text-zinc-300">
             <a
               href="#catalogue"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('catalogue')}
             </a>
             <a
               href="#categories"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('categories')}
             </a>
             <a
               href="#services"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('services')}
             </a>
             <a
               href="#about"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('about_us')}
             </a>
             <a
               href="#faq"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('faq')}
             </a>
             <a
               href="#contact"
               onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-white/5 hover:text-[#B7F34B]"
+              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('contact')}
             </a>
             <a
               href="#visitor-counter"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/5 text-[#B7F34B]"
+              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-[#922CB5] dark:text-[#B7F34B]"
             >
-              <span className="w-2 h-2 rounded-full bg-[#B7F34B] animate-ping" />
+              <span className="w-2 h-2 rounded-full bg-[#922CB5] dark:bg-[#B7F34B] animate-ping" />
               <span>{language === 'ar' ? 'إحصائيات زوار المتجر المباشرة' : 'Live Store Visitor Stats'}</span>
             </a>
           </nav>
 
-          <div className="pt-3 border-t border-white/10 flex flex-col gap-2.5">
+          <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex flex-col gap-2.5">
+            <div className="flex items-center justify-between px-2 py-1">
+              <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
+                {language === 'ar' ? 'مظهر الموقع' : 'Appearance'}
+              </span>
+              <ThemeToggle showLabel />
+            </div>
+
             <a
               href={whatsappUrl}
               target="_blank"

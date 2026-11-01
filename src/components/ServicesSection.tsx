@@ -79,7 +79,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
   }
 
   return (
-    <section id="services" className="py-20 sm:py-28 bg-[#151419] border-b border-white/5 relative overflow-hidden">
+    <section id="services" className="py-20 sm:py-28 bg-white dark:bg-[#151419] border-b border-slate-200 dark:border-white/5 relative overflow-hidden transition-colors duration-200">
       {/* Background glow accents */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-[#922CB5]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-10 right-10 w-72 h-72 bg-[#B7F34B]/5 rounded-full blur-3xl pointer-events-none" />
@@ -91,7 +91,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#391548] border border-[#922CB5]/30 text-[#B7F34B] text-xs font-bold uppercase tracking-widest"
+            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#391548] border border-[#922CB5]/30 text-[#B7F34B] text-xs font-bold uppercase tracking-widest shadow-sm"
           >
             <Sparkles className="w-3.5 h-3.5" />
             <span>{language === 'ar' ? 'خدمات ناصر موبايل المعتمدة' : 'Official Dubai Boutique Services'}</span>
@@ -102,15 +102,15 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-4xl lg:text-5xl font-black text-white uppercase tracking-tight"
+            className="text-3xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white uppercase tracking-tight"
           >
             {language === 'ar' ? (
               <>
-                خدمات تقنية <span className="text-[#B7F34B]">فورية واحترافية</span>
+                خدمات تقنية <span className="text-[#922CB5] dark:text-[#B7F34B]">فورية واحترافية</span>
               </>
             ) : (
               <>
-                Premier Mobile & <span className="text-[#B7F34B]">Tech Services</span>
+                Premier Mobile & <span className="text-[#922CB5] dark:text-[#B7F34B]">Tech Services</span>
               </>
             )}
           </motion.h2>
@@ -120,7 +120,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.2 }}
-            className="text-zinc-400 text-sm sm:text-base leading-relaxed"
+            className="text-slate-600 dark:text-zinc-400 text-sm sm:text-base leading-relaxed"
           >
             {language === 'ar'
               ? 'صيانة سريعة بنفس اليوم، تقييم فوري واستبدال للأجهزة، نقل بيانات شامل، وتوريد مؤسسي لقطاع الأعمال في دبي.'
@@ -145,18 +145,18 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.08 }}
-                className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-[#1e1c24] border border-white/5 hover:border-[#922CB5]/50 transition-all duration-300 hover:shadow-[0_10px_30px_rgba(146,44,181,0.15)] hover:-translate-y-1"
+                className="group relative flex flex-col justify-between p-6 sm:p-7 rounded-3xl bg-slate-50 dark:bg-[#1e1c24] border border-slate-200 dark:border-white/5 hover:border-[#922CB5]/50 transition-all duration-300 hover:shadow-[0_10px_30px_rgba(146,44,181,0.12)] hover:-translate-y-1 shadow-sm dark:shadow-none"
               >
                 {/* Top Row: Icon + Turnaround Tag */}
                 <div className="space-y-5">
                   <div className="flex items-center justify-between gap-3">
-                    <div className="w-13 h-13 rounded-2xl bg-[#151419] border border-white/10 flex items-center justify-center p-3 group-hover:scale-105 group-hover:border-[#B7F34B]/40 transition-all shadow-inner">
+                    <div className="w-13 h-13 rounded-2xl bg-white dark:bg-[#151419] border border-slate-200 dark:border-white/10 flex items-center justify-center p-3 group-hover:scale-105 group-hover:border-[#922CB5]/40 dark:group-hover:border-[#B7F34B]/40 transition-all shadow-sm">
                       {getServiceIcon(service.icon)}
                     </div>
 
                     {turnaround && (
-                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-zinc-300 text-[11px] font-bold">
-                        <Clock className="w-3 h-3 text-[#B7F34B]" />
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-white dark:bg-white/5 border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-300 text-[11px] font-bold shadow-sm dark:shadow-none">
+                        <Clock className="w-3 h-3 text-[#922CB5] dark:text-[#B7F34B]" />
                         <span>{turnaround}</span>
                       </div>
                     )}
@@ -165,26 +165,26 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
                   {/* Title & Badge */}
                   <div>
                     {badge && (
-                      <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#B7F34B] bg-[#391548]/70 px-2.5 py-0.5 rounded-md mb-2">
+                      <span className="inline-block text-[10px] font-black uppercase tracking-wider text-[#922CB5] dark:text-[#B7F34B] bg-purple-100 dark:bg-[#391548]/70 px-2.5 py-0.5 rounded-md mb-2">
                         {badge}
                       </span>
                     )}
-                    <h3 className="text-lg font-black text-white group-hover:text-[#B7F34B] transition-colors leading-snug">
+                    <h3 className="text-lg font-black text-slate-900 dark:text-white group-hover:text-[#922CB5] dark:group-hover:text-[#B7F34B] transition-colors leading-snug">
                       {title}
                     </h3>
                   </div>
 
                   {/* Description */}
-                  <p className="text-xs sm:text-sm text-zinc-400 leading-relaxed font-normal">
+                  <p className="text-xs sm:text-sm text-slate-600 dark:text-zinc-400 leading-relaxed font-normal">
                     {desc}
                   </p>
 
                   {/* Feature Highlights */}
                   {Array.isArray(features) && features.length > 0 && (
-                    <ul className="space-y-2 pt-2 border-t border-white/5">
+                    <ul className="space-y-2 pt-2 border-t border-slate-200 dark:border-white/5">
                       {features.map((feat, i) => (
-                        <li key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-[#B7F34B] shrink-0 mt-0.5" />
+                        <li key={i} className="flex items-start gap-2 text-xs text-slate-700 dark:text-zinc-300">
+                          <CheckCircle2 className="w-3.5 h-3.5 text-[#922CB5] dark:text-[#B7F34B] shrink-0 mt-0.5" />
                           <span>{feat}</span>
                         </li>
                       ))}
@@ -193,14 +193,14 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
                 </div>
 
                 {/* Bottom CTA Button */}
-                <div className="pt-6 mt-6 border-t border-white/5">
+                <div className="pt-6 mt-6 border-t border-slate-200 dark:border-white/5">
                   <a
                     href={getWhatsAppServiceUrl(service)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-[#242129] hover:bg-[#25D366] text-white hover:text-[#151419] font-bold text-xs uppercase tracking-wider transition-all duration-200 group/btn shadow-md hover:shadow-[0_0_20px_rgba(37,211,102,0.35)]"
+                    className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-transparent hover:bg-emerald-600 text-slate-800 dark:text-white hover:text-white font-bold text-xs uppercase tracking-wider transition-all duration-200 group/btn shadow-sm hover:shadow-md"
                   >
-                    <MessageCircle className="w-4 h-4 fill-current text-[#25D366] group-hover/btn:text-[#151419] transition-colors" />
+                    <MessageCircle className="w-4 h-4 fill-current text-emerald-600 group-hover/btn:text-white transition-colors" />
                     <span>{language === 'ar' ? 'استفسر واحجز عبر واتساب' : 'Book on WhatsApp'}</span>
                     <ArrowRight className={`w-3.5 h-3.5 transition-transform group-hover/btn:translate-x-1 ${language === 'ar' ? 'rotate-180 group-hover/btn:-translate-x-1' : ''}`} />
                   </a>
@@ -211,7 +211,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
         </div>
 
         {/* Bottom Banner */}
-        <div className="mt-16 p-8 rounded-3xl bg-gradient-to-r from-[#391548] via-[#242129] to-[#151419] border border-[#922CB5]/30 flex flex-col md:flex-row items-center justify-between gap-6">
+        <div className="mt-16 p-8 rounded-3xl bg-gradient-to-r from-[#391548] via-[#242129] to-[#151419] border border-[#922CB5]/30 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl text-white">
           <div className="space-y-2 text-center md:text-left rtl:md:text-right">
             <h4 className="text-xl font-black text-white uppercase tracking-tight">
               {language === 'ar' ? 'هل تبحث عن خدمة مخصصة لجهازك؟' : 'Need a Custom Device Request or Quotation?'}
@@ -227,7 +227,7 @@ export const ServicesSection: React.FC<ServicesSectionProps> = ({ whatsAppSettin
             href={buildWhatsAppUrl({ settings: whatsAppSettings, lang: language })}
             target="_blank"
             rel="noopener noreferrer"
-            className="shrink-0 flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-[#25D366] hover:bg-[#20ba59] text-[#151419] font-black text-xs uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(37,211,102,0.4)] hover:scale-102 active:scale-98"
+            className="shrink-0 flex items-center gap-2.5 px-6 py-3.5 rounded-full bg-emerald-500 hover:bg-emerald-400 text-[#151419] font-black text-xs uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(16,185,129,0.4)] hover:scale-102 active:scale-98"
           >
             <Headphones className="w-4 h-4" />
             <span>{language === 'ar' ? 'تحدث مع أخصائي الخدمة' : 'Talk with Service Specialist'}</span>

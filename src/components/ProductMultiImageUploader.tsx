@@ -15,6 +15,7 @@ import {
   Eye,
   X,
 } from 'lucide-react';
+import { processImageTo1080x1080 } from '../lib/image-processing.ts';
 
 export type ImageAspectRatio = '1:1' | '4:3' | '16:9' | '3:4' | 'auto';
 export type ImageFitMode = 'contain' | 'cover';
@@ -46,19 +47,19 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
   const [previewZoomUrl, setPreviewZoomUrl] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
+ 
   const authHeaders = {
     'Content-Type': 'application/json',
     Authorization: `Bearer ${token}`,
   };
 
-  // Convert files to base64 and batch upload
+  // Convert files to 1080x1080 base64 and batch upload
   const handleFiles = async (fileList: FileList | File[]) => {
     const validFiles: File[] = [];
     for (let i = 0; i < fileList.length; i++) {
       const file = fileList[i];
-      if (file.size > 15 * 1024 * 1024) {
-        setUploadError(`File "${file.name}" exceeds 15MB limit.`);
+      if (file.size > 20 * 1024 * 1024) {
+        setUploadError(`File "${file.name}" exceeds 20MB limit.`);
         setTimeout(() => setUploadError(null), 4000);
         continue;
       }
@@ -72,26 +73,12 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
     setUploadProgress({ total: validFiles.length, done: 0 });
 
     try {
-      // Read all files as base64
+      // 1. Process and format all images to exact 1080 x 1080 square canvas
       const filePayloads = await Promise.all(
-        validFiles.map(
-          (file) =>
-            new Promise<{ fileName: string; mimeType: string; data: string }>((resolve, reject) => {
-              const reader = new FileReader();
-              reader.onload = () => {
-                resolve({
-                  fileName: file.name,
-                  mimeType: file.type || 'image/jpeg',
-                  data: reader.result as string,
-                });
-              };
-              reader.onerror = () => reject(new Error(`Failed to read file ${file.name}`));
-              reader.readAsDataURL(file);
-            })
-        )
+        validFiles.map((file) => processImageTo1080x1080(file, fitMode))
       );
 
-      // Attempt fast batch upload
+      // 2. Attempt fast batch upload
       const res = await fetch('/api/admin/upload-images', {
         method: 'POST',
         headers: authHeaders,
@@ -103,7 +90,7 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
         const newUrls = (data.images || []).map((img: any) => img.url);
         onChange([...images, ...newUrls]);
         setUploadProgress(null);
-        setUploadSuccess(`Successfully uploaded ${newUrls.length} images!`);
+        setUploadSuccess(`Successfully uploaded ${newUrls.length} images formatted to 1080 × 1080!`);
         setTimeout(() => setUploadSuccess(null), 4000);
         return;
       }
@@ -126,11 +113,11 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
 
       onChange([...images, ...uploadedUrls]);
       setUploadProgress(null);
-      setUploadSuccess(`Uploaded ${uploadedUrls.length} images successfully!`);
+      setUploadSuccess(`Uploaded ${uploadedUrls.length} images formatted to 1080 × 1080!`);
       setTimeout(() => setUploadSuccess(null), 4000);
     } catch (err: any) {
       setUploadProgress(null);
-      setUploadError(err.message || 'Error occurred while uploading images.');
+      setUploadError(err.message || 'Error occurred while processing or uploading images.');
       setTimeout(() => setUploadError(null), 5000);
     }
   };
@@ -340,12 +327,18 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
         <div>
           <span className="text-xs font-bold text-white block group-hover:text-[#B7F34B] transition-colors">
             {uploadProgress
-              ? `Uploading batch: ${uploadProgress.done} of ${uploadProgress.total} images...`
+              ? `Formatting & uploading batch: ${uploadProgress.done} of ${uploadProgress.total} images...`
               : 'Click to select multiple photos or drag & drop files here'}
           </span>
-          <span className="text-[10px] text-zinc-400 mt-0.5 block">
-            Select 1 to 20 images at once • PNG, JPG, WebP, or SVG • Stored in PostgreSQL
-          </span>
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-1.5">
+            <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#B7F34B]/15 text-[#B7F34B] border border-[#B7F34B]/30 text-[10px] font-black uppercase tracking-wider">
+              <Sparkles className="w-3 h-3" />
+              Auto-Framed to 1080 × 1080 HD
+            </span>
+            <span className="text-[10px] text-zinc-400">
+              Any photo dimension automatically centered & resized to 1080x1080 square
+            </span>
+          </div>
         </div>
 
         {/* Upload Progress Bar */}

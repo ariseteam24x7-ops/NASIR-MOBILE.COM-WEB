@@ -2387,6 +2387,319 @@ var FALLBACK_PRODUCTS = [
     ],
     images: [],
     createdAt: "2026-10-31T09:21:00.000Z"
+  },
+  {
+    id: 58,
+    slug: "anker-prime-26000mah-300w-powerbank",
+    sku: "A110AH11",
+    nameEn: "Anker Prime 26,000mAh Power Bank (300W)",
+    nameAr: "\u0634\u0627\u062D\u0646 \u0645\u062A\u0646\u0642\u0644 \u0623\u0646\u0643\u0631 \u0628\u0631\u0627\u064A\u0645 26000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u0628\u0642\u0648\u0629 300 \u0648\u0627\u0637 \u0645\u0639 \u0634\u0627\u0634\u0629 \u0630\u0643\u064A\u0629",
+    descriptionEn: 'Ultra-high capacity 26,000mAh power bank delivering up to 300W total output with smart digital display. Capable of charging a MacBook Pro 16" to 50% in just 28 minutes while fast-charging two additional devices simultaneously.',
+    descriptionAr: "\u0628\u0627\u0648\u0631 \u0628\u0646\u0643 \u0639\u0645\u0644\u0627\u0642 \u0628\u0633\u0639\u0629 26,000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u0628\u0642\u0648\u0629 \u0625\u062C\u0645\u0627\u0644\u064A\u0629 300 \u0648\u0627\u0637 \u0645\u0639 \u0634\u0627\u0634\u0629 \u0631\u0642\u0645\u064A\u0629 \u0630\u0643\u064A\u0629 \u0644\u0639\u0631\u0636 \u0627\u0644\u0637\u0627\u0642\u0629 \u0648\u0627\u0644\u0648\u0642\u062A \u0627\u0644\u0645\u062A\u0628\u0642\u064A\u060C \u064A\u0634\u062D\u0646 \u0623\u062C\u0647\u0632\u0629 \u0645\u0627\u0643 \u0628\u0648\u0643 \u0628\u0631\u0648 \u0648\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0628\u0623\u0642\u0635\u0649 \u0633\u0631\u0639\u0629.",
+    condition: "New",
+    categoryId: 8,
+    brandId: 7,
+    categoryNameEn: "Other Electronics",
+    categoryNameAr: "\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0623\u062E\u0631\u0649",
+    categorySlug: "other-electronics",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 15,
+    specifications: [
+      { keyEn: "Capacity", keyAr: "\u0627\u0644\u0633\u0639\u0629", valueEn: "26,000mAh Multi-Day Backup", valueAr: "26,000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631" },
+      { keyEn: "Max Output", keyAr: "\u0623\u0642\u0635\u0649 \u0637\u0627\u0642\u0629", valueEn: "300W Combined Max (140W Single Port PD 3.1)", valueAr: "300 \u0648\u0627\u0637 \u0625\u062C\u0645\u0627\u0644\u064A (140 \u0648\u0627\u0637 \u0644\u0644\u0645\u0646\u0641\u0630 \u0627\u0644\u0648\u0627\u062D\u062F)" },
+      { keyEn: "Smart Screen", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629 \u0627\u0644\u0630\u0643\u064A\u0629", valueEn: "Real-time wattage, battery percentage, & health", valueAr: "\u0634\u0627\u0634\u0629 \u0631\u0642\u0645\u064A\u0629 \u0644\u0642\u0631\u0627\u0621\u0629 \u0627\u0644\u0648\u0627\u0637 \u0648\u0627\u0644\u0646\u0633\u0628\u0629 \u0648\u0635\u062D\u0629 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629" }
+    ],
+    variants: [
+      { name: "Prime Black (300W)", price: 445, originalPrice: 520, isDefault: true, stockQuantity: 15 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:25:00.000Z"
+  },
+  {
+    id: 59,
+    slug: "anker-maggo-10000mah-qi2-powerbank",
+    sku: "A1664H11",
+    nameEn: "Anker 15W 10,000mAh MagGo Ultra-Slim Qi2 Power Bank",
+    nameAr: "\u0628\u0637\u0627\u0631\u064A\u0629 \u0623\u0646\u0643\u0631 \u0645\u0627\u062C \u062C\u0648 \u0627\u0644\u0646\u062D\u064A\u0641\u0629 10000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u0628\u0642\u0648\u0629 15 \u0648\u0627\u0637 \u0645\u0639\u062A\u0645\u062F\u0629 Qi2",
+    descriptionEn: "Certified Qi2 15W ultra-fast wireless charging for iPhone 16 / 15 series. Sleek, pocket-friendly ultra-slim form factor with strong magnetic snap, smart temperature control, and a 10,000mAh battery for all-day mobile power.",
+    descriptionAr: "\u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0645\u063A\u0646\u0627\u0637\u064A\u0633\u064A \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629 15 \u0648\u0627\u0637 \u0645\u0639\u062A\u0645\u062F \u0628\u062A\u0642\u0646\u064A\u0629 Qi2 \u0644\u0623\u062C\u0647\u0632\u0629 \u0622\u064A\u0641\u0648\u0646 16 \u0648 15\u060C \u0628\u062A\u0635\u0645\u064A\u0645 \u0641\u0627\u0626\u0642 \u0627\u0644\u0646\u062D\u0627\u0641\u0629 \u0648\u0628\u0637\u0627\u0631\u064A\u0629 10,000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631 \u062A\u0643\u0641\u064A \u0637\u0648\u0627\u0644 \u0627\u0644\u064A\u0648\u0645.",
+    condition: "New",
+    categoryId: 8,
+    brandId: 7,
+    categoryNameEn: "Other Electronics",
+    categoryNameAr: "\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0623\u062E\u0631\u0649",
+    categorySlug: "other-electronics",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 25,
+    specifications: [
+      { keyEn: "Wireless Speed", keyAr: "\u0633\u0631\u0639\u0629 \u0627\u0644\u0634\u062D\u0646 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A", valueEn: "15W Qi2 Certified Ultra-Fast Magnetic Snap", valueAr: "15 \u0648\u0627\u0637 \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0645\u063A\u0646\u0627\u0637\u064A\u0633\u064A \u0633\u0631\u064A\u0639" },
+      { keyEn: "Capacity", keyAr: "\u0633\u0639\u0629 \u0627\u0644\u0628\u0637\u0627\u0631\u064A\u0629", valueEn: "10,000mAh High-Density Cell", valueAr: "10,000 \u0645\u0644\u0644\u064A \u0623\u0645\u0628\u064A\u0631" },
+      { keyEn: "Compatibility", keyAr: "\u0627\u0644\u062A\u0648\u0627\u0641\u0642", valueEn: "iPhone 16 / 15 / 14 / 13 / 12 & Qi2 Devices", valueAr: "\u0633\u0644\u0633\u0644\u0629 \u0622\u064A\u0641\u0648\u0646 16 \u0648 15 \u0648 14 \u0648 13 \u0648\u0623\u062C\u0647\u0632\u0629 Qi2" }
+    ],
+    variants: [
+      { name: "Midnight Black", price: 155, originalPrice: 195, isDefault: true, stockQuantity: 15 },
+      { name: "Glacier White", price: 155, originalPrice: 195, isDefault: false, stockQuantity: 10 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:26:00.000Z"
+  },
+  {
+    id: 60,
+    slug: "anker-533-nano-powerbank-30w",
+    sku: "A1259H11",
+    nameEn: "Anker 533 Nano Power Bank 30W with Built-in USB-C Cable",
+    nameAr: "\u0628\u0627\u0648\u0631 \u0628\u0646\u0643 \u0623\u0646\u0643\u0631 533 \u0646\u0627\u0646\u0648 \u0628\u0642\u0648\u0629 30 \u0648\u0627\u0637 \u0645\u0639 \u0643\u0627\u0628\u0644 \u062A\u0627\u064A\u0628 \u0633\u064A \u0645\u062F\u0645\u062C",
+    descriptionEn: "Compact 30W two-way fast charging power bank with an integrated durable USB-C cable that doubles as a comfortable carrying strap. Smart digital display shows exact remaining battery percentage.",
+    descriptionAr: "\u0628\u0627\u0648\u0631 \u0628\u0646\u0643 \u0623\u0646\u0643\u0631 \u0646\u0627\u0646\u0648 \u0627\u0644\u0630\u0643\u064A \u0628\u0642\u0648\u0629 30 \u0648\u0627\u0637 \u0644\u0634\u062D\u0646 \u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0628\u0633\u0631\u0639\u0629 \u0641\u0627\u0626\u0642\u0629\u060C \u0645\u0632\u0648\u062F \u0628\u0643\u0627\u0628\u0644 \u062A\u0627\u064A\u0628 \u0633\u064A \u0645\u062F\u0645\u062C \u0639\u0627\u0644\u064A \u0627\u0644\u0645\u062A\u0627\u0646\u0629 \u0648\u0634\u0627\u0634\u0629 \u0631\u0642\u0645\u064A\u0629 \u062F\u0642\u064A\u0642\u0629.",
+    condition: "New",
+    categoryId: 8,
+    brandId: 7,
+    categoryNameEn: "Other Electronics",
+    categoryNameAr: "\u0625\u0644\u0643\u062A\u0631\u0648\u0646\u064A\u0627\u062A \u0623\u062E\u0631\u0649",
+    categorySlug: "other-electronics",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 30,
+    specifications: [
+      { keyEn: "Output", keyAr: "\u0642\u0648\u0629 \u0627\u0644\u0634\u062D\u0646", valueEn: "30W Max PD Fast Charge (charges iPhone to 50% in 25 mins)", valueAr: "30 \u0648\u0627\u0637 PD \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 (50% \u062E\u0644\u0627\u0644 25 \u062F\u0642\u064A\u0642\u0629)" },
+      { keyEn: "Cable", keyAr: "\u0627\u0644\u0643\u0627\u0628\u0644", valueEn: "Integrated 2-in-1 USB-C Cable & Carrying Loop", valueAr: "\u0643\u0627\u0628\u0644 \u062A\u0627\u064A\u0628 \u0633\u064A \u0645\u062F\u0645\u062C \u0648\u062D\u0628\u0644 \u062D\u0645\u0644 \u0645\u062A\u064A\u0646" },
+      { keyEn: "Display", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629", valueEn: "Smart Digital Percentage Display", valueAr: "\u0634\u0627\u0634\u0629 \u0631\u0642\u0645\u064A\u0629 \u0644\u0644\u0646\u0633\u0628\u0629 \u0627\u0644\u0645\u0626\u0648\u064A\u0629" }
+    ],
+    variants: [
+      { name: "Phantom Black", price: 98, originalPrice: 130, isDefault: true, stockQuantity: 15 },
+      { name: "Ice Blue", price: 95, originalPrice: 125, isDefault: false, stockQuantity: 15 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:27:00.000Z"
+  },
+  {
+    id: 61,
+    slug: "anker-prime-160w-gan-charging-station",
+    sku: "A83B62A1",
+    nameEn: "Anker Prime 160W GaN Charging Docking Station",
+    nameAr: "\u0645\u062D\u0637\u0629 \u0634\u062D\u0646 \u0623\u0646\u0643\u0631 \u0628\u0631\u0627\u064A\u0645 \u0628\u0642\u0648\u0629 160 \u0648\u0627\u0637 \u0628\u062A\u0642\u0646\u064A\u0629 \u062C\u0627\u0646 \u0641\u0627\u0626\u0642\u0629 \u0627\u0644\u0633\u0631\u0639\u0629",
+    descriptionEn: "High-power 160W multi-device desktop docking station. Powered by Anker GaNPrime technology, intelligently allocating power between multiple laptops, tablets, and phones simultaneously with ActiveShield 2.0 safety.",
+    descriptionAr: "\u0645\u062D\u0637\u0629 \u0634\u062D\u0646 \u0645\u0643\u062A\u0628\u064A\u0629 \u0630\u0643\u064A\u0629 \u0628\u0642\u0648\u0629 160 \u0648\u0627\u0637 \u0628\u062A\u0642\u0646\u064A\u0629 GaNPrime \u0627\u0644\u0645\u062A\u0642\u062F\u0645\u0629 \u0644\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0637\u0627\u0642\u0629 \u0628\u0630\u0643\u0627\u0621 \u0628\u064A\u0646 \u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0643\u0645\u0628\u064A\u0648\u062A\u0631 \u0627\u0644\u0645\u062D\u0645\u0648\u0644\u0629 \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0630\u0643\u064A\u0629 \u0645\u0639 \u0646\u0638\u0627\u0645 \u062D\u0645\u0627\u064A\u0629 ActiveShield 2.0.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 12,
+    specifications: [
+      { keyEn: "Total Power", keyAr: "\u0627\u0644\u0642\u0648\u0629 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A\u0629", valueEn: "160W GaN High-Efficiency Output", valueAr: "160 \u0648\u0627\u0637 \u0628\u062A\u0642\u0646\u064A\u0629 \u062C\u0627\u0646" },
+      { keyEn: "Ports", keyAr: "\u0627\u0644\u0645\u0646\u0627\u0641\u0630", valueEn: "Multi USB-C & USB-A Fast Ports", valueAr: "\u0645\u0646\u0627\u0641\u0630 \u0645\u062A\u0639\u062F\u062F\u0629 \u062A\u0627\u064A\u0628 \u0633\u064A \u0648\u064A\u0648 \u0625\u0633 \u0628\u064A" },
+      { keyEn: "Cooling", keyAr: "\u0646\u0638\u0627\u0645 \u0627\u0644\u0623\u0645\u0627\u0646", valueEn: "ActiveShield 2.0 Dynamic Temperature Monitoring", valueAr: "\u0645\u0631\u0627\u0642\u0628\u0629 \u0645\u0633\u062A\u0645\u0631\u0629 \u0644\u062D\u0631\u0627\u0631\u0629 \u0627\u0644\u0634\u0627\u062D\u0646" }
+    ],
+    variants: [
+      { name: "Prime Black Dock", price: 445, originalPrice: 530, isDefault: true, stockQuantity: 12 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:28:00.000Z"
+  },
+  {
+    id: 62,
+    slug: "anker-ganprime-desktop-station-250w",
+    sku: "A2345241",
+    nameEn: "Anker GaNPrime Desktop Charging Station 250W (6-Port)",
+    nameAr: "\u0642\u0627\u0639\u062F\u0629 \u0634\u062D\u0646 \u0645\u0643\u062A\u0628\u064A\u0629 \u0623\u0646\u0643\u0631 \u062C\u0627\u0646 \u0628\u0631\u0627\u064A\u0645 \u0628\u0642\u0648\u0629 250 \u0648\u0627\u0637 \u0628\u0640 6 \u0645\u0646\u0627\u0641\u0630 \u0648\u0634\u0627\u0634\u0629 \u0631\u0642\u0645\u064A\u0629",
+    descriptionEn: 'The powerhouse desktop hub. Features 250W total output across 6 ports (4x USB-C + 2x USB-A) with an interactive 2.26" LCD control display that tracks charging speeds and port allocations in real-time.',
+    descriptionAr: "\u0623\u0642\u0648\u0649 \u0645\u062D\u0637\u0629 \u0634\u062D\u0646 \u0645\u0643\u062A\u0628\u064A\u0629 \u0628\u0642\u0648\u0629 250 \u0648\u0627\u0637 \u0645\u0632\u0648\u062F\u0629 \u0628\u0640 6 \u0645\u0646\u0627\u0641\u0630 \u0634\u062D\u0646 \u0648\u0634\u0627\u0634\u0629 \u062A\u0641\u0627\u0639\u0644\u064A\u0629 \u0645\u0644\u0648\u0646\u0629 \u0645\u0642\u0627\u0633 2.26 \u0625\u0646\u0634 \u062A\u062A\u0627\u0628\u0639 \u0633\u0631\u0639\u0627\u062A \u0627\u0644\u0634\u062D\u0646 \u0648\u0627\u0633\u062A\u0647\u0644\u0627\u0643 \u0627\u0644\u0637\u0627\u0642\u0629 \u0644\u0643\u0644 \u0645\u0646\u0641\u0630 \u0644\u062D\u0638\u0629 \u0628\u0644\u062D\u0638\u0629.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 10,
+    specifications: [
+      { keyEn: "Output", keyAr: "\u0627\u0644\u0642\u0648\u0629 \u0627\u0644\u0643\u0644\u064A\u0629", valueEn: "250W Total across 6 High-Speed Ports", valueAr: "250 \u0648\u0627\u0637 \u0625\u062C\u0645\u0627\u0644\u064A \u0639\u0628\u0631 6 \u0645\u0646\u0627\u0641\u0630" },
+      { keyEn: "Display", keyAr: "\u0627\u0644\u0634\u0627\u0634\u0629", valueEn: '2.26" LCD Smart Control Screen with Dial', valueAr: "\u0634\u0627\u0634\u0629 \u0630\u0643\u064A\u0629 2.26 \u0625\u0646\u0634 \u0645\u0639 \u0642\u0631\u0635 \u062A\u062D\u0643\u0645" },
+      { keyEn: "Single Port Max", keyAr: "\u0623\u0642\u0635\u0649 \u0637\u0627\u0642\u0629 \u0644\u0644\u0645\u0646\u0641\u0630", valueEn: "Up to 140W on USB-C1", valueAr: "\u062D\u062A\u0649 140 \u0648\u0627\u0637 \u0644\u0645\u0646\u0641\u0630 USB-C1" }
+    ],
+    variants: [
+      { name: "Space Silver (250W)", price: 355, originalPrice: 420, isDefault: true, stockQuantity: 10 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:29:00.000Z"
+  },
+  {
+    id: 63,
+    slug: "anker-foldable-3in1-maggo-wireless-charger",
+    sku: "B25M8H11",
+    nameEn: "Anker Foldable 3-in-1 MagGo Wireless Charger (15W Qi2)",
+    nameAr: "\u0634\u0627\u062D\u0646 \u0623\u0646\u0643\u0631 \u0645\u0627\u062C \u062C\u0648 \u0627\u0644\u0644\u0627\u0633\u0644\u0643\u064A 3 \u0641\u064A 1 \u0627\u0644\u0642\u0627\u0628\u0644 \u0644\u0644\u0637\u064A \u0628\u0642\u0648\u0629 15 \u0648\u0627\u0637 Qi2",
+    descriptionEn: "Ultra-compact foldable 3-in-1 travel wireless charging station. Certified 15W Qi2 fast magnetic charging for iPhone, dedicated Apple Watch fast charger, and wireless pad for AirPods. Folds down into a tiny pocket-sized puck.",
+    descriptionAr: "\u0645\u062D\u0637\u0629 \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A\u0629 3 \u0641\u064A 1 \u0644\u0644\u0633\u0641\u0631 \u0642\u0627\u0628\u0644\u0629 \u0644\u0644\u0637\u064A \u062A\u0634\u062D\u0646 \u0627\u0644\u0622\u064A\u0641\u0648\u0646 \u0628\u0642\u0648\u0629 15 \u0648\u0627\u0637 \u0645\u0627\u062C \u0633\u064A\u0641 \u0645\u0639\u062A\u0645\u062F Qi2\u060C \u0648\u0633\u0627\u0639\u0629 \u0622\u0628\u0644 \u0648\u0633\u0645\u0627\u0639\u0627\u062A \u0625\u064A\u0631\u0628\u0648\u062F\u0632 \u0641\u064A \u0648\u0642\u062A \u0648\u0627\u062D\u062F \u0648\u0628\u062D\u062C\u0645 \u0627\u0644\u062C\u064A\u0628.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 20,
+    specifications: [
+      { keyEn: "Speed", keyAr: "\u0633\u0631\u0639\u0629 \u0627\u0644\u0634\u062D\u0646", valueEn: "15W Qi2 Certified Magnetic Fast Wireless", valueAr: "15 \u0648\u0627\u0637 \u0634\u062D\u0646 \u0644\u0627\u0633\u0644\u0643\u064A \u0645\u063A\u0646\u0627\u0637\u064A\u0633\u064A \u0633\u0631\u064A\u0639" },
+      { keyEn: "Devices", keyAr: "\u0627\u0644\u0623\u062C\u0647\u0632\u0629", valueEn: "Simultaneously charges iPhone, Apple Watch, & AirPods", valueAr: "\u0634\u062D\u0646 \u0627\u0644\u0622\u064A\u0641\u0648\u0646 \u0648\u0633\u0627\u0639\u0629 \u0622\u0628\u0644 \u0648\u0633\u0645\u0627\u0639\u0629 \u0625\u064A\u0631\u0628\u0648\u062F\u0632 \u0645\u0639\u0627\u064B" },
+      { keyEn: "Portability", keyAr: "\u0627\u0644\u062A\u0646\u0642\u0644", valueEn: "Full foldable 360 origami design for travel", valueAr: "\u062A\u0635\u0645\u064A\u0645 \u0642\u0627\u0628\u0644 \u0644\u0644\u0637\u064A \u0628\u0627\u0644\u0643\u0627\u0645\u0644 \u0644\u0633\u0647\u0648\u0644\u0629 \u0627\u0644\u0633\u0641\u0631" }
+    ],
+    variants: [
+      { name: "Stealth Black", price: 190, originalPrice: 240, isDefault: true, stockQuantity: 10 },
+      { name: "Arctic White", price: 190, originalPrice: 240, isDefault: false, stockQuantity: 10 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:30:00.000Z"
+  },
+  {
+    id: 64,
+    slug: "anker-140w-4port-gan-laptop-charger",
+    sku: "B2697K11",
+    nameEn: "Anker 140W 4-Port GaN Multi-Device Laptop Fast Charger",
+    nameAr: "\u0634\u0627\u062D\u0646 \u0644\u0627\u0628\u062A\u0648\u0628 \u0648\u0647\u0648\u0627\u062A\u0641 \u0623\u0646\u0643\u0631 \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629 \u0628\u0642\u0648\u0629 140 \u0648\u0627\u0637 \u0628\u0640 4 \u0645\u0646\u0627\u0641\u0630 \u0628\u062A\u0642\u0646\u064A\u0629 \u062C\u0627\u0646",
+    descriptionEn: "High-speed 140W USB-C wall charger with 3x USB-C and 1x USB-A ports. Features PowerIQ 4.0 and Dynamic Power Distribution to fast charge high-performance MacBooks, Dell XPS, iPads, and smartphones all at once.",
+    descriptionAr: "\u0634\u0627\u062D\u0646 \u062C\u062F\u0627\u0631\u064A \u062C\u0628\u0627\u0631 \u0628\u0642\u0648\u0629 140 \u0648\u0627\u0637 \u0628\u0640 4 \u0645\u0646\u0627\u0641\u0630 \u064A\u062F\u0639\u0645 \u062A\u0642\u0646\u064A\u0629 PowerIQ 4.0 \u0644\u062A\u0648\u0632\u064A\u0639 \u0627\u0644\u0637\u0627\u0642\u0629 \u0627\u0644\u0630\u0643\u064A \u0628\u064A\u0646 \u0627\u0644\u0644\u0627\u0628\u062A\u0648\u0628\u0627\u062A \u0648\u0627\u0644\u0623\u062C\u0647\u0632\u0629 \u0627\u0644\u0644\u0648\u062D\u064A\u0629 \u0648\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0628\u062F\u0648\u0646 \u0623\u064A \u062A\u0628\u0627\u0637\u0624.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 18,
+    specifications: [
+      { keyEn: "Max Wattage", keyAr: "\u0623\u0642\u0635\u0649 \u0637\u0627\u0642\u0629", valueEn: "140W Max Single Port Output (PD 3.1)", valueAr: "140 \u0648\u0627\u0637 \u0643\u062D\u062F \u0623\u0642\u0635\u0649 \u0644\u0644\u0645\u0646\u0641\u0630 \u0627\u0644\u0648\u0627\u062D\u062F" },
+      { keyEn: "Ports", keyAr: "\u0627\u0644\u0645\u0646\u0627\u0641\u0630", valueEn: "3x USB-C + 1x USB-A Multi-Device", valueAr: "3 \u0645\u0646\u0627\u0641\u0630 \u062A\u0627\u064A\u0628 \u0633\u064A + 1 \u0645\u0646\u0641\u0630 \u064A\u0648 \u0625\u0633 \u0628\u064A" },
+      { keyEn: "Technology", keyAr: "\u0627\u0644\u062A\u0642\u0646\u064A\u0629", valueEn: "GaN III Silicon Architecture", valueAr: "\u0645\u0639\u0645\u0627\u0631\u064A\u0629 \u062C\u0627\u0646 3 \u0639\u0627\u0644\u064A\u0629 \u0627\u0644\u0643\u0641\u0627\u0621\u0629" }
+    ],
+    variants: [
+      { name: "Black Edition (140W)", price: 150, originalPrice: 199, isDefault: true, stockQuantity: 18 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:31:00.000Z"
+  },
+  {
+    id: 65,
+    slug: "anker-nano-car-charger-167w",
+    sku: "B2737H11",
+    nameEn: "Anker Nano Car Charger 167.5W (3-Port with 100W USB-C Cable)",
+    nameAr: "\u0634\u0627\u062D\u0646 \u0633\u064A\u0627\u0631\u0629 \u0623\u0646\u0643\u0631 \u0646\u0627\u0646\u0648 \u0641\u0627\u0626\u0642 \u0627\u0644\u0633\u0631\u0639\u0629 \u0628\u0642\u0648\u0629 167.5 \u0648\u0627\u0637 \u0645\u0639 \u0643\u0627\u0628\u0644 \u062A\u0627\u064A\u0628 \u0633\u064A",
+    descriptionEn: "Rapid-charge on the road. The Anker Nano car adapter delivers a staggering 167.5W of total power across 3 ports with an included 100W USB-C to USB-C cable (3.3ft). Powerful enough to charge laptops and flagship phones at highway speed.",
+    descriptionAr: "\u0634\u0627\u062D\u0646 \u0633\u064A\u0627\u0631\u0629 \u0627\u0633\u062A\u062B\u0646\u0627\u0626\u064A \u0628\u0642\u0648\u0629 167.5 \u0648\u0627\u0637 \u0639\u0628\u0631 3 \u0645\u0646\u0627\u0641\u0630 \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 \u0645\u0631\u0641\u0642 \u0645\u0639\u0647 \u0643\u0627\u0628\u0644 \u062A\u0627\u064A\u0628 \u0633\u064A 100 \u0648\u0627\u0637 \u0623\u0635\u0644\u064A\u060C \u064A\u0634\u062D\u0646 \u0627\u0644\u0644\u0627\u0628\u062A\u0648\u0628\u0627\u062A \u0648\u0627\u0644\u0647\u0648\u0627\u062A\u0641 \u0628\u0623\u0642\u0635\u0649 \u0633\u0631\u0639\u0629 \u0623\u062B\u0646\u0627\u0621 \u0627\u0644\u0642\u064A\u0627\u062F\u0629.",
+    condition: "New",
+    categoryId: 4,
+    brandId: 7,
+    categoryNameEn: "Chargers & Cables",
+    categoryNameAr: "\u0627\u0644\u0634\u0648\u0627\u062D\u0646 \u0648\u0627\u0644\u0643\u0627\u0628\u0644\u0627\u062A",
+    categorySlug: "chargers-cables",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 25,
+    specifications: [
+      { keyEn: "Total Output", keyAr: "\u0627\u0644\u0642\u0648\u0629 \u0627\u0644\u0625\u062C\u0645\u0627\u0644\u064A\u0629", valueEn: "167.5W Total Output (100W Max Port)", valueAr: "167.5 \u0648\u0627\u0637 \u0625\u062C\u0645\u0627\u0644\u064A (100 \u0648\u0627\u0637 \u0644\u0623\u0633\u0631\u0639 \u0645\u0646\u0641\u0630)" },
+      { keyEn: "Included Cable", keyAr: "\u0627\u0644\u0643\u0627\u0628\u0644 \u0627\u0644\u0645\u0631\u0641\u0642", valueEn: "Includes 3.3ft 100W USB-C Fast Cable", valueAr: "\u064A\u0634\u0645\u0644 \u0643\u0627\u0628\u0644 \u062A\u0627\u064A\u0628 \u0633\u064A \u0628\u0642\u062F\u0631\u0629 100 \u0648\u0627\u0637" },
+      { keyEn: "Compatibility", keyAr: "\u0627\u0644\u062A\u0648\u0627\u0641\u0642", valueEn: "12V / 24V Car Socket Compatibility", valueAr: "\u0645\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 \u0648\u0644\u0627\u0639\u0629 12V \u0648 24V" }
+    ],
+    variants: [
+      { name: "Black (167.5W Kit)", price: 95, originalPrice: 125, isDefault: true, stockQuantity: 25 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:32:00.000Z"
+  },
+  {
+    id: 66,
+    slug: "anker-10in1-usb-c-multihub",
+    sku: "A83C2HA1",
+    nameEn: "Anker 10-in-1 USB-C Multi-Port Hub (Dual 4K HDMI & 100W PD)",
+    nameAr: "\u0645\u0648\u0632\u0639 \u0648\u0645\u062D\u0648\u0644 \u0623\u0646\u0643\u0631 10 \u0641\u064A 1 \u0628\u0645\u0646\u0641\u0630 \u062A\u0627\u064A\u0628 \u0633\u064A \u064A\u062F\u0639\u0645 \u0634\u0627\u0634\u0627\u062A \u0645\u0632\u062F\u0648\u062C\u0629 4K",
+    descriptionEn: "Expand your laptop connectivity with 10 versatile ports: Dual 4K HDMI, 100W USB-C Power Delivery pass-through, high-speed Gigabit Ethernet, SD & microSD card slots, and multiple USB-A data ports.",
+    descriptionAr: "\u0645\u0648\u0632\u0639 \u062A\u0627\u064A\u0628 \u0633\u064A \u0627\u062D\u062A\u0631\u0627\u0641\u064A 10 \u0641\u064A 1 \u064A\u0636\u064A\u0641 \u0644\u062C\u0647\u0627\u0632\u0643 \u0645\u0646\u0641\u0630\u064A HDMI \u0628\u062F\u0642\u0629 4K \u0645\u0632\u062F\u0648\u062C\u0629\u060C \u0648\u0645\u0646\u0641\u0630 \u0634\u062D\u0646 \u0633\u0631\u064A\u0639 100 \u0648\u0627\u0637 PD\u060C \u0648\u0645\u0646\u0641\u0630 \u0634\u0628\u0643\u0629 \u0625\u064A\u062B\u0631\u0646\u062A\u060C \u0648\u0642\u0627\u0631\u0626 \u0643\u0631\u0648\u062A \u0630\u0627\u0643\u0631\u0629 \u0648\u0645\u0646\u0627\u0641\u0630 \u0646\u0642\u0644 \u0628\u064A\u0627\u0646\u0627\u062A.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 7,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: false,
+    isNewArrival: false,
+    status: "published",
+    stockQuantity: 20,
+    specifications: [
+      { keyEn: "Ports", keyAr: "\u0627\u0644\u0645\u0646\u0627\u0641\u0630", valueEn: "10 Ports (Dual 4K HDMI, Gigabit LAN, SD, TF, USB 3.0)", valueAr: "10 \u0645\u0646\u0627\u0641\u0630 (HDMI \u0645\u0632\u062F\u0648\u062C 4K\u060C \u0625\u064A\u062B\u0631\u0646\u062A\u060C \u0643\u0631\u0648\u062A \u0630\u0627\u0643\u0631\u0629)" },
+      { keyEn: "Power Pass-Through", keyAr: "\u062A\u0645\u0631\u064A\u0631 \u0627\u0644\u0637\u0627\u0642\u0629", valueEn: "100W USB-C Power Delivery", valueAr: "\u0634\u062D\u0646 100 \u0648\u0627\u0637 \u062A\u0627\u064A\u0628 \u0633\u064A" }
+    ],
+    variants: [
+      { name: "Space Gray 10-in-1", price: 125, originalPrice: 165, isDefault: true, stockQuantity: 20 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:33:00.000Z"
+  },
+  {
+    id: 67,
+    slug: "anker-iphone16pro-magnetic-ring-case",
+    sku: "AN.A90H1H0A.CL",
+    nameEn: "Anker iPhone 16 Pro Magnetic Clear Case with 360\xB0 Ring Stand",
+    nameAr: "\u0643\u0641\u0631 \u062D\u0645\u0627\u064A\u0629 \u0634\u0641\u0627\u0641 \u0645\u063A\u0646\u0627\u0637\u064A\u0633\u064A \u0645\u0627\u062C \u0633\u064A\u0641 \u0645\u0639 \u062D\u0644\u0642\u0629 \u062A\u062B\u0628\u064A\u062A 360 \u062F\u0631\u062C\u0629 \u0644\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648",
+    descriptionEn: "Precision-engineered clear protective case for iPhone 16 Pro. Features a built-in 360-degree rotating zinc alloy kickstand, ultra-strong MagSafe magnetic locking array, anti-yellowing German TPU material, and military-grade drop shock absorption.",
+    descriptionAr: "\u0643\u0641\u0631 \u062D\u0645\u0627\u064A\u0629 \u0641\u0627\u0626\u0642 \u0627\u0644\u0634\u0641\u0627\u0641\u064A\u0629 \u0644\u0622\u064A\u0641\u0648\u0646 16 \u0628\u0631\u0648 \u0645\u0639 \u0633\u062A\u0627\u0646\u062F \u0648\u062D\u0644\u0642\u0629 \u062A\u062B\u0628\u064A\u062A \u0645\u062F\u0645\u062C\u0629 \u062A\u062F\u0648\u0631 360 \u062F\u0631\u062C\u0629\u060C \u0648\u0645\u063A\u0646\u0627\u0637\u064A\u0633 \u0645\u0627\u062C \u0633\u064A\u0641 \u0642\u0648\u064A \u0648\u0645\u0642\u0627\u0648\u0645\u0629 \u0644\u0644\u0627\u0635\u0641\u0631\u0627\u0631 \u0648\u062D\u0645\u0627\u064A\u0629 \u0645\u0639\u062A\u0645\u062F\u0629 \u0636\u062F \u0627\u0644\u0635\u062F\u0645\u0627\u062A.",
+    condition: "New",
+    categoryId: 3,
+    brandId: 7,
+    categoryNameEn: "Accessories",
+    categoryNameAr: "\u0627\u0644\u0625\u0643\u0633\u0633\u0648\u0627\u0631\u0627\u062A",
+    categorySlug: "accessories",
+    brandName: "Anker",
+    brandSlug: "anker",
+    isFeatured: true,
+    isNewArrival: true,
+    status: "published",
+    stockQuantity: 50,
+    specifications: [
+      { keyEn: "Stand", keyAr: "\u062D\u0644\u0642\u0629 \u0627\u0644\u062A\u062B\u0628\u064A\u062A", valueEn: "360\xB0 Rotating Zinc Alloy Stand & Finger Loop", valueAr: "\u062D\u0644\u0642\u0629 \u0645\u0639\u062F\u0646\u064A\u0629 \u062A\u062F\u0648\u0631 360 \u062F\u0631\u062C\u0629 \u0644\u0644\u0627\u0633\u062A\u0627\u0646\u062F \u0648\u0627\u0644\u0623\u0635\u0628\u0639" },
+      { keyEn: "MagSafe", keyAr: "\u0627\u0644\u0645\u0627\u062C \u0633\u064A\u0641", valueEn: "Built-in strong N52 neodymium magnetic ring", valueAr: "\u0645\u063A\u0646\u0627\u0637\u064A\u0633 N52 \u0642\u0648\u064A \u0645\u062F\u0645\u062C \u0645\u062A\u0648\u0627\u0641\u0642 \u0645\u0639 \u0645\u0627\u062C \u0633\u064A\u0641" },
+      { keyEn: "Protection", keyAr: "\u0645\u0633\u062A\u0648\u0649 \u0627\u0644\u062D\u0645\u0627\u064A\u0629", valueEn: "Military-Grade Drop Air-Cushion Bumpers", valueAr: "\u062D\u0648\u0627\u0641 \u0647\u0648\u0627\u0626\u064A\u0629 \u0645\u0627\u0635\u0629 \u0644\u0644\u0635\u062F\u0645\u0627\u062A \u0628\u0645\u0639\u064A\u0627\u0631 \u0639\u0633\u0643\u0631\u064A" }
+    ],
+    variants: [
+      { name: "Crystal Clear (No Color)", price: 15, originalPrice: 25, isDefault: true, stockQuantity: 30 },
+      { name: "Clear with Black Ring", price: 15, originalPrice: 25, isDefault: false, stockQuantity: 20 }
+    ],
+    images: [],
+    createdAt: "2026-10-31T09:34:00.000Z"
   }
 ];
 var FALLBACK_SERVICES = [
@@ -2567,6 +2880,11 @@ async function startServer() {
   const app = express();
   app.use(express.json({ limit: "20mb" }));
   app.use(express.urlencoded({ extended: true, limit: "20mb" }));
+  const UPLOADS_DIR = path2.resolve(__dirname, "public", "uploads");
+  if (!fs2.existsSync(UPLOADS_DIR)) {
+    fs2.mkdirSync(UPLOADS_DIR, { recursive: true });
+  }
+  app.use("/uploads", express.static(UPLOADS_DIR));
   app.get(["/health", "/api/health"], (_req, res) => {
     res.status(200).json({ status: "ok", server: "Nasir Mobile Dubai", timestamp: (/* @__PURE__ */ new Date()).toISOString() });
   });
@@ -3282,8 +3600,15 @@ async function startServer() {
           buffer = Buffer.from(rawData, "base64");
         }
         res.setHeader("Content-Type", mime);
-        res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+        res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
         return res.send(buffer);
+      }
+      if (fs2.existsSync(UPLOADS_DIR)) {
+        const files = fs2.readdirSync(UPLOADS_DIR);
+        const match = files.find((f) => f.includes(rawId));
+        if (match) {
+          return res.sendFile(path2.join(UPLOADS_DIR, match));
+        }
       }
       if (isNaN(numId)) {
         return res.status(400).send("Invalid image ID");
@@ -3312,7 +3637,7 @@ async function startServer() {
               data: rawData
             });
             res.setHeader("Content-Type", mime);
-            res.setHeader("Cache-Control", "public, max-age=31536000, immutable");
+            res.setHeader("Cache-Control", "public, max-age=3600, stale-while-revalidate=86400");
             return res.send(buffer);
           }
         } catch (dbErr) {
@@ -4512,44 +4837,50 @@ async function startServer() {
         return res.status(400).json({ error: "Image data is required." });
       }
       const safeMime = mimeType || "image/jpeg";
-      const safeName = fileName || `image-${Date.now()}.jpg`;
+      const ext = safeMime.includes("png") ? "png" : safeMime.includes("webp") ? "webp" : "jpg";
+      const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+      const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+      const diskFilePath = path2.join(UPLOADS_DIR, diskFileName);
+      let buffer;
+      if (data.startsWith("data:")) {
+        const matches = data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+        if (matches && matches.length === 3) {
+          buffer = Buffer.from(matches[2], "base64");
+        } else {
+          buffer = Buffer.from(data, "base64");
+        }
+      } else {
+        buffer = Buffer.from(data, "base64");
+      }
+      fs2.writeFileSync(diskFilePath, buffer);
+      const imageUrl = `/uploads/${diskFileName}`;
+      let imageId = null;
       if (isPostgresAvailable) {
         try {
           const savedImage = await db.insert(images).values({
-            fileName: safeName,
+            fileName: diskFileName,
             mimeType: safeMime,
             data
-            // base64 string
           }).returning();
           if (savedImage && savedImage.length > 0) {
-            const imageId = savedImage[0].id;
-            const imageUrl2 = `/api/images/${imageId}`;
-            fallbackImagesStore.set(imageId, { fileName: safeName, mimeType: safeMime, data });
-            return res.status(201).json({
-              id: imageId,
-              url: imageUrl2,
-              fileName: savedImage[0].fileName
-            });
+            imageId = savedImage[0].id;
           }
         } catch (dbErr) {
-          console.warn("PostgreSQL image insertion error, routing to fallback store:", dbErr);
+          console.warn("PostgreSQL image insertion error (persisted to disk successfully):", dbErr);
         }
       }
-      const fallbackId = ++fallbackImageCounter;
-      fallbackImagesStore.set(fallbackId, { fileName: safeName, mimeType: safeMime, data });
-      const imageUrl = `/api/images/${fallbackId}`;
+      fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: safeMime, data });
+      if (imageId) {
+        fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: safeMime, data });
+      }
       res.status(201).json({
-        id: fallbackId,
+        id: imageId || uniqueToken,
         url: imageUrl,
-        fileName: safeName
+        fileName: diskFileName
       });
     } catch (error) {
       console.error("Error storing image:", error);
-      res.status(200).json({
-        id: Date.now(),
-        url: req.body?.data || "",
-        fileName: req.body?.fileName || "image.jpg"
-      });
+      res.status(500).json({ error: error?.message || "Failed to process and store image" });
     }
   });
   app.post("/api/admin/upload-images", requireAuth, async (req, res) => {
@@ -4561,13 +4892,29 @@ async function startServer() {
       const uploadedResults = [];
       for (const item of items) {
         if (!item.data) continue;
-        const safeName = item.fileName || `batch-${Date.now()}-${Math.random().toString(36).substring(7)}.jpg`;
         const safeMime = item.mimeType || "image/jpeg";
+        const ext = safeMime.includes("png") ? "png" : safeMime.includes("webp") ? "webp" : "jpg";
+        const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+        const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+        const diskFilePath = path2.join(UPLOADS_DIR, diskFileName);
+        let buffer;
+        if (item.data.startsWith("data:")) {
+          const matches = item.data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            buffer = Buffer.from(matches[2], "base64");
+          } else {
+            buffer = Buffer.from(item.data, "base64");
+          }
+        } else {
+          buffer = Buffer.from(item.data, "base64");
+        }
+        fs2.writeFileSync(diskFilePath, buffer);
+        const imageUrl = `/uploads/${diskFileName}`;
         let imageId = null;
         if (isPostgresAvailable) {
           try {
             const savedImage = await db.insert(images).values({
-              fileName: safeName,
+              fileName: diskFileName,
               mimeType: safeMime,
               data: item.data
             }).returning();
@@ -4575,17 +4922,17 @@ async function startServer() {
               imageId = savedImage[0].id;
             }
           } catch (dbErr) {
-            console.warn("DB batch item error:", dbErr);
+            console.warn("DB batch item error (persisted to disk successfully):", dbErr);
           }
         }
-        if (!imageId) {
-          imageId = ++fallbackImageCounter;
+        fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: safeMime, data: item.data });
+        if (imageId) {
+          fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: safeMime, data: item.data });
         }
-        fallbackImagesStore.set(imageId, { fileName: safeName, mimeType: safeMime, data: item.data });
         uploadedResults.push({
-          id: imageId,
-          url: `/api/images/${imageId}`,
-          fileName: safeName
+          id: imageId || uniqueToken,
+          url: imageUrl,
+          fileName: diskFileName
         });
       }
       res.status(201).json({

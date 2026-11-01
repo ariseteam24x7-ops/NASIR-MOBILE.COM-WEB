@@ -53,18 +53,18 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
   };
 
   return (
-    <div className="rounded-2xl bg-[#1b1921] border border-white/10 p-3.5 sm:p-4 space-y-3">
+    <div className="rounded-2xl bg-slate-50 dark:bg-[#1b1921] border border-slate-200 dark:border-white/10 p-3.5 sm:p-4 space-y-3">
       {/* Header with expand toggle on compact mode */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-lg bg-[#922CB5]/20 border border-[#922CB5]/40 flex items-center justify-center text-[#B7F34B]">
+          <div className="w-6 h-6 rounded-lg bg-[#922CB5]/10 dark:bg-[#922CB5]/20 border border-[#922CB5]/30 flex items-center justify-center text-[#922CB5] dark:text-[#B7F34B]">
             <HelpCircle className="w-3.5 h-3.5" />
           </div>
           <div>
-            <span className="text-xs font-bold text-white uppercase tracking-wider block">
+            <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wider block">
               {isAr ? 'أسئلة شائعة سريعة قبل الإرسال' : 'Quick FAQ Questions'}
             </span>
-            <span className="text-[10px] text-zinc-400">
+            <span className="text-[10px] text-slate-500 dark:text-zinc-400">
               {isAr
                 ? 'حدد الأسئلة التي تريد إرفاقها برسالة واتساب فورياً'
                 : 'Tap questions to automatically include them in your WhatsApp enquiry'}
@@ -76,7 +76,7 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
           <button
             type="button"
             onClick={() => setIsExpanded(!isExpanded)}
-            className="text-xs text-[#B7F34B] hover:text-[#c4f866] font-bold flex items-center gap-1 cursor-pointer"
+            className="text-xs text-[#922CB5] dark:text-[#B7F34B] font-bold flex items-center gap-1 cursor-pointer"
           >
             <span>{selectedQuestions.length > 0 ? `(${selectedQuestions.length})` : ''}</span>
             {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
@@ -100,15 +100,15 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
                   onClick={() => toggleQuestion(qText)}
                   className={`flex items-start gap-2.5 p-2.5 rounded-xl border text-left text-xs transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-[#391548]/90 border-[#B7F34B] text-white shadow-[0_0_12px_rgba(183,243,75,0.25)]'
-                      : 'bg-[#151419] border-white/5 text-zinc-300 hover:border-white/20 hover:text-white'
+                      ? 'bg-[#922CB5] border-[#922CB5] text-white shadow-sm dark:bg-[#391548]/90 dark:border-[#B7F34B] dark:text-white'
+                      : 'bg-white dark:bg-[#151419] border-slate-200 dark:border-white/5 text-slate-700 dark:text-zinc-300 hover:border-[#922CB5]/40 hover:text-slate-900 dark:hover:text-white shadow-sm dark:shadow-none'
                   }`}
                 >
                   <div
                     className={`w-4 h-4 rounded-md mt-0.5 flex items-center justify-center shrink-0 border transition-all ${
                       isSelected
-                        ? 'bg-[#B7F34B] border-[#B7F34B] text-[#151419]'
-                        : 'border-white/20 bg-white/5 text-transparent'
+                        ? 'bg-white text-[#922CB5] border-white dark:bg-[#B7F34B] dark:border-[#B7F34B] dark:text-[#151419]'
+                        : 'border-slate-300 dark:border-white/20 bg-slate-50 dark:bg-white/5 text-transparent'
                     }`}
                   >
                     <Check className="w-3 h-3 stroke-[3]" />
@@ -116,7 +116,7 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
 
                   <div className="flex-1 leading-snug">
                     <div className="flex items-center gap-1.5 font-semibold">
-                      <span className="text-[#B7F34B] shrink-0">{iconEl}</span>
+                      <span className={isSelected ? 'text-white dark:text-[#B7F34B]' : 'text-[#922CB5] dark:text-[#B7F34B]'}>{iconEl}</span>
                       <span>{qText}</span>
                     </div>
                   </div>
@@ -131,15 +131,15 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
               <button
                 type="button"
                 onClick={() => setShowNoteInput(true)}
-                className="text-[11px] font-semibold text-zinc-400 hover:text-[#B7F34B] flex items-center gap-1.5 transition-colors cursor-pointer"
+                className="text-[11px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-[#922CB5] dark:hover:text-[#B7F34B] flex items-center gap-1.5 transition-colors cursor-pointer"
               >
                 <MessageSquarePlus className="w-3.5 h-3.5" />
                 <span>{isAr ? '+ إضافة ملاحظة أو طلب مخصص' : '+ Add custom note or inquiry'}</span>
               </button>
             ) : (
               <div className="space-y-1.5">
-                <div className="flex items-center justify-between text-[11px] text-zinc-400">
-                  <span className="font-semibold text-white">
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-zinc-400">
+                  <span className="font-semibold text-slate-900 dark:text-white">
                     {isAr ? 'ملاحظة خاصة بك (تُرفق في الرسالة):' : 'Custom Note for Store Owner:'}
                   </span>
                   <button
@@ -148,7 +148,7 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
                       onChangeCustomNote('');
                       setShowNoteInput(false);
                     }}
-                    className="text-zinc-500 hover:text-zinc-300 text-[10px]"
+                    className="text-slate-400 hover:text-slate-700 dark:text-zinc-500 dark:hover:text-zinc-300 text-[10px]"
                   >
                     {isAr ? 'إلغاء' : 'Clear'}
                   </button>
@@ -162,7 +162,7 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
                       ? 'مثال: أود استلام الجهاز غداً الساعة 5 مساءً من المتجر'
                       : 'e.g. I can pick up tomorrow at 5 PM, is it ready?'
                   }
-                  className="w-full bg-[#151419] border border-white/10 rounded-xl py-2 px-3 text-xs text-white placeholder-zinc-500 focus:outline-none focus:border-[#B7F34B]"
+                  className="w-full bg-white dark:bg-[#151419] border border-slate-200 dark:border-white/10 rounded-xl py-2 px-3 text-xs text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-zinc-500 focus:outline-none focus:border-[#922CB5] dark:focus:border-[#B7F34B]"
                 />
               </div>
             )}
@@ -170,7 +170,7 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
 
           {/* Active selection feedback */}
           {selectedQuestions.length > 0 && (
-            <div className="flex items-center justify-between pt-1 border-t border-white/5 text-[11px] text-[#B7F34B]">
+            <div className="flex items-center justify-between pt-1 border-t border-slate-200 dark:border-white/5 text-[11px] text-[#922CB5] dark:text-[#B7F34B] font-semibold">
               <span>
                 {isAr
                   ? `تم تحديد ${selectedQuestions.length} استفسار سريع`
@@ -179,7 +179,7 @@ export const WhatsAppQuickReplySelector: React.FC<WhatsAppQuickReplySelectorProp
               <button
                 type="button"
                 onClick={() => onChangeQuestions([])}
-                className="text-zinc-400 hover:text-white underline cursor-pointer text-[10px]"
+                className="text-slate-500 dark:text-zinc-400 hover:underline cursor-pointer text-[10px]"
               >
                 {isAr ? 'إعادة ضبط' : 'Deselect all'}
               </button>

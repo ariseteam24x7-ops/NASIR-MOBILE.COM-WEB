@@ -109,18 +109,18 @@ export const Logo: React.FC<LogoProps> = ({
       {showText && (
         <div className="flex flex-col select-none">
           <div className="flex items-center gap-1.5 leading-none">
-            <span className={`font-black tracking-wider uppercase text-white ${currentSize.font}`}>
+            <span className={`font-black tracking-wider uppercase text-slate-900 dark:text-white ${currentSize.font}`}>
               NASIR
             </span>
-            <span className={`font-black tracking-wider uppercase text-[#B7F34B] ${currentSize.font}`}>
+            <span className={`font-black tracking-wider uppercase text-[#922CB5] dark:text-[#B7F34B] ${currentSize.font}`}>
               MOBILE
             </span>
           </div>
           <div className="flex items-center gap-2 mt-0.5">
-            <span className={`tracking-widest font-semibold uppercase text-zinc-400 ${currentSize.sub}`}>
+            <span className={`tracking-widest font-semibold uppercase text-slate-500 dark:text-zinc-400 ${currentSize.sub}`}>
               DUBAI • UAE
             </span>
-            <span className="inline-block w-1 h-1 rounded-full bg-[#B7F34B] animate-pulse"></span>
+            <span className="inline-block w-1 h-1 rounded-full bg-[#922CB5] dark:bg-[#B7F34B] animate-pulse"></span>
           </div>
         </div>
       )}

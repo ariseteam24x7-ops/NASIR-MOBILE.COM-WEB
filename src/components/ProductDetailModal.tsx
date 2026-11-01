@@ -177,19 +177,19 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/80 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-4xl bg-[#1b1920] border border-white/10 rounded-3xl shadow-2xl overflow-hidden my-auto">
+    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/75 backdrop-blur-md flex items-center justify-center p-3 sm:p-6 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-4xl bg-white dark:bg-[#1b1920] border border-slate-200 dark:border-white/10 rounded-3xl shadow-2xl overflow-hidden my-auto transition-colors duration-200">
         {/* Modal Close Button */}
         <button
           onClick={onClose}
-          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-[#242129] border border-white/10 text-zinc-300 hover:text-white hover:bg-white/10 flex items-center justify-center transition-all cursor-pointer"
+          className="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-white/10 flex items-center justify-center transition-all cursor-pointer shadow-sm"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="grid grid-cols-1 md:grid-cols-2 max-h-[85vh] overflow-y-auto">
           {/* Left Column: Visual Gallery */}
-          <div className="bg-[#151419] p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-white/5">
+          <div className="bg-slate-50 dark:bg-[#151419] p-6 sm:p-8 flex flex-col justify-between border-b md:border-b-0 md:border-r border-slate-200 dark:border-white/5">
             {/* Main Image Stage (Click to Zoom) */}
             <div
               onClick={() => {
@@ -199,7 +199,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   setLightboxOpen(true);
                 }
               }}
-              className="relative aspect-square w-full rounded-2xl bg-[#242129]/60 flex items-center justify-center p-6 overflow-hidden group cursor-zoom-in border border-white/5 hover:border-[#B7F34B]/30 transition-colors"
+              className="relative aspect-square w-full rounded-2xl bg-white dark:bg-[#242129]/60 flex items-center justify-center p-6 overflow-hidden group cursor-zoom-in border border-slate-200 dark:border-white/5 hover:border-[#922CB5]/40 dark:hover:border-[#B7F34B]/30 transition-colors shadow-sm dark:shadow-none"
             >
               {activeImage ? (
                 <>
@@ -209,15 +209,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                     className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                   />
                   {/* Subtle Zoom Badge */}
-                  <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md border border-white/10 text-zinc-300 group-hover:text-[#B7F34B] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
+                  <div className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-md border border-white/10 text-white dark:text-zinc-300 group-hover:text-[#B7F34B] px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-wider flex items-center gap-1.5 opacity-80 group-hover:opacity-100 transition-opacity">
                     <ZoomIn className="w-3.5 h-3.5" />
                     <span>{language === 'ar' ? 'انقر للتكبير' : 'Click to Zoom'}</span>
                   </div>
                 </>
               ) : (
-                <div className="flex flex-col items-center text-zinc-600">
+                <div className="flex flex-col items-center text-slate-400 dark:text-zinc-600">
                   <Smartphone className="w-24 h-24 stroke-[1] mb-2" />
-                  <span className="text-xs uppercase font-bold tracking-widest text-zinc-500">
+                  <span className="text-xs uppercase font-bold tracking-widest text-slate-500 dark:text-zinc-500">
                     Nasir Mobile Dubai
                   </span>
                 </div>
@@ -242,9 +242,9 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   <button
                     key={idx}
                     onClick={() => setSelectedImageIndex(idx)}
-                    className={`relative w-16 h-16 rounded-xl border-2 overflow-hidden shrink-0 bg-[#242129] p-1 transition-all cursor-pointer ${
+                    className={`relative w-16 h-16 rounded-xl border-2 overflow-hidden shrink-0 bg-white dark:bg-[#242129] p-1 transition-all cursor-pointer shadow-sm ${
                       selectedImageIndex === idx
-                        ? 'border-[#B7F34B] ring-2 ring-[#B7F34B]/30'
+                        ? 'border-[#922CB5] dark:border-[#B7F34B] ring-2 ring-[#922CB5]/30 dark:ring-[#B7F34B]/30'
                         : 'border-transparent opacity-60 hover:opacity-100'
                     }`}
                   >
@@ -255,8 +255,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             )}
 
             {/* Guarantee Note */}
-            <div className="mt-6 p-3.5 rounded-xl bg-[#242129]/80 border border-white/5 flex items-center gap-3 text-xs text-zinc-300">
-              <ShieldCheck className="w-5 h-5 text-[#B7F34B] shrink-0" />
+            <div className="mt-6 p-3.5 rounded-xl bg-white dark:bg-[#242129]/80 border border-slate-200 dark:border-white/5 flex items-center gap-3 text-xs text-slate-700 dark:text-zinc-300 shadow-sm dark:shadow-none">
+              <ShieldCheck className="w-5 h-5 text-[#922CB5] dark:text-[#B7F34B] shrink-0" />
               <span>
                 {language === 'ar'
                   ? 'جميع الأجهزة تخضع للفحص المعتمد من قبل خبراء ناصر موبايل في دبي.'
@@ -269,34 +269,34 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
           <div className="p-6 sm:p-8 flex flex-col justify-between space-y-6">
             <div>
               {/* Brand & SKU bar */}
-              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">
+              <div className="flex items-center justify-between text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-zinc-400 mb-2">
                 <span>{brandName}</span>
-                <span className="font-mono bg-white/5 px-2 py-0.5 rounded text-zinc-300">
+                <span className="font-mono bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-transparent px-2 py-0.5 rounded text-slate-700 dark:text-zinc-300">
                   {t('sku_label')}: {product.sku}
                 </span>
               </div>
 
               {/* Title */}
-              <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight mb-3">
+              <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight mb-3">
                 {title}
               </h2>
 
               {/* Category pill */}
               {categoryName && (
-                <div className="inline-block bg-white/5 text-zinc-300 text-xs font-bold px-3 py-1 rounded-full mb-4">
+                <div className="inline-block bg-slate-100 dark:bg-white/5 text-slate-700 dark:text-zinc-300 text-xs font-bold px-3 py-1 rounded-full mb-4 border border-slate-200 dark:border-white/5">
                   {categoryName}
                 </div>
               )}
 
               {/* Description */}
-              <p className="text-sm text-zinc-300 leading-relaxed mb-6 whitespace-pre-line">
+              <p className="text-sm text-slate-600 dark:text-zinc-300 leading-relaxed mb-6 whitespace-pre-line">
                 {description}
               </p>
 
               {/* Variants Selector */}
               {product.variants && Array.isArray(product.variants) && product.variants.length > 0 && (
-                <div className="space-y-3 mb-6 p-4 rounded-2xl bg-[#151419] border border-white/5">
-                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                <div className="space-y-3 mb-6 p-4 rounded-2xl bg-slate-50 dark:bg-[#151419] border border-slate-200 dark:border-white/5">
+                  <h4 className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                     {language === 'ar' ? 'خيارات الجهاز والمواصفات' : 'Available Options & Configurations'}
                   </h4>
 
@@ -309,7 +309,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
                       return (
                         <div key={vIdx} className="space-y-2">
-                          <label className="text-xs font-semibold text-zinc-300">{groupName}</label>
+                          <label className="text-xs font-semibold text-slate-700 dark:text-zinc-300">{groupName}</label>
                           <div className="flex flex-wrap gap-2">
                             {optionsList.map((opt: string, oIdx: number) => {
                               const isSelected = selectedVariants[groupName] === opt;
@@ -325,8 +325,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                                   }
                                   className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer ${
                                     isSelected
-                                      ? 'bg-[#B7F34B] text-[#151419] shadow-[0_0_15px_rgba(183,243,75,0.3)]'
-                                      : 'bg-[#242129] text-zinc-300 hover:text-white border border-white/5'
+                                      ? 'bg-[#922CB5] text-white shadow-sm dark:bg-[#B7F34B] dark:text-[#151419]'
+                                      : 'bg-white dark:bg-[#242129] text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white border border-slate-200 dark:border-white/5'
                                   }`}
                                 >
                                   {opt}
@@ -350,15 +350,15 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                             onClick={() => setSelectedVariantIndex(vIdx)}
                             className={`p-3 rounded-xl text-left rtl:text-right border transition-all cursor-pointer flex items-center justify-between gap-2 ${
                               isSelected
-                                ? 'bg-[#B7F34B]/10 border-[#B7F34B] shadow-[0_0_15px_rgba(183,243,75,0.2)]'
-                                : 'bg-[#242129] border-white/5 hover:border-white/20 text-zinc-300'
+                                ? 'bg-[#922CB5]/10 border-[#922CB5] text-[#922CB5] dark:bg-[#B7F34B]/10 dark:border-[#B7F34B] dark:text-[#B7F34B]'
+                                : 'bg-white dark:bg-[#242129] border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/20 text-slate-700 dark:text-zinc-300'
                             }`}
                           >
-                            <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-[#B7F34B]' : 'text-white'}`}>
+                            <span className={`text-xs font-bold leading-tight ${isSelected ? 'text-[#922CB5] dark:text-[#B7F34B]' : 'text-slate-800 dark:text-white'}`}>
                               {variantTitle}
                             </span>
                             {isSelected && (
-                              <CheckCircle className="w-3.5 h-3.5 text-[#B7F34B] shrink-0" />
+                              <CheckCircle className="w-3.5 h-3.5 text-[#922CB5] dark:text-[#B7F34B] shrink-0" />
                             )}
                           </button>
                         );
@@ -371,7 +371,7 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
               {/* Technical Specifications */}
               {product.specifications && Array.isArray(product.specifications) && product.specifications.length > 0 && (
                 <div className="space-y-2.5 mb-6">
-                  <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider">
+                  <h4 className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider">
                     {t('specs_title')}
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
@@ -383,12 +383,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                         return (
                           <div
                             key={sIdx}
-                            className="p-2.5 rounded-xl bg-[#151419] border border-white/5 flex flex-col justify-between"
+                            className="p-2.5 rounded-xl bg-slate-50 dark:bg-[#151419] border border-slate-200 dark:border-white/5 flex flex-col justify-between"
                           >
-                            <span className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 dark:text-zinc-500 tracking-wider">
                               {specKey}
                             </span>
-                            <span className="text-xs font-semibold text-white mt-0.5">{specVal}</span>
+                            <span className="text-xs font-semibold text-slate-900 dark:text-white mt-0.5">{specVal}</span>
                           </div>
                         );
                       })}
@@ -408,12 +408,12 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
             </div>
 
             {/* Actions Bar */}
-            <div className="space-y-3 pt-4 border-t border-white/5">
+            <div className="space-y-3 pt-4 border-t border-slate-200 dark:border-white/5">
               <a
                 href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-[#151419] font-black text-sm uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(37,211,102,0.4)] hover:scale-102 active:scale-98 cursor-pointer"
+                className="w-full flex items-center justify-center gap-3 py-4 px-6 rounded-2xl bg-[#25D366] hover:bg-[#20ba59] text-white font-black text-sm uppercase tracking-wider transition-all duration-200 shadow-[0_0_25px_rgba(37,211,102,0.35)] hover:scale-102 active:scale-98 cursor-pointer"
               >
                 <MessageCircle className="w-5 h-5 fill-current" />
                 <span>{t('inquire_whatsapp')}</span>
@@ -421,11 +421,11 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
               <button
                 onClick={handleShare}
-                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold transition-colors cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition-colors cursor-pointer"
               >
                 {copied ? (
                   <>
-                    <CheckCircle className="w-4 h-4 text-[#B7F34B]" />
+                    <CheckCircle className="w-4 h-4 text-[#922CB5] dark:text-[#B7F34B]" />
                     <span>{language === 'ar' ? 'تم نسخ الرابط!' : 'Link Copied to Clipboard!'}</span>
                   </>
                 ) : (
@@ -441,8 +441,8 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
 
         {/* Related Products Footer */}
         {Array.isArray(relatedProducts) && relatedProducts.length > 0 && (
-          <div className="p-6 bg-[#151419] border-t border-white/5">
-            <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-wider mb-3">
+          <div className="p-6 bg-slate-50 dark:bg-[#151419] border-t border-slate-200 dark:border-white/5">
+            <h4 className="text-xs font-bold text-slate-500 dark:text-zinc-400 uppercase tracking-wider mb-3">
               {t('related_products')}
             </h4>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -453,20 +453,20 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
                   <button
                     key={rel.id}
                     onClick={() => onSelectProduct(rel)}
-                    className="flex items-center gap-3 p-2.5 rounded-xl bg-[#242129] border border-white/5 hover:border-[#922CB5] transition-all text-left group cursor-pointer"
+                    className="flex items-center gap-3 p-2.5 rounded-xl bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/5 hover:border-[#922CB5] transition-all text-left group cursor-pointer shadow-sm dark:shadow-none"
                   >
-                    <div className="w-12 h-12 rounded-lg bg-[#151419] p-1 shrink-0 flex items-center justify-center">
+                    <div className="w-12 h-12 rounded-lg bg-slate-100 dark:bg-[#151419] p-1 shrink-0 flex items-center justify-center">
                       {relImage ? (
                         <img src={relImage} alt="" className="w-full h-full object-contain" />
                       ) : (
-                        <Smartphone className="w-6 h-6 text-zinc-600" />
+                        <Smartphone className="w-6 h-6 text-slate-400 dark:text-zinc-600" />
                       )}
                     </div>
                     <div className="overflow-hidden">
-                      <p className="text-xs font-bold text-white group-hover:text-[#B7F34B] truncate">
+                      <p className="text-xs font-bold text-slate-900 dark:text-white group-hover:text-[#922CB5] dark:group-hover:text-[#B7F34B] truncate">
                         {relTitle}
                       </p>
-                      <span className="text-[10px] text-zinc-400 font-mono">{rel.sku}</span>
+                      <span className="text-[10px] text-slate-500 dark:text-zinc-400 font-mono">{rel.sku}</span>
                     </div>
                   </button>
                 );

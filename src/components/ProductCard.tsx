@@ -66,12 +66,12 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-30px' }}
       transition={{ duration: 0.45, ease: 'easeOut' }}
-      className="group flex flex-col bg-[#242129] border border-white/5 hover:border-[#922CB5]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_10px_30px_rgba(146,44,181,0.18)] hover:-translate-y-1"
+      className="group flex flex-col bg-white dark:bg-[#242129] border border-slate-200 dark:border-white/5 hover:border-[#922CB5]/60 rounded-2xl overflow-hidden transition-all duration-300 hover:shadow-[0_10px_30px_rgba(146,44,181,0.12)] dark:hover:shadow-[0_10px_30px_rgba(146,44,181,0.18)] hover:-translate-y-1 shadow-sm dark:shadow-none"
     >
       {/* Product Image Stage */}
       <div
         onClick={() => onOpenDetails(product)}
-        className="relative aspect-square w-full bg-[#1b1920] overflow-hidden flex items-center justify-center p-5 cursor-pointer"
+        className="relative aspect-square w-full bg-slate-50 dark:bg-[#1b1920] overflow-hidden flex items-center justify-center p-5 cursor-pointer"
       >
         {primaryImage ? (
           <img
@@ -84,7 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
             loading="lazy"
           />
         ) : (
-          <div className="flex flex-col items-center justify-center text-zinc-600 group-hover:text-zinc-400 transition-colors">
+          <div className="flex flex-col items-center justify-center text-slate-400 dark:text-zinc-600 group-hover:text-[#922CB5] dark:group-hover:text-zinc-400 transition-colors">
             <Smartphone className="w-16 h-16 stroke-[1.2] mb-2" />
             <span className="text-xs uppercase font-medium tracking-wider">Nasir Mobile</span>
           </div>
@@ -122,10 +122,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({
       {/* Content Body */}
       <div className="flex flex-col flex-1 p-5">
         {/* Brand & Category line */}
-        <div className="flex items-center justify-between text-xs font-semibold text-zinc-400 mb-1.5 uppercase tracking-wider">
+        <div className="flex items-center justify-between text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1.5 uppercase tracking-wider">
           <span>{brandName}</span>
           {categoryName && (
-            <span className="text-zinc-500 text-[11px] font-normal truncate max-w-[120px]">
+            <span className="text-slate-400 dark:text-zinc-500 text-[11px] font-normal truncate max-w-[120px]">
               {categoryName}
             </span>
           )}
@@ -134,7 +134,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         {/* Product Title */}
         <h3
           onClick={() => onOpenDetails(product)}
-          className="text-base font-bold text-white group-hover:text-[#B7F34B] transition-colors line-clamp-2 mb-2 cursor-pointer leading-snug"
+          className="text-base font-bold text-slate-900 dark:text-white group-hover:text-[#922CB5] dark:group-hover:text-[#B7F34B] transition-colors line-clamp-2 mb-2 cursor-pointer leading-snug"
         >
           {title}
         </h3>
@@ -150,7 +150,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
                 return (
                   <span
                     key={idx}
-                    className="px-2 py-0.5 rounded-md bg-[#151419] border border-white/5 text-[11px] text-zinc-300 font-medium"
+                    className="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-[#151419] border border-slate-200 dark:border-white/5 text-[11px] text-slate-700 dark:text-zinc-300 font-medium"
                   >
                     {val}
                   </span>
@@ -160,11 +160,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({
         )}
 
         {/* Bottom Actions: Details & WhatsApp Enquiry */}
-        <div className="mt-auto pt-4 border-t border-white/5 flex items-center gap-2">
+        <div className="mt-auto pt-4 border-t border-slate-100 dark:border-white/5 flex items-center gap-2">
           {/* View Details Button */}
           <button
             onClick={() => onOpenDetails(product)}
-            className="flex-1 py-2.5 px-3 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-zinc-200 hover:text-white transition-all text-center cursor-pointer"
+            className="flex-1 py-2.5 px-3 rounded-xl bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-xs font-bold text-slate-800 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white transition-all text-center cursor-pointer"
           >
             {t('view_details')}
           </button>
