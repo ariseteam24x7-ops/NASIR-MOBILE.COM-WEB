@@ -12,7 +12,6 @@ import { CategoryNav } from './components/CategoryNav.tsx';
 import { BrandFilterBar } from './components/BrandFilterBar.tsx';
 import { ProductCard } from './components/ProductCard.tsx';
 import { ProductDetailModal } from './components/ProductDetailModal.tsx';
-import { ServicesSection } from './components/ServicesSection.tsx';
 import { AboutSection } from './components/AboutSection.tsx';
 import { FaqSection } from './components/FaqSection.tsx';
 import { ContactSection } from './components/ContactSection.tsx';
@@ -708,9 +707,6 @@ function StoreApp() {
           )}
         </div>
       </section>
-
-      {/* Services Section */}
-      <ServicesSection whatsAppSettings={whatsAppSettings} />
 
       {/* About Section */}
       <AboutSection siteContent={siteContent} />

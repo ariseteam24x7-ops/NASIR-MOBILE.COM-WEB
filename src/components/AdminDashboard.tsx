@@ -75,7 +75,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   onViewPublicSite,
 }) => {
   const { language, setLanguage } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'services' | 'whatsapp' | 'content' | 'audit' | 'security'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'products' | 'categories' | 'brands' | 'whatsapp' | 'content' | 'audit' | 'security'>('overview');
 
   // Visitor Analytics State
   const [visitorAnalytics, setVisitorAnalytics] = useState<AdminVisitorAnalytics | null>(null);
@@ -516,7 +516,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (activeTab === 'products') fetchProducts();
     if (activeTab === 'categories') fetchCategories();
     if (activeTab === 'brands') fetchBrands();
-    if (activeTab === 'services') fetchServices();
     if (activeTab === 'overview') fetchOverview();
     if (activeTab === 'audit') fetchAuditLogs();
     if (activeTab === 'security') fetchMasterKeyInfo();
@@ -1530,23 +1529,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           </button>
 
           <button
-            onClick={() => setActiveTab('services')}
-            className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-              activeTab === 'services'
-                ? 'bg-[#922CB5] text-white shadow-md'
-                : 'text-zinc-400 hover:text-white hover:bg-white/5'
-            }`}
-          >
-            <Wrench className="w-4 h-4 text-[#B7F34B]" />
-            <span>Services & Repair</span>
-            {servicesList.length > 0 && (
-              <span className="ml-auto bg-black/40 px-2 py-0.5 rounded-full text-[10px] font-mono">
-                {servicesList.length}
-              </span>
-            )}
-          </button>
-
-          <button
             onClick={() => setActiveTab('whatsapp')}
             className={`w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'whatsapp'
@@ -2552,8 +2534,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             </div>
           )}
 
-          {/* TAB: SERVICES & REPAIR */}
-          {activeTab === 'services' && (
+          {/* TAB: SERVICES & REPAIR (DEACTIVATED) */}
+          {(activeTab as string) === 'services' && (
             <div className="space-y-8 max-w-5xl">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>

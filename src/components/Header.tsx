@@ -112,9 +112,6 @@ export const Header: React.FC<HeaderProps> = ({
             <a href="#categories" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('categories')}
             </a>
-            <a href="#services" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
-              {t('services')}
-            </a>
             <a href="#about" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('about_us')}
             </a>
@@ -123,13 +120,6 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
             <a href="#contact" className="hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors">
               {t('contact')}
-            </a>
-            <a
-              href="#visitor-counter"
-              className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 hover:border-[#922CB5]/50 dark:hover:border-[#B7F34B]/50 hover:text-[#922CB5] dark:hover:text-[#B7F34B] transition-colors text-xs font-semibold text-slate-700 dark:text-zinc-300"
-            >
-              <span className="w-1.5 h-1.5 rounded-full bg-[#922CB5] dark:bg-[#B7F34B] animate-ping" />
-              <span>{language === 'ar' ? 'الزوار' : 'Live Traffic'}</span>
             </a>
           </nav>
 
@@ -224,13 +214,6 @@ export const Header: React.FC<HeaderProps> = ({
               {t('categories')}
             </a>
             <a
-              href="#services"
-              onClick={() => setMobileMenuOpen(false)}
-              className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
-            >
-              {t('services')}
-            </a>
-            <a
               href="#about"
               onClick={() => setMobileMenuOpen(false)}
               className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
@@ -250,14 +233,6 @@ export const Header: React.FC<HeaderProps> = ({
               className="px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 hover:text-[#922CB5] dark:hover:text-[#B7F34B]"
             >
               {t('contact')}
-            </a>
-            <a
-              href="#visitor-counter"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 text-[#922CB5] dark:text-[#B7F34B]"
-            >
-              <span className="w-2 h-2 rounded-full bg-[#922CB5] dark:bg-[#B7F34B] animate-ping" />
-              <span>{language === 'ar' ? 'إحصائيات زوار المتجر المباشرة' : 'Live Store Visitor Stats'}</span>
             </a>
           </nav>
 
