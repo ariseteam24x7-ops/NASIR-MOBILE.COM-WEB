@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Upload,
   Link as LinkIcon,
@@ -39,6 +39,38 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
   onAspectRatioChange,
   onFitModeChange,
 }) => {
+  const [internalFitMode, setInternalFitMode] = useState<ImageFitMode>(fitMode);
+  const [internalAspectRatio, setInternalAspectRatio] = useState<ImageAspectRatio>(aspectRatio);
+
+  useEffect(() => {
+    if (fitMode) setInternalFitMode(fitMode);
+  }, [fitMode]);
+
+  useEffect(() => {
+    if (aspectRatio) setInternalAspectRatio(aspectRatio);
+  }, [aspectRatio]);
+
+  const activeFitMode = fitMode || internalFitMode;
+  const activeAspectRatio = aspectRatio || internalAspectRatio;
+
+  const handleFitModeClick = (mode: ImageFitMode, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setInternalFitMode(mode);
+    if (onFitModeChange) {
+      onFitModeChange(mode);
+    }
+  };
+
+  const handleAspectRatioClick = (r: ImageAspectRatio, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setInternalAspectRatio(r);
+    if (onAspectRatioChange) {
+      onAspectRatioChange(r);
+    }
+  };
+
   const [isDragging, setIsDragging] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<{ total: number; done: number } | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -235,10 +267,10 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
               <button
                 key={r}
                 type="button"
-                onClick={() => onAspectRatioChange && onAspectRatioChange(r)}
-                className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer ${
-                  aspectRatio === r
-                    ? 'bg-[#922CB5] text-white shadow-sm'
+                onClick={(e) => handleAspectRatioClick(r, e)}
+                className={`px-2 py-1 rounded-lg text-[10px] font-bold font-mono transition-all cursor-pointer select-none active:scale-95 ${
+                  activeAspectRatio === r
+                    ? 'bg-[#922CB5] text-white shadow-sm ring-1 ring-[#922CB5]'
                     : 'text-zinc-400 hover:text-white hover:bg-white/5'
                 }`}
               >
@@ -248,14 +280,14 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
           </div>
 
           {/* Fit Mode Toggle */}
-          <div className="flex items-center bg-[#151419] p-1 rounded-xl border border-white/10">
+          <div className="flex items-center bg-[#151419] p-1 rounded-xl border border-white/10 gap-0.5">
             <button
               type="button"
-              onClick={() => onFitModeChange && onFitModeChange('contain')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                fitMode === 'contain'
-                  ? 'bg-[#B7F34B] text-black shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+              onClick={(e) => handleFitModeClick('contain', e)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                activeFitMode === 'contain'
+                  ? 'bg-[#B7F34B] text-black shadow-sm font-black ring-1 ring-[#B7F34B]'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
               title="Show entire device with studio dark padding (Recommended for phones)"
             >
@@ -263,13 +295,13 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
             </button>
             <button
               type="button"
-              onClick={() => onFitModeChange && onFitModeChange('cover')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
-                fitMode === 'cover'
-                  ? 'bg-[#B7F34B] text-black shadow-sm'
-                  : 'text-zinc-400 hover:text-white'
+              onClick={(e) => handleFitModeClick('cover', e)}
+              className={`px-2.5 py-1 rounded-lg text-[10px] font-bold transition-all cursor-pointer select-none active:scale-95 ${
+                activeFitMode === 'cover'
+                  ? 'bg-[#B7F34B] text-black shadow-sm font-black ring-1 ring-[#B7F34B]'
+                  : 'text-zinc-400 hover:text-white hover:bg-white/5'
               }`}
-              title="Fill entire frame"
+              title="Fill entire frame (edge-to-edge)"
             >
               Fill
             </button>
@@ -414,15 +446,17 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
                   {/* Aspect Ratio Preview Container */}
                   <div
                     className={`relative w-full ${getAspectRatioClass(
-                      aspectRatio
-                    )} rounded-xl bg-[#242129]/80 overflow-hidden flex items-center justify-center p-2`}
+                      activeAspectRatio
+                    )} rounded-xl bg-[#242129]/80 overflow-hidden flex items-center justify-center transition-all ${
+                      activeFitMode === 'cover' ? 'p-0' : 'p-2'
+                    }`}
                   >
                     <img
                       src={imgUrl}
                       alt={`Product image ${idx + 1}`}
                       referrerPolicy="no-referrer"
-                      className={`w-full h-full transition-transform duration-300 group-hover:scale-105 ${
-                        fitMode === 'cover' ? 'object-cover' : 'object-contain'
+                      className={`w-full h-full transition-all duration-300 group-hover:scale-105 ${
+                        activeFitMode === 'cover' ? 'object-cover' : 'object-contain'
                       }`}
                     />
 
@@ -531,11 +565,11 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
               src={previewZoomUrl}
               alt="Enlarged preview"
               referrerPolicy="no-referrer"
-              className="max-h-[80vh] w-auto object-contain rounded-2xl"
+              className={`max-h-[80vh] w-auto ${activeFitMode === 'cover' ? 'object-cover' : 'object-contain'} rounded-2xl`}
             />
             <div className="mt-3 text-xs text-zinc-400 font-mono">
-              Aspect Ratio Preview Mode: <span className="text-[#B7F34B]">{aspectRatio}</span> • Fit Mode:{' '}
-              <span className="text-[#B7F34B]">{fitMode}</span>
+              Aspect Ratio Preview Mode: <span className="text-[#B7F34B]">{activeAspectRatio}</span> • Fit Mode:{' '}
+              <span className="text-[#B7F34B]">{activeFitMode}</span>
             </div>
           </div>
         </div>
