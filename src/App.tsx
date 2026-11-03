@@ -146,25 +146,25 @@ function StoreApp() {
     fetch('/api/categories')
       .then((r) => r.json())
       .then((data) => setCategories(Array.isArray(data) ? data : []))
-      .catch((err) => console.error('Failed to load categories', err));
+      .catch((err) => console.warn('Failed to load categories:', err?.message || err));
 
     // Brands
     fetch('/api/brands')
       .then((r) => r.json())
       .then((data) => setBrands(Array.isArray(data) ? data : []))
-      .catch((err) => console.error('Failed to load brands', err));
+      .catch((err) => console.warn('Failed to load brands:', err?.message || err));
 
     // WhatsApp Settings
     fetch('/api/whatsapp-settings')
       .then((r) => r.json())
       .then((data) => setWhatsAppSettings(data))
-      .catch((err) => console.error('Failed to load whatsapp settings', err));
+      .catch((err) => console.warn('Failed to load whatsapp settings:', err?.message || err));
 
     // Site Content
     fetch('/api/site-content')
       .then((r) => r.json())
       .then((data) => setSiteContent(data))
-      .catch((err) => console.error('Failed to load site content', err));
+      .catch((err) => console.warn('Failed to load site content:', err?.message || err));
   }, []);
 
   // Fetch Catalogue Products with active filters
@@ -186,7 +186,7 @@ function StoreApp() {
         setLoadingProducts(false);
       })
       .catch((err) => {
-        console.error('Failed to fetch catalogue products', err);
+        console.warn('Failed to fetch catalogue products:', err?.message || err);
         setLoadingProducts(false);
       });
   };

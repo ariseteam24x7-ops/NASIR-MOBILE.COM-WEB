@@ -3471,7 +3471,7 @@ async function startServer() {
   const indexHtml = path.resolve(distDir, 'index.html');
   const hasDist = fs.existsSync(indexHtml);
 
-  if (process.env.NODE_ENV === 'production' || hasDist) {
+  if (process.env.NODE_ENV === 'production') {
     if (hasDist) {
       app.use(express.static(distDir));
       app.get('*', (_req, res) => {

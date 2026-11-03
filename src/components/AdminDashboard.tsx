@@ -234,7 +234,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setStats(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Overview fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -256,7 +256,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setProductsList(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Products fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -269,7 +269,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setCategoriesList(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Categories fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -282,7 +282,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setBrandsList(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Brands fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -295,7 +295,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setServicesList(Array.isArray(data) ? data : []);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Services fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -312,7 +312,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setWhatsappSettingsData(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('WhatsApp settings fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -329,7 +329,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setSiteContentData(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Site content fetch note:', (e as any)?.message || e);
     }
   };
 
@@ -346,7 +346,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setAuditLogsList(data);
       }
     } catch (e) {
-      console.error(e);
+      console.warn('Audit logs fetch note:', (e as any)?.message || e);
     }
   };
 
