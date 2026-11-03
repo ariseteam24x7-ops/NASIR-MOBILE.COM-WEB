@@ -433,12 +433,36 @@ async function startServer() {
 
     let allMerged = Array.from(productMap.values());
 
-    // Resolve category and brand names and slugs cleanly
+    // Resolve category and brand names and slugs cleanly, and normalize images
     allMerged = allMerged.map((p) => {
       const cat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === p.categoryId || c.slug === p.categorySlug);
       const br = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === p.brandId || b.slug === p.brandSlug);
+
+      let safeImages: string[] = [];
+      if (Array.isArray(p.images)) {
+        safeImages = p.images
+          .map((img: any) => (typeof img === 'string' ? img : (img?.url || img?.src || '')))
+          .filter(Boolean);
+      } else if (typeof p.images === 'string') {
+        try {
+          const parsed = JSON.parse(p.images);
+          if (Array.isArray(parsed)) {
+            safeImages = parsed
+              .map((img: any) => (typeof img === 'string' ? img : (img?.url || img?.src || '')))
+              .filter(Boolean);
+          } else if (p.images.trim()) {
+            safeImages = [p.images.trim()];
+          }
+        } catch {
+          if (p.images.trim()) {
+            safeImages = [p.images.trim()];
+          }
+        }
+      }
+
       return {
         ...p,
+        images: safeImages,
         categoryNameEn: p.categoryNameEn || cat?.nameEn || 'General',
         categoryNameAr: p.categoryNameAr || cat?.nameAr || 'عام',
         categorySlug: p.categorySlug || cat?.slug || 'mobile-phones',
@@ -1822,14 +1846,18 @@ async function startServer() {
         };
         if (!updatedProd) updatedProd = customProducts[idx];
         persistDataStore();
-      } else if (!updatedProd) {
-        updatedProd = {
-          id,
-          sku: (sku || `SKU-${id}`).toUpperCase(),
-          nameEn: nameEn || 'Product',
-          nameAr: nameAr || nameEn || 'Product',
-          updatedAt: new Date().toISOString(),
-        };
+      } else {
+        if (!updatedProd) {
+          updatedProd = {
+            id,
+            sku: (sku || `SKU-${id}`).toUpperCase(),
+            nameEn: nameEn || 'Product',
+            nameAr: nameAr || nameEn || 'Product',
+            updatedAt: new Date().toISOString(),
+          };
+        }
+        customProducts.unshift(updatedProd);
+        persistDataStore();
       }
 
       await logAudit(
@@ -2285,7 +2313,7 @@ async function startServer() {
       const safeMime = mimeType || 'image/jpeg';
       const ext = safeMime.includes('png') ? 'png' : safeMime.includes('webp') ? 'webp' : 'jpg';
       const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+      const diskFileName = `product_${uniqueToken}.${ext}`;
       const diskFilePath = path.join(UPLOADS_DIR, diskFileName);
 
       // Decode base64 buffer safely
@@ -2343,7 +2371,7 @@ async function startServer() {
     }
   });
 
-  // Admin: Upload Multiple Images in Batch (with 1080x1080 persistent disk storage)
+  // Admin: Upload Multiple Images in Batch (with persistent disk storage & natural dimensions)
   app.post('/api/admin/upload-images', requireAuth, async (req: AuthRequest, res) => {
     try {
       const { items } = req.body;
@@ -2357,7 +2385,7 @@ async function startServer() {
         const safeMime = item.mimeType || 'image/jpeg';
         const ext = safeMime.includes('png') ? 'png' : safeMime.includes('webp') ? 'webp' : 'jpg';
         const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+        const diskFileName = `product_${uniqueToken}.${ext}`;
         const diskFilePath = path.join(UPLOADS_DIR, diskFileName);
 
         // Decode base64 buffer safely

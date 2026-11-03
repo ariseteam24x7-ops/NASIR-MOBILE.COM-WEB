@@ -1,6 +1,7 @@
 /**
- * Nasir Mobile Dubai - High-Fidelity Image Processing Service
- * Automatically resizes and optimizes any uploaded product image to 1080 x 1080 square resolution.
+ * Nasir Mobile Dubai - Natural High-Fidelity Image Processing Service
+ * Preserves native photo dimensions, transparent PNG alpha channels, and natural aspect ratios.
+ * Restores original image behavior without forcing 1080x1080 square boxes or dark letterboxing.
  */
 
 export interface ProcessedImageResult {
@@ -12,15 +13,14 @@ export interface ProcessedImageResult {
 }
 
 /**
- * Resizes, formats, and centers an image onto an exact 1080 x 1080 canvas.
- * - Fits any rectangular, horizontal, or vertical photo
- * - Centers the device with clean studio dark padding (#151419)
- * - Applies high-resolution bicubic interpolation
- * - Exports as high-definition JPEG
+ * Optimizes an uploaded image while preserving its natural aspect ratio, resolution, and transparency.
+ * - Retains original dimensions up to max 1920px (downscaled proportionally if massive)
+ * - Preserves PNG transparency (no artificial black borders or background fills)
+ * - Retains original aspect ratio without distortion
  */
-export const processImageTo1080x1080 = (
+export const processProductImage = (
   file: File,
-  fitMode: 'contain' | 'cover' = 'contain'
+  _fitMode: 'contain' | 'cover' = 'contain'
 ): Promise<ProcessedImageResult> => {
   return new Promise((resolve, reject) => {
     // Validate file type
@@ -36,10 +36,27 @@ export const processImageTo1080x1080 = (
         reject(new Error(`Could not decode image "${file.name}". Please ensure it is a valid PNG, JPG, or WebP.`));
       img.onload = () => {
         try {
-          const TARGET_DIMENSION = 1080;
+          const naturalW = img.naturalWidth || img.width;
+          const naturalH = img.naturalHeight || img.height;
+
+          // Cap maximum dimension at 1920px for crisp high-resolution without memory blowup
+          const MAX_DIMENSION = 1920;
+          let targetW = naturalW;
+          let targetH = naturalH;
+
+          if (naturalW > MAX_DIMENSION || naturalH > MAX_DIMENSION) {
+            if (naturalW > naturalH) {
+              targetW = MAX_DIMENSION;
+              targetH = Math.round((naturalH * MAX_DIMENSION) / naturalW);
+            } else {
+              targetH = MAX_DIMENSION;
+              targetW = Math.round((naturalW * MAX_DIMENSION) / naturalH);
+            }
+          }
+
           const canvas = document.createElement('canvas');
-          canvas.width = TARGET_DIMENSION;
-          canvas.height = TARGET_DIMENSION;
+          canvas.width = targetW;
+          canvas.height = targetH;
           const ctx = canvas.getContext('2d');
           if (!ctx) {
             return reject(new Error('HTML5 Canvas context is unavailable.'));
@@ -49,51 +66,35 @@ export const processImageTo1080x1080 = (
           ctx.imageSmoothingEnabled = true;
           ctx.imageSmoothingQuality = 'high';
 
-          // Fill canvas with deep studio dark background (#151419) matching the store aesthetic
-          ctx.fillStyle = '#151419';
-          ctx.fillRect(0, 0, TARGET_DIMENSION, TARGET_DIMENSION);
+          const isPng = file.type.includes('png');
+          const isWebp = file.type.includes('webp');
 
-          const srcW = img.naturalWidth || img.width;
-          const srcH = img.naturalHeight || img.height;
-
-          let drawW: number;
-          let drawH: number;
-          let drawX: number;
-          let drawY: number;
-
-          if (fitMode === 'cover') {
-            // Fill entire 1080x1080 square
-            const scale = Math.max(TARGET_DIMENSION / srcW, TARGET_DIMENSION / srcH);
-            drawW = srcW * scale;
-            drawH = srcH * scale;
-            drawX = (TARGET_DIMENSION - drawW) / 2;
-            drawY = (TARGET_DIMENSION - drawH) / 2;
-          } else {
-            // 'contain' (Recommended: entire hardware device is 100% visible without clipping)
-            // Apply slight 95% margin so edges don't touch boundaries
-            const marginScale = 0.95;
-            const scale = Math.min((TARGET_DIMENSION * marginScale) / srcW, (TARGET_DIMENSION * marginScale) / srcH);
-            drawW = srcW * scale;
-            drawH = srcH * scale;
-            drawX = (TARGET_DIMENSION - drawW) / 2;
-            drawY = (TARGET_DIMENSION - drawH) / 2;
+          // For PNG and WebP, keep transparent background intact (do NOT fill with dark color)
+          // For JPEG, fill transparent areas with clean white or transparent
+          if (!isPng && !isWebp) {
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetW, targetH);
           }
 
-          ctx.drawImage(img, drawX, drawY, drawW, drawH);
+          ctx.drawImage(img, 0, 0, targetW, targetH);
 
-          // Export as high quality JPEG (92% quality gives crisp detail and optimal loading)
-          const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+          // Export with appropriate MIME type
+          let outMime = isPng ? 'image/png' : isWebp ? 'image/webp' : 'image/jpeg';
+          let outExt = isPng ? 'png' : isWebp ? 'webp' : 'jpg';
+          const dataUrl = canvas.toDataURL(outMime, isPng ? undefined : 0.92);
+
           const safeName = file.name
             .replace(/\.[^/.]+$/, '')
-            .replace(/[^a-zA-Z0-9_-]/g, '_');
-          const outFileName = `nasir_${safeName}_1080x1080_${Date.now()}.jpg`;
+            .replace(/[^a-zA-Z0-9_-]/g, '_')
+            .slice(0, 40);
+          const outFileName = `product_${safeName}_${Date.now()}.${outExt}`;
 
           resolve({
             fileName: outFileName,
-            mimeType: 'image/jpeg',
+            mimeType: outMime,
             data: dataUrl,
-            width: TARGET_DIMENSION,
-            height: TARGET_DIMENSION,
+            width: targetW,
+            height: targetH,
           });
         } catch (err: any) {
           reject(new Error(`Failed to process image: ${err?.message || err}`));
@@ -104,3 +105,6 @@ export const processImageTo1080x1080 = (
     reader.readAsDataURL(file);
   });
 };
+
+// Backward-compatible alias
+export const processImageTo1080x1080 = processProductImage;

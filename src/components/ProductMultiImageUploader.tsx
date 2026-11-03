@@ -90,7 +90,7 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
         const newUrls = (data.images || []).map((img: any) => img.url);
         onChange([...images, ...newUrls]);
         setUploadProgress(null);
-        setUploadSuccess(`Successfully uploaded ${newUrls.length} images formatted to 1080 × 1080!`);
+        setUploadSuccess(`Successfully uploaded ${newUrls.length} image(s) with original dimensions preserved!`);
         setTimeout(() => setUploadSuccess(null), 4000);
         return;
       }
@@ -113,7 +113,7 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
 
       onChange([...images, ...uploadedUrls]);
       setUploadProgress(null);
-      setUploadSuccess(`Uploaded ${uploadedUrls.length} images formatted to 1080 × 1080!`);
+      setUploadSuccess(`Uploaded ${uploadedUrls.length} image(s) with original dimensions preserved!`);
       setTimeout(() => setUploadSuccess(null), 4000);
     } catch (err: any) {
       setUploadProgress(null);
@@ -333,10 +333,10 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
           <div className="flex flex-wrap items-center justify-center gap-2 mt-1.5">
             <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-[#B7F34B]/15 text-[#B7F34B] border border-[#B7F34B]/30 text-[10px] font-black uppercase tracking-wider">
               <Sparkles className="w-3 h-3" />
-              Auto-Framed to 1080 × 1080 HD
+              High-Resolution Quality
             </span>
             <span className="text-[10px] text-zinc-400">
-              Any photo dimension automatically centered & resized to 1080x1080 square
+              Preserves natural photo dimensions, alpha transparency & aspect ratio
             </span>
           </div>
         </div>

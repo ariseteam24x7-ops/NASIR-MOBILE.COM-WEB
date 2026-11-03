@@ -192,8 +192,11 @@ function StoreApp() {
   };
 
   useEffect(() => {
-    fetchProductsCatalogue();
+    if (currentView === 'store') {
+      fetchProductsCatalogue();
+    }
   }, [
+    currentView,
     selectedCategorySlug,
     selectedBrandSlug,
     selectedCondition,
@@ -436,6 +439,7 @@ function StoreApp() {
         onBackToStore={() => {
           window.location.hash = '';
           setCurrentView('store');
+          fetchProductsCatalogue();
         }}
       />
     );
@@ -450,6 +454,7 @@ function StoreApp() {
           onBackToStore={() => {
             window.location.hash = '';
             setCurrentView('store');
+            fetchProductsCatalogue();
           }}
         />
       );
@@ -462,6 +467,7 @@ function StoreApp() {
         onViewPublicSite={() => {
           window.location.hash = '';
           setCurrentView('store');
+          fetchProductsCatalogue();
         }}
       />
     );

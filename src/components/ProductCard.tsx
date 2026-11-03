@@ -54,11 +54,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({
     }
   };
 
-  const primaryImage = product.images && product.images.length > 0 ? product.images[0] : null;
+  // Resilient primary image extractor
+  let primaryImage: string | null = null;
+  if (Array.isArray(product.images) && product.images.length > 0) {
+    const first = product.images[0];
+    primaryImage = typeof first === 'string' ? first : (first as any)?.url || (first as any)?.src || null;
+  } else if (typeof product.images === 'string') {
+    try {
+      const parsed = JSON.parse(product.images);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const first = parsed[0];
+        primaryImage = typeof first === 'string' ? first : (first as any)?.url || (first as any)?.src || null;
+      } else if ((product.images as string).trim()) {
+        primaryImage = (product.images as string).trim();
+      }
+    } catch {
+      if ((product.images as string).trim()) {
+        primaryImage = (product.images as string).trim();
+      }
+    }
+  }
 
   const fitModeSpec = product.specifications?.find((s) => s.keyEn === '_imageFitMode')?.valueEn;
   const isCover = fitModeSpec === 'cover';
-  const imageCount = product.images?.length || 0;
+  const imageCount = Array.isArray(product.images) ? product.images.length : (primaryImage ? 1 : 0);
 
   return (
     <motion.div

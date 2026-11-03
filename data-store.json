@@ -118,6 +118,13 @@
       "name": "TP - LINK",
       "logoUrl": "/api/images/50001",
       "createdAt": "2026-10-28T07:39:22.344Z"
+    },
+    {
+      "id": 18,
+      "slug": "harman-kardon",
+      "name": "Harman Kardon",
+      "logoUrl": "",
+      "createdAt": "2026-10-31T15:33:34.113Z"
     }
   ],
   "categories": [
@@ -1027,15 +1034,9 @@
       "condition": "New",
       "categoryId": 3,
       "brandId": 1,
-      "categoryNameEn": "Accessories",
-      "categoryNameAr": "الإكسسوارات",
-      "categorySlug": "accessories",
-      "brandName": "Apple",
-      "brandSlug": "apple",
       "isFeatured": true,
       "isNewArrival": true,
       "status": "published",
-      "stockQuantity": 25,
       "specifications": [
         {
           "keyEn": "Compatibility",
@@ -1082,7 +1083,17 @@
       "images": [
         "https://images.unsplash.com/photo-1603539279542-e925916a048d?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:00:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:00:00.000Z",
+      "updatedAt": "2026-10-29T18:35:10.979Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple"
     },
     {
       "id": 19,
@@ -1095,15 +1106,9 @@
       "condition": "New",
       "categoryId": 3,
       "brandId": 1,
-      "categoryNameEn": "Accessories",
-      "categoryNameAr": "الإكسسوارات",
-      "categorySlug": "accessories",
-      "brandName": "Apple",
-      "brandSlug": "apple",
       "isFeatured": false,
       "isNewArrival": true,
       "status": "published",
-      "stockQuantity": 15,
       "specifications": [
         {
           "keyEn": "Material",
@@ -1137,7 +1142,17 @@
       "images": [
         "https://images.unsplash.com/photo-1584438784894-089d6a62b8fa?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:05:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 15,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:05:00.000Z",
+      "updatedAt": "2026-10-29T18:35:10.986Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple"
     },
     {
       "id": 20,
@@ -1150,15 +1165,9 @@
       "condition": "New",
       "categoryId": 3,
       "brandId": 1,
-      "categoryNameEn": "Accessories",
-      "categoryNameAr": "الإكسسوارات",
-      "categorySlug": "accessories",
-      "brandName": "Apple",
-      "brandSlug": "apple",
       "isFeatured": false,
       "isNewArrival": false,
       "status": "published",
-      "stockQuantity": 20,
       "specifications": [
         {
           "keyEn": "Anti-Yellowing",
@@ -1179,7 +1188,17 @@
       "images": [
         "https://images.unsplash.com/photo-1601784551446-20c9e07cdbdb?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:10:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:10:00.000Z",
+      "updatedAt": "2026-10-29T18:35:10.992Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple"
     },
     {
       "id": 21,
@@ -1192,15 +1211,9 @@
       "condition": "New",
       "categoryId": 3,
       "brandId": 1,
-      "categoryNameEn": "Accessories",
-      "categoryNameAr": "الإكسسوارات",
-      "categorySlug": "accessories",
-      "brandName": "Apple",
-      "brandSlug": "apple",
       "isFeatured": false,
       "isNewArrival": false,
       "status": "published",
-      "stockQuantity": 30,
       "specifications": [
         {
           "keyEn": "Drop Rating",
@@ -1234,7 +1247,17 @@
       "images": [
         "https://images.unsplash.com/photo-1541877590-a15d2a9f7336?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:15:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 30,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:15:00.000Z",
+      "updatedAt": "2026-10-29T18:35:10.997Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple"
     },
     {
       "id": 22,
@@ -1247,15 +1270,9 @@
       "condition": "New",
       "categoryId": 3,
       "brandId": 1,
-      "categoryNameEn": "Accessories",
-      "categoryNameAr": "الإكسسوارات",
-      "categorySlug": "accessories",
-      "brandName": "Apple",
-      "brandSlug": "apple",
       "isFeatured": true,
       "isNewArrival": true,
       "status": "published",
-      "stockQuantity": 18,
       "specifications": [
         {
           "keyEn": "Stand Angle",
@@ -1289,7 +1306,17 @@
       "images": [
         "https://images.unsplash.com/photo-1510557880182-3d4d3cba35a5?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:20:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 18,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:20:00.000Z",
+      "updatedAt": "2026-10-29T18:35:11.003Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Apple",
+      "brandSlug": "apple"
     },
     {
       "id": 23,
@@ -1302,15 +1329,9 @@
       "condition": "New",
       "categoryId": 4,
       "brandId": 7,
-      "categoryNameEn": "Chargers & Cables",
-      "categoryNameAr": "الشواحن والكابلات",
-      "categorySlug": "chargers-cables",
-      "brandName": "Anker",
-      "brandSlug": "anker",
       "isFeatured": true,
       "isNewArrival": true,
       "status": "published",
-      "stockQuantity": 16,
       "specifications": [
         {
           "keyEn": "Total Output",
@@ -1337,7 +1358,17 @@
       "images": [
         "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:25:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 16,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:25:00.000Z",
+      "updatedAt": "2026-10-29T18:35:11.008Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
     },
     {
       "id": 24,
@@ -1350,15 +1381,9 @@
       "condition": "New",
       "categoryId": 4,
       "brandId": 7,
-      "categoryNameEn": "Chargers & Cables",
-      "categoryNameAr": "الشواحن والكابلات",
-      "categorySlug": "chargers-cables",
-      "brandName": "Anker",
-      "brandSlug": "anker",
       "isFeatured": true,
       "isNewArrival": true,
       "status": "published",
-      "stockQuantity": 14,
       "specifications": [
         {
           "keyEn": "Wireless Speed",
@@ -1392,7 +1417,17 @@
       "images": [
         "https://images.unsplash.com/photo-1622445268045-81d33c84d728?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:30:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 14,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:30:00.000Z",
+      "updatedAt": "2026-10-29T18:35:11.013Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
     },
     {
       "id": 25,
@@ -1405,15 +1440,9 @@
       "condition": "New",
       "categoryId": 5,
       "brandId": 7,
-      "categoryNameEn": "Earbuds & Audio",
-      "categoryNameAr": "سماعات الأذن والصوتيات",
-      "categorySlug": "earbuds-audio",
-      "brandName": "Anker",
-      "brandSlug": "anker",
       "isFeatured": false,
       "isNewArrival": true,
       "status": "published",
-      "stockQuantity": 20,
       "specifications": [
         {
           "keyEn": "Noise Reduction",
@@ -1447,7 +1476,17 @@
       "images": [
         "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:35:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:35:00.000Z",
+      "updatedAt": "2026-10-29T18:35:11.018Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "Anker",
+      "brandSlug": "anker"
     },
     {
       "id": 26,
@@ -1460,15 +1499,9 @@
       "condition": "New",
       "categoryId": 4,
       "brandId": 7,
-      "categoryNameEn": "Chargers & Cables",
-      "categoryNameAr": "الشواحن والكابلات",
-      "categorySlug": "chargers-cables",
-      "brandName": "Anker",
-      "brandSlug": "anker",
       "isFeatured": false,
       "isNewArrival": false,
       "status": "published",
-      "stockQuantity": 40,
       "specifications": [
         {
           "keyEn": "Max Wattage",
@@ -1502,7 +1535,17 @@
       "images": [
         "https://images.unsplash.com/photo-1583863788434-e58a36330cf0?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:40:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 40,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:40:00.000Z",
+      "updatedAt": "2026-10-29T18:35:11.023Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
     },
     {
       "id": 27,
@@ -1515,15 +1558,9 @@
       "condition": "New",
       "categoryId": 4,
       "brandId": 7,
-      "categoryNameEn": "Chargers & Cables",
-      "categoryNameAr": "الشواحن والكابلات",
-      "categorySlug": "chargers-cables",
-      "brandName": "Anker",
-      "brandSlug": "anker",
       "isFeatured": false,
       "isNewArrival": false,
       "status": "published",
-      "stockQuantity": 25,
       "specifications": [
         {
           "keyEn": "Output",
@@ -1550,11 +1587,2481 @@
       "images": [
         "https://images.unsplash.com/photo-1609592424367-e9a03e3aeb5c?w=800&auto=format&fit=crop&q=80"
       ],
-      "createdAt": "2026-10-29T10:45:00.000Z"
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-29T10:45:00.000Z",
+      "updatedAt": "2026-10-29T18:35:11.028Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 28,
+      "slug": "jbl-charge-5-waterproof-speaker",
+      "sku": "JBL-CHG5-WTR",
+      "nameEn": "JBL Charge 5 Portable Waterproof Bluetooth Speaker",
+      "nameAr": "مكبر صوت بلوتوث محمول مقاوم للماء JBL Charge 5",
+      "descriptionEn": "Take the party with you no matter what the weather. The JBL Charge 5 speaker delivers bold JBL Original Pro Sound, with an optimized long excursion driver, separate tweeter and dual JBL bass radiators. Up to 20 hours of playtime and a handy built-in powerbank.",
+      "descriptionAr": "اصطحب الموسيقى معك في كل مكان وفي أي طقس. يمنحك JBL Charge 5 صوتاً نقياً وقوياً مع مضخم صوت متطور ومكبر ترددات عالية منفصل ومشعاعي صوت جهير. بطارية تدوم حتى 20 ساعة مع ميزة بنك الطاقة المدمج.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "قوة الإخراج",
+          "keyEn": "Output Power",
+          "valueAr": "مضخم 30 واط + تريبل 10 واط",
+          "valueEn": "30W RMS Woofer + 10W RMS Tweeter"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 20 ساعة + ميزة شحن الهواتف",
+          "valueEn": "Up to 20 Hours + Built-in Powerbank"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Waterproof Rating",
+          "valueAr": "معيار IP67 مقاوم للماء والغبار",
+          "valueEn": "IP67 Waterproof and Dustproof"
+        },
+        {
+          "keyAr": "الاتصال",
+          "keyEn": "Connectivity",
+          "valueAr": "بلوتوث 5.1 مع تقنية بارتي بوست",
+          "valueEn": "Bluetooth 5.1 & JBL PartyBoost"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Squad Camouflage",
+          "price": 335,
+          "isDefault": true,
+          "originalPrice": 389,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Midnight Black",
+          "price": 335,
+          "isDefault": false,
+          "originalPrice": 389,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Deep Ocean Blue",
+          "price": 335,
+          "isDefault": false,
+          "originalPrice": 389,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_charge_5_1793460501717.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 30,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.212Z",
+      "updatedAt": "2026-10-31T15:33:34.212Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 29,
+      "slug": "jbl-partybox-110-portable-speaker",
+      "sku": "JBL-PB110-160W",
+      "nameEn": "JBL PartyBox 110 Portable Party Speaker with Dynamic Light Show",
+      "nameAr": "مكبر صوت متنقل للحفلات JBL PartyBox 110 مع إضاءة ديناميكية",
+      "descriptionEn": "Bring a whole new dimension to any party with the unique dynamic LED lights, synced to the powerful sound and deep bass of the PartyBox 110. 160W RMS output, splashproof IPX4 design, and 12-hour battery life.",
+      "descriptionAr": "أضف أبعاداً ساحرة لحفلاتك مع مكبر الصوت JBL PartyBox 110 بقوة 160 واط مع إضاءة حركية LED متزامنة مع الإيقاع، ومقاومة لرذاذ الماء IPX4 وبطارية تدوم 12 ساعة.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الصوتية",
+          "keyEn": "Power Output",
+          "valueAr": "160 واط صوت احترافي نقي",
+          "valueEn": "160W RMS Powerful JBL Pro Sound"
+        },
+        {
+          "keyAr": "المؤثرات الضوئية",
+          "keyEn": "Dynamic Lights",
+          "valueAr": "حلقات إضاءة LED تفاعلية مع الإيقاع",
+          "valueEn": "Synchronized dynamic LED rings & strobes"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 12 ساعة تشغيل مستمر",
+          "valueEn": "Up to 12 Hours Rechargeable Battery"
+        },
+        {
+          "keyAr": "المداخل",
+          "keyEn": "Inputs",
+          "valueAr": "مدخل مايك وجيتار مع تحكم بالصوت",
+          "valueEn": "Mic and Guitar inputs with volume gain"
+        }
+      ],
+      "variants": [
+        {
+          "name": "PartyBox 110 Black (160W)",
+          "price": 800,
+          "isDefault": true,
+          "originalPrice": 950,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_partybox_110_1793460517128.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 15,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.219Z",
+      "updatedAt": "2026-10-31T15:33:34.219Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 30,
+      "slug": "jbl-boombox-3-portable-speaker",
+      "sku": "JBL-BMBX3-BLK",
+      "nameEn": "JBL Boombox 3 Massive Portable Bluetooth Speaker",
+      "nameAr": "مكبر صوت بلوتوث عملاق JBL Boombox 3 بقوة صوت جبارة",
+      "descriptionEn": "We updated the iconic silhouette of the JBL Boombox 3 with a bold new update featuring a sturdy metal handle with silicone grips, twin sidecaps and signature waterproof and dustproof fabric. Enjoy monstrous 3-way JBL Original Pro sound with 24 hours of non-stop battery life.",
+      "descriptionAr": "التصميم الأيقوني المحدث لمكبر الصوت JBL Boombox 3 مع مقبض معدني متين ومسكات سيليكون، وصوت ثلاثي الاتجاهات هائل وبطارية تدوم 24 ساعة متواصلة مع مقاومة تامة للماء والغبار IP67.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "النظام الصوتي",
+          "keyEn": "Acoustic Setup",
+          "valueAr": "نظام ثلاثي الاتجاهات لمضخم الصوت والتريبل",
+          "valueEn": "3-way speaker system (Subwoofer + 2 Midrange + 2 Tweeters)"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 24 ساعة مع شاحن بنك طاقة مدمج",
+          "valueEn": "Up to 24 Hours with Built-in Powerbank"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Waterproof",
+          "valueAr": "مقاوم للماء والغبار بمعيار IP67",
+          "valueEn": "IP67 Dust and Waterproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Signature Black",
+          "price": 990,
+          "isDefault": true,
+          "originalPrice": 1199,
+          "stockQuantity": 6
+        },
+        {
+          "name": "Squad Camo",
+          "price": 990,
+          "isDefault": false,
+          "originalPrice": 1199,
+          "stockQuantity": 6
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_boombox_3_1793460532693.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 12,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.222Z",
+      "updatedAt": "2026-10-31T15:33:34.222Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 55,
+      "slug": "jbl-wireless-uhf-mic-300",
+      "sku": "JBL-UHF-MIC300",
+      "nameEn": "JBL Wireless UHF Mic 300 Handheld Microphone System",
+      "nameAr": "طقم ميكروفون لاسلكي احترافي بنظام UHF عالي التردد JBL UHF 300",
+      "descriptionEn": "Sing with freedom and clarity. The JBL Wireless UHF Mic 300 system provides rock-solid wireless stability, pristine vocal reproduction with cardioid pattern, zero lag, and rechargeable receiver compatible with any party speaker or PA system.",
+      "descriptionAr": "ميكروفون لاسلكي بترددات UHF عالية الثبات، وصوت غنائي نقي مع استجابة فورية بدون تأخير ومستقبل لاسلكي قابل للشحن.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 8,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "التردد",
+          "keyEn": "Frequency",
+          "valueAr": "قناة لاسلكية عالية الاستقرار UHF",
+          "valueEn": "UHF High-Stability Wireless Channel"
+        },
+        {
+          "keyAr": "المدى",
+          "keyEn": "Range",
+          "valueAr": "مدى اتصال مستقر حتى 30 متراً",
+          "valueEn": "Up to 30 Meters Stable Range"
+        },
+        {
+          "keyAr": "التوافق",
+          "keyEn": "Compatibility",
+          "valueAr": "منفذ 6.35 ملم قياسي للسماعات ومكبرات الصوت",
+          "valueEn": "Standard 6.35mm jack fits PartyBox and amps"
+        }
+      ],
+      "variants": [
+        {
+          "name": "UHF Mic 300 Kit",
+          "price": 235,
+          "isDefault": true,
+          "originalPrice": 290,
+          "stockQuantity": 25
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.155Z",
+      "updatedAt": "2026-10-31T16:13:43.155Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 31,
+      "slug": "jbl-bar-500-mk2-dolby-atmos-soundbar",
+      "sku": "JBL-BAR500-MK2",
+      "nameEn": "JBL Bar 500 MK2 Dolby Atmos Soundbar with Wireless Subwoofer",
+      "nameAr": "ساوند بار سينمائي JBL Bar 500 MK2 مع صب ووفر لاسلكي ودولبي أتموس",
+      "descriptionEn": "Transform movie nights and music listening with 590 watts of total system power and a 10\" down-firing wireless subwoofer. MultiBeam technology and Dolby Atmos 3D surround sound create an immersive cinematic stage without extra surround speakers.",
+      "descriptionAr": "حول غرفة المعيشة إلى صالة سينما مع ساوند بار JBL Bar 500 MK2 بقوة 590 واط ومضخم صوت لاسلكي 10 إنش بتقنية دولبي أتموس وتقنية MultiBeam لتجربة صوت محيطي ثلاثي الأبعاد.",
+      "condition": "New",
+      "categoryId": 10,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الكلية",
+          "keyEn": "Total Power",
+          "valueAr": "590 واط قدرة صوت سينمائية",
+          "valueEn": "590W RMS Cinematic Output"
+        },
+        {
+          "keyAr": "مضخم الصوت",
+          "keyEn": "Subwoofer",
+          "valueAr": "صب ووفر لاسلكي مقاس 10 بوصة",
+          "valueEn": "10-inch Wireless Down-Firing Subwoofer"
+        },
+        {
+          "keyAr": "التقنيات الصوتية",
+          "keyEn": "Sound Technology",
+          "valueAr": "دولبي أتموس وتقنية MultiBeam",
+          "valueEn": "Dolby Atmos 3D & MultiBeam Surround"
+        },
+        {
+          "keyAr": "التوصيل الذكي",
+          "keyEn": "Smart Connectivity",
+          "valueAr": "واي فاي، إيربلاي، كروم كاست، ومنفذ HDMI eARC",
+          "valueEn": "AirPlay, Alexa MRM, Chromecast built-in, Wi-Fi & HDMI eARC"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Bar 500 MK2 System (590W)",
+          "price": 1360,
+          "isDefault": true,
+          "originalPrice": 1599,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_bar_500_1793460574890.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 10,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.225Z",
+      "updatedAt": "2026-10-31T15:33:34.225Z",
+      "categoryNameEn": "Smart Audio",
+      "categoryNameAr": "الصوتيات الذكية",
+      "categorySlug": "smart-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 32,
+      "slug": "harman-kardon-onyx-studio-9-wireless-speaker",
+      "sku": "HK-ONYX9-BLK",
+      "nameEn": "Harman Kardon Onyx Studio 9 Premium Bluetooth Speaker",
+      "nameAr": "مكبر صوت بلوتوث فاخر هارمان كاردون أونيكس ستوديو 9",
+      "descriptionEn": "The Harman Kardon Onyx Studio 9 pairs artful circular design with exceptional acoustic fidelity. Crafted with premium sustainable materials, an integrated aluminum carrying handle, and dual tweeters that create a wide, detailed stereo soundscape with self-tuning room calibration.",
+      "descriptionAr": "يجمع مكبر الصوت هارمان كاردون أونيكس ستوديو 9 بين التصميم الدائري الفني الفاخر والأداء الصوتي فائق النقاء. مصنوع من مواد مستدامة ومقبض ألومنيوم مدمج، مع صوت ستيريو متكامل ومعايرة صوتية ذاتية.",
+      "condition": "New",
+      "categoryId": 10,
+      "brandId": 18,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المحولات الصوتية",
+          "keyEn": "Transducers",
+          "valueAr": "ووفر 120 ملم + تويتر مزدوج 20 ملم",
+          "valueEn": "1x 120mm Woofer + 2x 20mm Tweeters"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 8 ساعات تشغيل مستمر",
+          "valueEn": "Up to 8 Hours Playtime"
+        },
+        {
+          "keyAr": "الميزات",
+          "keyEn": "Features",
+          "valueAr": "معايرة تلقائية لبيئة الغرفة وصوت مزدوج",
+          "valueEn": "Auto Room Calibration & Wireless Dual Sound"
+        },
+        {
+          "keyAr": "التصميم",
+          "keyEn": "Design",
+          "valueAr": "تصميم دائري أيقوني مع مقبض ألومنيوم مؤكسد",
+          "valueEn": "Signature circular silhouette with anodized aluminum handle"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Charcoal Black",
+          "price": 490,
+          "isDefault": true,
+          "originalPrice": 599,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Pearl Gray",
+          "price": 490,
+          "isDefault": false,
+          "originalPrice": 599,
+          "stockQuantity": 8
+        }
+      ],
+      "images": [
+        "/src/assets/images/harman_onyx_9_1793460588892.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 18,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.229Z",
+      "updatedAt": "2026-10-31T15:33:34.229Z",
+      "categoryNameEn": "Smart Audio",
+      "categoryNameAr": "الصوتيات الذكية",
+      "categorySlug": "smart-audio",
+      "brandName": "Harman Kardon",
+      "brandSlug": "harman-kardon"
+    },
+    {
+      "id": 33,
+      "slug": "jbl-live-770nc-wireless-headphones",
+      "sku": "JBL-LIVE770NC",
+      "nameEn": "JBL Live 770NC Wireless Adaptive Noise-Cancelling Headphones",
+      "nameAr": "سماعات رأس لاسلكية JBL Live 770NC مع إلغاء الضوضاء التكيفي",
+      "descriptionEn": "Immerse yourself in JBL Signature Sound with True Adaptive Noise Cancelling and Smart Ambient technology. Up to 65 hours of battery life (50h with ANC on), speed charge (5 mins = 4 hours), Personi-Fi 2.0 sound personalization, and seamless multi-point Bluetooth 5.3 connectivity.",
+      "descriptionAr": "انغمس في نقاء الصوت مع سماعات الرأس JBL Live 770NC بتقنية إلغاء الضوضاء التكيفية الحقيقية وتقنية الصوت المحيطي الذكي. بطارية أسطورية تدوم حتى 65 ساعة، وشحن سريع (5 دقائق تمنحك 4 ساعات) ودعم بلوتوث 5.3 متعدد النقاط.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "عزل الضوضاء",
+          "keyEn": "Noise Cancellation",
+          "valueAr": "إلغاء ضوضاء تكيفي حقيقي مع تقنية الصوت المحيطي",
+          "valueEn": "True Adaptive Noise Cancelling with Smart Ambient"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 65 ساعة (50 ساعة مع تشغيل العزل)",
+          "valueEn": "Up to 65 Hours (50 Hours with ANC on)"
+        },
+        {
+          "keyAr": "الشحن السريع",
+          "keyEn": "Fast Charging",
+          "valueAr": "شحن 5 دقائق يمنح 4 ساعات تشغيل",
+          "valueEn": "5-minute speed charge provides 4 hours playback"
+        },
+        {
+          "keyAr": "حجم المكبر",
+          "keyEn": "Drivers",
+          "valueAr": "مشغلات ديناميكية 40 ملم وصوت مكاني",
+          "valueEn": "40mm Dynamic Drivers with JBL Spatial Sound"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Matte Black",
+          "price": 295,
+          "isDefault": true,
+          "originalPrice": 360,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Desert Sand",
+          "price": 295,
+          "isDefault": false,
+          "originalPrice": 360,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_live_770nc_1793460604696.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.233Z",
+      "updatedAt": "2026-10-31T15:33:34.233Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 34,
+      "slug": "jbl-live-pro-2-tws-earbuds",
+      "sku": "JBL-LIVEPRO2-TWS",
+      "nameEn": "JBL Live Pro 2 True Wireless Noise-Cancelling Earbuds",
+      "nameAr": "سماعات أذن لاسلكية بالكامل JBL Live Pro 2 مع عزل الضوضاء التكيفي",
+      "descriptionEn": "Stay in the groove all day long with stylish companions for work and play. JBL Live Pro 2 earbuds deliver up to 40 hours of incredible JBL Signature Sound (10h in buds + 30h in case), True Adaptive Noise Cancelling, and 6 microphones for crystal-clear phone calls.",
+      "descriptionAr": "استمتع بصوت نقي طوال اليوم مع سماعات JBL Live Pro 2 اللاسلكية. بطارية تدوم حتى 40 ساعة (10 ساعات بالسماعة + 30 ساعة بالعلبة)، مع عزل ضوضاء متكيف، و6 ميكروفونات للمكالمات فائقة الوضوح، ودعم الشحن اللاسلكي السريع.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "العزل والمحيط",
+          "keyEn": "ANC & Ambient",
+          "valueAr": "عزل تكيفي ذكي وميزة الاستماع للبيئة",
+          "valueEn": "True Adaptive Noise Cancelling & Smart Ambient"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 40 ساعة مع دعم الشحن اللاسلكي Qi",
+          "valueEn": "Up to 40 Hours (10h buds + 30h case) + Qi Wireless"
+        },
+        {
+          "keyAr": "الميكروفونات",
+          "keyEn": "Microphones",
+          "valueAr": "6 ميكروفونات مع تقنية ضبط نقاء الصوت",
+          "valueEn": "6 Beamforming Mics with VoiceAware"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Water Resistance",
+          "valueAr": "مقاومة للرذاذ والعرق بمعيار IPX5",
+          "valueEn": "IPX5 Water Resistant"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Metallic Silver",
+          "price": 360,
+          "isDefault": true,
+          "originalPrice": 420,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Midnight Black",
+          "price": 360,
+          "isDefault": false,
+          "originalPrice": 420,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_live_pro_2_1793460621732.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.236Z",
+      "updatedAt": "2026-10-31T15:33:34.236Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 35,
+      "slug": "jbl-partybox-wireless-dual-microphones",
+      "sku": "JBL-PB-DUALMIC",
+      "nameEn": "JBL PartyBox Wireless Dual Microphones System",
+      "nameAr": "طقم ميكروفون لاسلكي مزدوج JBL PartyBox مع مستقبل إشارة",
+      "descriptionEn": "Sing along to your favorite tunes with pristine voice clarity and no cords attached. The JBL PartyBox Wireless Dual Microphones deliver clear vocal performance with minimal feedback, plug-and-play 2.4GHz wireless dongle receiver, and up to 20 hours of rechargeable playtime.",
+      "descriptionAr": "استمتع بالغناء وإلقاء الكلمات بصوت نقي وبدون أسلاك. يوفر طقم الميكروفون المزدوج JBL PartyBox صوتاً عالي الدقة بنمط مانع للتشويش مع مستقبل لاسلكي 2.4 جيجاهرتز وبطارية قابلة للشحن تدوم حتى 20 ساعة.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المحتويات",
+          "keyEn": "Included",
+          "valueAr": "ميكروفونين لاسلكيين + دونجل استقبال 6.35 ملم",
+          "valueEn": "2x Wireless Microphones + 1x Wireless 6.35mm Receiver Dongle"
+        },
+        {
+          "keyAr": "وقت التشغيل",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 20 ساعة تشغيل لكل ميكروفون",
+          "valueEn": "Up to 20 Hours per Mic (Rechargeable)"
+        },
+        {
+          "keyAr": "نمط الالتقاط",
+          "keyEn": "Pickup Pattern",
+          "valueAr": "نمط قلبي عازل للاهتزازات والضوضاء",
+          "valueEn": "Cardioid Pattern with Internal Shock Mount"
+        },
+        {
+          "keyAr": "التوافق",
+          "keyEn": "Compatibility",
+          "valueAr": "متوافق مع سماعات PartyBox ومداخل المايك القياسية",
+          "valueEn": "All JBL PartyBox speakers & standard 6.35mm mic inputs"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Dual Mic Set + Receiver",
+          "price": 310,
+          "isDefault": true,
+          "originalPrice": 380,
+          "stockQuantity": 25
+        }
+      ],
+      "images": [
+        "/src/assets/images/jbl_dual_mic_1793460635586.jpg"
+      ],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T15:33:34.239Z",
+      "updatedAt": "2026-10-31T15:33:34.239Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 36,
+      "slug": "jbl-go-4-portable-speaker",
+      "sku": "JBL-GO4-ULTRA",
+      "nameEn": "JBL GO 4 Ultra-Portable Bluetooth Speaker",
+      "nameAr": "مكبر صوت بلوتوث فائق الصغر JBL GO 4",
+      "descriptionEn": "Take big JBL Pro Sound wherever you go. The bold, colorful JBL Go 4 ultra-portable Bluetooth speaker fits in the palm of your hand, delivering clear, loud JBL Pro Sound with punchy bass. IP67 waterproof and dustproof with up to 7 hours of playtime.",
+      "descriptionAr": "استمتع بصوت JBL Pro القوي في أي مكان تذهب إليه. مكبر صوت بلوتوث فائق الصغر JBL Go 4 يناسب راحة يدك، ويمنحك صوتاً نقياً وقوياً مع جهير ملموس، ومقاومة كاملة للماء والغبار IP67 وبطارية تدوم 7 ساعات.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "وقت التشغيل",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 7 ساعات (+ ساعتان إضافيتان)",
+          "valueEn": "Up to 7 Hours (+2h Playtime Boost)"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Waterproof",
+          "valueAr": "مقاوم للماء والغبار IP67",
+          "valueEn": "IP67 Waterproof & Dustproof"
+        },
+        {
+          "keyAr": "الاتصال",
+          "keyEn": "Connectivity",
+          "valueAr": "بلوتوث 5.3 مع تقنية Auracast",
+          "valueEn": "Bluetooth 5.3 & Auracast support"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Matte Black",
+          "price": 94,
+          "isDefault": true,
+          "originalPrice": 120,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Ocean Blue",
+          "price": 94,
+          "isDefault": false,
+          "originalPrice": 120,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Squad Camo",
+          "price": 94,
+          "isDefault": false,
+          "originalPrice": 120,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 40,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.087Z",
+      "updatedAt": "2026-10-31T16:13:43.087Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 37,
+      "slug": "jbl-go-essential-portable-speaker",
+      "sku": "JBL-GO-ESS",
+      "nameEn": "JBL GO Essential Portable Waterproof Speaker",
+      "nameAr": "مكبر صوت محمول مقاوم للماء JBL GO Essential",
+      "descriptionEn": "The JBL Go Essential is an ultra-compact portable Bluetooth speaker. Stream sound via Bluetooth for up to 5 hours of JBL Original Pro Sound. Make a splash with its IPX7 waterproof design.",
+      "descriptionAr": "مكبر صوت بلوتوث مدمج للغاية JBL Go Essential بصوت أصلي نقي يدوم حتى 5 ساعات تشغيل متواصلة وتصميم مقاوم للماء IPX7.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "وقت التشغيل",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 5 ساعات تشغيل",
+          "valueEn": "Up to 5 Hours"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Waterproof",
+          "valueAr": "مقاوم للماء IPX7",
+          "valueEn": "IPX7 Waterproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black Edition",
+          "price": 65,
+          "isDefault": true,
+          "originalPrice": 85,
+          "stockQuantity": 25
+        },
+        {
+          "name": "Blue Edition",
+          "price": 65,
+          "isDefault": false,
+          "originalPrice": 85,
+          "stockQuantity": 25
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 50,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.092Z",
+      "updatedAt": "2026-10-31T16:13:43.092Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 38,
+      "slug": "jbl-clip-5-ultra-portable-speaker",
+      "sku": "JBL-CLIP5",
+      "nameEn": "JBL Clip 5 Ultra-Portable Bluetooth Speaker with Carabiner",
+      "nameAr": "مكبر صوت محمول مع مشبك تعليق مدمج JBL Clip 5",
+      "descriptionEn": "The ultra-portable JBL Clip 5 Bluetooth speaker is small enough to hold in one hand, but do not let the size fool you. A completely redesigned integrated carabiner clips easily to your backpack or belt loop, delivering surprising JBL Pro sound and up to 12 hours of playtime.",
+      "descriptionAr": "مكبر صوت بلوتوث متنقل JBL Clip 5 مع مشبك تعليق معدني معاد تصميمه يثبت بسهولة على الحقيبة أو الحزام، مع صوت قوي وبطارية تدوم حتى 12 ساعة ومقاومة IP67.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 12 ساعة (+ 3 ساعات مع ميزة البوست)",
+          "valueEn": "Up to 12 Hours (+3h Playtime Boost)"
+        },
+        {
+          "keyAr": "مشبك التعليق",
+          "keyEn": "Carabiner",
+          "valueAr": "مشبك تعليق مدمج أوسع وأكثر متانة",
+          "valueEn": "Redesigned wider integrated carabiner"
+        },
+        {
+          "keyAr": "المتانة",
+          "keyEn": "Durability",
+          "valueAr": "مقاومة تامة للماء والغبار IP67",
+          "valueEn": "IP67 Waterproof & Dustproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Midnight Black",
+          "price": 125,
+          "isDefault": true,
+          "originalPrice": 155,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Army Camouflage",
+          "price": 125,
+          "isDefault": false,
+          "originalPrice": 155,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 30,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.096Z",
+      "updatedAt": "2026-10-31T16:13:43.096Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 39,
+      "slug": "jbl-clip-4-portable-speaker",
+      "sku": "JBL-CLIP4",
+      "nameEn": "JBL Clip 4 Portable Waterproof Bluetooth Speaker",
+      "nameAr": "مكبر صوت محمول مقاوم للماء JBL Clip 4",
+      "descriptionEn": "Cool, portable, and waterproof. The vibrant fresh looking JBL Clip 4 delivers surprisingly rich JBL Original Pro Sound in a compact package. The unique oval shape fits easy in your hand.",
+      "descriptionAr": "صوت احترافي في حجم مدمج وأنيق مع مشبك مدمج للحمل ومقاومة للماء والغبار IP67 وبطارية 10 ساعات.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 10 ساعات",
+          "valueEn": "Up to 10 Hours"
+        },
+        {
+          "keyAr": "المعيار",
+          "keyEn": "Rating",
+          "valueAr": "معيار IP67",
+          "valueEn": "IP67 Waterproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black",
+          "price": 115,
+          "isDefault": true,
+          "originalPrice": 140,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Squad",
+          "price": 115,
+          "isDefault": false,
+          "originalPrice": 140,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.100Z",
+      "updatedAt": "2026-10-31T16:13:43.100Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 40,
+      "slug": "jbl-flip-7-waterproof-speaker",
+      "sku": "JBL-FLIP7",
+      "nameEn": "JBL Flip 7 Waterproof Portable Bluetooth Speaker",
+      "nameAr": "مكبر صوت محمول مقاوم للماء JBL Flip 7 بصوت ستيريو متطور",
+      "descriptionEn": "Your adventure soundtrack with the new JBL Flip 7. Featuring a 2-way speaker system with racetrack-shaped woofer, separate tweeter, dual passive radiators, and up to 14 hours of non-stop high-definition music.",
+      "descriptionAr": "الجيل الأحدث من مكبرات الصوت JBL Flip 7 مع نظام مكبر صوت ثنائي الاتجاهات ومضخمات صوت مدمجة وصوت نقي قوي يدوم 14 ساعة ومقاومة IP67 للماء والغبار.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "النظام الصوتي",
+          "keyEn": "Acoustics",
+          "valueAr": "نظام صوتي ثنائي الاتجاهات",
+          "valueEn": "2-way speaker system (Woofer + Tweeter)"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 14 ساعة تشغيل",
+          "valueEn": "Up to 14 Hours Playtime"
+        },
+        {
+          "keyAr": "المقاومة",
+          "keyEn": "Rating",
+          "valueAr": "مقاوم للماء والغبار IP67",
+          "valueEn": "IP67 Waterproof & Dustproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Midnight Black",
+          "price": 275,
+          "isDefault": true,
+          "originalPrice": 340,
+          "stockQuantity": 14
+        },
+        {
+          "name": "Fiesta Red",
+          "price": 275,
+          "isDefault": false,
+          "originalPrice": 340,
+          "stockQuantity": 7
+        },
+        {
+          "name": "Deep Blue",
+          "price": 275,
+          "isDefault": false,
+          "originalPrice": 340,
+          "stockQuantity": 7
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 28,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.104Z",
+      "updatedAt": "2026-10-31T16:13:43.104Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 41,
+      "slug": "jbl-flip-essential-2-speaker",
+      "sku": "JBL-FLIP-ESS2",
+      "nameEn": "JBL Flip Essential 2 Portable Bluetooth Speaker",
+      "nameAr": "مكبر صوت محمول JBL Flip Essential 2",
+      "descriptionEn": "Take your tunes on the go with the powerful JBL Flip Essential 2. Our lightweight Bluetooth speaker goes anywhere. Bad weather? Not to worry. With its waterproof design, you can rock out to our JBL Original Pro Sound rain or shine.",
+      "descriptionAr": "مكبر صوت خفيف الوزن وسهل الحمل مع صوت أصلي نقي وتصميم مقاوم للماء وبطارية تدوم حتى 10 ساعات.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة",
+          "keyEn": "Output",
+          "valueAr": "20 واط RMS",
+          "valueEn": "20W RMS Output"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 10 ساعات",
+          "valueEn": "Up to 10 Hours"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Standard Gunmetal Black",
+          "price": 175,
+          "isDefault": true,
+          "originalPrice": 220,
+          "stockQuantity": 20
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.108Z",
+      "updatedAt": "2026-10-31T16:13:43.108Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 42,
+      "slug": "jbl-charge-6-high-power-speaker",
+      "sku": "JBL-CHG6-PWR",
+      "nameEn": "JBL Charge 6 High-Power Portable Speaker with Powerbank",
+      "nameAr": "مكبر صوت محمول عالي الطاقة JBL Charge 6 مع شاحن مدمج",
+      "descriptionEn": "Play and charge endlessly. The JBL Charge 6 takes portable party audio to new heights with upgraded acoustic drivers, enhanced deep bass radiators, up to 24 hours of battery life, and high-speed USB-C smartphone powerbank functionality.",
+      "descriptionAr": "النسخة الأحدث والأقوى JBL Charge 6 مع صوت جهير مضاعف وبطارية تدوم حتى 24 ساعة وميزة شحن الهواتف الذكية عبر منفذ Type-C السريع.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الصوتية",
+          "keyEn": "Output",
+          "valueAr": "قوة إجمالية 45 واط",
+          "valueEn": "45W Total RMS Output"
+        },
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 24 ساعة + شاحن باور بنك",
+          "valueEn": "Up to 24 Hours + Built-in Fast Powerbank"
+        },
+        {
+          "keyAr": "المقاومة",
+          "keyEn": "Rating",
+          "valueAr": "مقاوم للماء والغبار IP67",
+          "valueEn": "IP67 Waterproof & Dustproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black Stealth",
+          "price": 375,
+          "isDefault": true,
+          "originalPrice": 440,
+          "stockQuantity": 12
+        },
+        {
+          "name": "Squad Camo",
+          "price": 375,
+          "isDefault": false,
+          "originalPrice": 440,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 22,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.112Z",
+      "updatedAt": "2026-10-31T16:13:43.112Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 43,
+      "slug": "jbl-pulse-4-lightshow-speaker",
+      "sku": "JBL-PLS4-RGB",
+      "nameEn": "JBL Pulse 4 360-Degree LED Light Show Portable Speaker",
+      "nameAr": "مكبر صوت محمول بإضاءة محيطية 360 درجة تفاعلية JBL Pulse 4",
+      "descriptionEn": "Kick start your party with JBL signature sound and a dazzling 360-degree high-resolution LED light show. Our bold, IPX7 waterproof design shines bright and keeps the tunes flowing for up to 12 hours on a single charge.",
+      "descriptionAr": "مكبر صوت استثنائي مع عرض ضوئي LED كامل بزاوية 360 درجة يتفاعل مع نغمات الموسيقى، وصوت محيطي رائع مع مقاومة تامة للماء وبطارية 12 ساعة.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "العرض الضوئي",
+          "keyEn": "Lightshow",
+          "valueAr": "إضاءة محيطية 360 درجة عالية النقاء",
+          "valueEn": "High-resolution 360-degree LED acrylic body"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 12 ساعة تشغيل",
+          "valueEn": "Up to 12 Hours on single charge"
+        },
+        {
+          "keyAr": "مقاومة الماء",
+          "keyEn": "Waterproof",
+          "valueAr": "مقاومة للماء IPX7",
+          "valueEn": "IPX7 Waterproof"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Crystal Black",
+          "price": 425,
+          "isDefault": true,
+          "originalPrice": 520,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Crystal White",
+          "price": 425,
+          "isDefault": false,
+          "originalPrice": 520,
+          "stockQuantity": 5
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 15,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.116Z",
+      "updatedAt": "2026-10-31T16:13:43.116Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 44,
+      "slug": "jbl-xtreme-4-portable-speaker",
+      "sku": "JBL-XTR4-BOOM",
+      "nameEn": "JBL Xtreme 4 Portable Powerful Bluetooth Speaker",
+      "nameAr": "مكبر صوت متنقل فائق القوة مع حزام كتف JBL Xtreme 4",
+      "descriptionEn": "Unleash massive, next-level sound anywhere. The JBL Xtreme 4 features two powerful woofers, two tweeters, and dual pumping bass radiators with AI Sound Boost for maximum volume and zero distortion. Up to 24 hours of playtime and a replaceable battery design.",
+      "descriptionAr": "صوت جبار ومضخمات صوت عملاقة مع تقنية AI Sound Boost لتحسين نقاء الصوت في أعلى المستويات، وبطارية تدوم 24 ساعة مع حزام كتف مريح وفتاحة زجاجات مدمجة ومقاومة IP67.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة",
+          "keyEn": "Power Output",
+          "valueAr": "قوة 100 واط RMS ستيريو",
+          "valueEn": "100W RMS Massive Stereo Output"
+        },
+        {
+          "keyAr": "الذكاء الاصطناعي",
+          "keyEn": "AI Boost",
+          "valueAr": "تحسين صوتي فوري بالذكاء الاصطناعي",
+          "valueEn": "AI Sound Boost for real-time acoustic optimization"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 24 ساعة (+6 ساعات بوست)",
+          "valueEn": "Up to 24 Hours (+6h Playtime Boost)"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Midnight Black",
+          "price": 690,
+          "isDefault": true,
+          "originalPrice": 799,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Squad Camouflage",
+          "price": 690,
+          "isDefault": false,
+          "originalPrice": 799,
+          "stockQuantity": 8
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 18,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.119Z",
+      "updatedAt": "2026-10-31T16:13:43.119Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 45,
+      "slug": "jbl-boombox-4-ultimate-speaker",
+      "sku": "JBL-BMBX4-MAX",
+      "nameEn": "JBL Boombox 4 Massive Portable Outdoor Sound System",
+      "nameAr": "نظام صوتي خارجي عملاق محمول JBL Boombox 4 بقوة صوت قصوى",
+      "descriptionEn": "The king of portable bass. The JBL Boombox 4 delivers thunderous, earth-shaking bass with its advanced multi-driver subwoofer system, durable reinforced handle, waterproof IP67 housing, and 30 hours of continuous festival-level sound.",
+      "descriptionAr": "عملاق الصوت الخارجي JBL Boombox 4 مع أقوى صوت جهير محمول في فئته، مقبض معدني مقوى، بطارية تدوم 30 ساعة متواصلة ومقاومة IP67 للماء والغبار.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الصوتية",
+          "keyEn": "Output",
+          "valueAr": "180 واط عبر وضع التيار المستمر",
+          "valueEn": "180W Total Output with AC Mode"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 30 ساعة تشغيل متواصلة",
+          "valueEn": "Up to 30 Hours Continuous Playtime"
+        },
+        {
+          "keyAr": "المتانة",
+          "keyEn": "Durability",
+          "valueAr": "هيكل معدني قوي ومقاوم للماء IP67",
+          "valueEn": "IP67 Waterproof and Shockproof Metal Spine"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Matte Black",
+          "price": 1250,
+          "isDefault": true,
+          "originalPrice": 1450,
+          "stockQuantity": 6
+        },
+        {
+          "name": "Squad Camo",
+          "price": 1250,
+          "isDefault": false,
+          "originalPrice": 1450,
+          "stockQuantity": 4
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 10,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.123Z",
+      "updatedAt": "2026-10-31T16:13:43.123Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 46,
+      "slug": "jbl-partybox-encore-essential",
+      "sku": "JBL-PB-ENCORE",
+      "nameEn": "JBL PartyBox Encore Essential Portable Party Speaker",
+      "nameAr": "مكبر صوت متنقل للحفلات JBL PartyBox Encore Essential مع إضاءة ديناميكية",
+      "descriptionEn": "The portable JBL PartyBox Encore Essential speaker gives you 6 hours of non-stop fun. With an easy grab-and-go handle and splashproof IPX4 design, you can always take the party with you. 100W output with deep bass and cool dynamic light show.",
+      "descriptionAr": "مكبر صوت متنقل خفيف الوزن بقوة 100 واط مع إضاءة استعراضية متزامنة، مقبض مريح للحمل، مقاومة لرذاذ الماء IPX4 ومدخل للميكروفون.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الصوتية",
+          "keyEn": "Power Output",
+          "valueAr": "100 واط RMS صوت احترافي",
+          "valueEn": "100W RMS JBL Original Pro Sound"
+        },
+        {
+          "keyAr": "وقت التشغيل",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 6 ساعات تشغيل",
+          "valueEn": "Up to 6 Hours Playtime"
+        },
+        {
+          "keyAr": "الإضاءة",
+          "keyEn": "Lighting",
+          "valueAr": "حلقة إضاءة متزامنة مع الموسيقى",
+          "valueEn": "Dynamic Ring Light synced to the beat"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Encore Essential 100W Black",
+          "price": 570,
+          "isDefault": true,
+          "originalPrice": 699,
+          "stockQuantity": 16
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 16,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.126Z",
+      "updatedAt": "2026-10-31T16:13:43.126Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 47,
+      "slug": "jbl-partybox-on-the-go-essential-mic",
+      "sku": "JBL-PB-OTG-MIC",
+      "nameEn": "JBL PartyBox On-The-Go Essential with 1 Wireless Microphone",
+      "nameAr": "مكبر صوت حفلات محمول JBL PartyBox On-The-Go مع ميكروفون لاسلكي وحزام كتف",
+      "descriptionEn": "Take your party anywhere and sing along everywhere. From beach parties to festivals, the JBL PartyBox On-The-Go Essential lets you see, hear and feel the beat with 100 watts of powerful JBL Pro Sound, synched light show, padded shoulder strap with built-in bottle opener, and an included wireless mic.",
+      "descriptionAr": "مكبر صوت الحفلات والغناء المتنقل مع ميكروفون لاسلكي مرفق، حزام كتف مبطن، فتاحة زجاجات، قوة 100 واط، ومقاومة رذاذ الماء IPX4.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المرفقات",
+          "keyEn": "Included",
+          "valueAr": "ميكروفون لاسلكي + حزام كتف مريح",
+          "valueEn": "1x High-Fidelity Wireless Mic + Shoulder Strap"
+        },
+        {
+          "keyAr": "القوة",
+          "keyEn": "Power Output",
+          "valueAr": "100 واط RMS",
+          "valueEn": "100W RMS Output"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Playtime",
+          "valueAr": "حتى 6 ساعات تشغيل",
+          "valueEn": "Up to 6 Hours Playtime"
+        }
+      ],
+      "variants": [
+        {
+          "name": "PartyBox On-The-Go + 1 Mic",
+          "price": 790,
+          "isDefault": true,
+          "originalPrice": 920,
+          "stockQuantity": 14
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 14,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.129Z",
+      "updatedAt": "2026-10-31T16:13:43.129Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 48,
+      "slug": "jbl-partybox-330-portable-speaker",
+      "sku": "JBL-PB330-240W",
+      "nameEn": "JBL PartyBox 330 High-Power Portable Party Speaker",
+      "nameAr": "مكبر صوت حفلات عملاق متنقل JBL PartyBox 330 مع عجلات مدمجة",
+      "descriptionEn": "Turn up the volume and rock the whole neighborhood. The JBL PartyBox 330 delivers massive 240-watt JBL Original Pro Sound, multi-dimensional synchronized light shows, built-in wheels and telescopic handle, dual mic and guitar inputs, and up to 18 hours of playtime.",
+      "descriptionAr": "مكبر صوت الحفلات الكبير بقوة 240 واط مع عجلات ومقبض تلسكوبي لسهولة التنقل، عروض ضوئية ملونة، مداخل مايك وجيتار وبطارية تدوم 18 ساعة.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الصوتية",
+          "keyEn": "Power Output",
+          "valueAr": "240 واط RMS صوت جهير هائل",
+          "valueEn": "240W RMS Thunderous Sound"
+        },
+        {
+          "keyAr": "سهولة النقل",
+          "keyEn": "Portability",
+          "valueAr": "عجلات انسيابية ومقبض سحب تلسكوبي",
+          "valueEn": "Smooth glide wheels & telescopic handle"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 18 ساعة تشغيل مستمر",
+          "valueEn": "Up to 18 Hours Playtime"
+        }
+      ],
+      "variants": [
+        {
+          "name": "PartyBox 330 (240W System)",
+          "price": 1620,
+          "isDefault": true,
+          "originalPrice": 1899,
+          "stockQuantity": 8
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 8,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.132Z",
+      "updatedAt": "2026-10-31T16:13:43.132Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 49,
+      "slug": "jbl-bar-800-mk2-dolby-atmos-soundbar",
+      "sku": "JBL-BAR800-MK2",
+      "nameEn": "JBL Bar 800 MK2 5.1.2-Channel Soundbar with Detachable Surround Speakers",
+      "nameAr": "ساوند بار سينمائي JBL Bar 800 MK2 مع سماعات محيطية لاسلكية قابلة للفصل",
+      "descriptionEn": "True 3D Dolby Atmos surround sound without wires. The JBL Bar 800 features two detachable battery-powered wireless rear speakers and a 10\" down-firing subwoofer, delivering 720 watts of total system output for an authentic cinematic audio journey.",
+      "descriptionAr": "تجربة سينمائية لاسلكية حقيقية مع ساوند بار JBL Bar 800 MK2 بقوة 720 واط، ومكبرين خلفيين لاسلكيين يعملان بالبطارية ويمكن فصلهما ووضعهما خلف أريكتك، مع صب ووفر لاسلكي 10 إنش ودولبي أتموس 3D.",
+      "condition": "New",
+      "categoryId": 10,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "نظام القنوات",
+          "keyEn": "Channel Setup",
+          "valueAr": "5.1.2 قناة مع سماعات خلفية لاسلكية منفصلة",
+          "valueEn": "5.1.2-Channel with Detachable Wireless Rears"
+        },
+        {
+          "keyAr": "القوة الصوتية",
+          "keyEn": "Power Output",
+          "valueAr": "720 واط قوة إجمالية",
+          "valueEn": "720W Total System Power"
+        },
+        {
+          "keyAr": "مضخم الصوت",
+          "keyEn": "Subwoofer",
+          "valueAr": "مضخم صوت لاسلكي مقاس 10 إنش",
+          "valueEn": "10\" Wireless Bass Subwoofer"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Bar 800 MK2 System (720W)",
+          "price": 1990,
+          "isDefault": true,
+          "originalPrice": 2299,
+          "stockQuantity": 7
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 7,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.135Z",
+      "updatedAt": "2026-10-31T16:13:43.135Z",
+      "categoryNameEn": "Smart Audio",
+      "categoryNameAr": "الصوتيات الذكية",
+      "categorySlug": "smart-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 50,
+      "slug": "jbl-bar-1000-mk2-flagship-soundbar",
+      "sku": "JBL-BAR1000-MK2",
+      "nameEn": "JBL Bar 1000 MK2 7.1.4-Channel Flagship Dolby Atmos Soundbar",
+      "nameAr": "ساوند بار رائد JBL Bar 1000 MK2 بنظام 7.1.4 قناة وسماعات قابلة للفصل بقوة 880 واط",
+      "descriptionEn": "The ultimate flagship home theater system. The JBL Bar 1000 MK2 delivers 880 watts of total power, 7.1.4 channels with up-firing height drivers, detachable wireless surround speakers, PureVoice dialogue enhancement, and DTS:X alongside Dolby Atmos.",
+      "descriptionAr": "القمة في أنظمة المسرح المنزلي JBL Bar 1000 MK2 بقوة 880 واط بنظام 7.1.4 قناة مع مشغلات علوية وسماعات خلفية لاسلكية قابلة للفصل وتقنيات PureVoice ودولبي أتموس و DTS:X.",
+      "condition": "New",
+      "categoryId": 10,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القنوات",
+          "keyEn": "Channels",
+          "valueAr": "7.1.4 قناة مع 4 مكبرات علوية",
+          "valueEn": "7.1.4 Channels with 4 Up-Firing Drivers"
+        },
+        {
+          "keyAr": "القوة الإجمالية",
+          "keyEn": "Total Power",
+          "valueAr": "880 واط طاقة قصوى",
+          "valueEn": "880W Max Output Power"
+        },
+        {
+          "keyAr": "الصيغ الصوتية",
+          "keyEn": "Formats",
+          "valueAr": "دولبي أتموس، DTS:X، مالتي بيم 3D",
+          "valueEn": "Dolby Atmos, DTS:X, MultiBeam 3D"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Bar 1000 MK2 Flagship (880W)",
+          "price": 2560,
+          "isDefault": true,
+          "originalPrice": 2990,
+          "stockQuantity": 5
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 5,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.139Z",
+      "updatedAt": "2026-10-31T16:13:43.139Z",
+      "categoryNameEn": "Smart Audio",
+      "categoryNameAr": "الصوتيات الذكية",
+      "categorySlug": "smart-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 51,
+      "slug": "jbl-tune-520bt-wireless-headphones",
+      "sku": "JBL-T520BT",
+      "nameEn": "JBL Tune 520BT Wireless On-Ear Pure Bass Headphones",
+      "nameAr": "سماعات رأس لاسلكية خفيفة الوزن JBL Tune 520BT بصوت بيور باس",
+      "descriptionEn": "The JBL Tune 520BT headphones stream powerful JBL Pure Bass sound thanks to the latest 5.3 BT technology. Easy to use, these headphones provide up to 57 hours of pure pleasure and an extra 3 hours of battery with just 5 minutes of charge.",
+      "descriptionAr": "سماعات رأس لاسلكية مريحة وخفيفة بصوت JBL Pure Bass الأيقوني، وبلوتوث 5.3 وبطارية أسطورية تدوم حتى 57 ساعة وشحن فائق السرعة 5 دقائق تمنحك 3 ساعات.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 57 ساعة (شحن 5 دقائق = 3 ساعات)",
+          "valueEn": "Up to 57 Hours (5 min charge = 3 hours)"
+        },
+        {
+          "keyAr": "حجم المكبر",
+          "keyEn": "Driver Size",
+          "valueAr": "مكبرات 33 ملم بيور باس",
+          "valueEn": "33mm Pure Bass Drivers"
+        },
+        {
+          "keyAr": "البلوتوث",
+          "keyEn": "Bluetooth",
+          "valueAr": "بلوتوث 5.3 متعدد الأجهزة",
+          "valueEn": "Bluetooth 5.3 with Multi-point connection"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Matte Black",
+          "price": 87,
+          "isDefault": true,
+          "originalPrice": 110,
+          "stockQuantity": 20
+        },
+        {
+          "name": "Clean White",
+          "price": 87,
+          "isDefault": false,
+          "originalPrice": 110,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Navy Blue",
+          "price": 87,
+          "isDefault": false,
+          "originalPrice": 110,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 45,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.143Z",
+      "updatedAt": "2026-10-31T16:13:43.143Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 52,
+      "slug": "jbl-tune-770nc-wireless-headphones",
+      "sku": "JBL-T770NC",
+      "nameEn": "JBL Tune 770NC Adaptive Noise-Cancelling Over-Ear Headphones",
+      "nameAr": "سماعات رأس لاسلكية عازلة للضوضاء JBL Tune 770NC فوق الأذن",
+      "descriptionEn": "When your music is on, nothing else matters. The JBL Tune 770NC Adaptive Noise Cancelling wireless headphones deliver on that promise all day and longer, while sparing you the unwanted noises. With up to 70 hours of battery life and lightweight comfortable fit.",
+      "descriptionAr": "سماعات رأس لاسلكية مريحة فوق الأذن مع ميزة إلغاء الضوضاء التكيفية وصوت جهير نقي، وبطارية جبارة تدوم حتى 70 ساعة (44 ساعة مع تشغيل العزل).",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "عزل الضوضاء",
+          "keyEn": "Noise Cancelling",
+          "valueAr": "عزل ضوضاء تكيفي مع ميزة الصوت المحيطي",
+          "valueEn": "Adaptive Noise Cancelling with Smart Ambient"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 70 ساعة (44 ساعة مع العزل)",
+          "valueEn": "Up to 70 Hours (44h with ANC on)"
+        },
+        {
+          "keyAr": "البلوتوث",
+          "keyEn": "Bluetooth",
+          "valueAr": "بلوتوث 5.3 متطور",
+          "valueEn": "Bluetooth 5.3 with LE Audio"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Stealth Black",
+          "price": 165,
+          "isDefault": true,
+          "originalPrice": 210,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Arctic White",
+          "price": 165,
+          "isDefault": false,
+          "originalPrice": 210,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 30,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.146Z",
+      "updatedAt": "2026-10-31T16:13:43.146Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 53,
+      "slug": "jbl-wave-beam-2-tws-earbuds",
+      "sku": "JBL-WAVE-BM2",
+      "nameEn": "JBL Wave Beam 2 True Wireless Earbuds with Deep Bass",
+      "nameAr": "سماعات أذن لاسلكية بالكامل JBL Wave Beam 2 بصوت بيس عميق",
+      "descriptionEn": "Bring your sound everywhere. With bass you can feel, up to 40 hours of total playtime, and a secure, comfortable stick-closed design, the splash and dust resistant JBL Wave Beam 2 are designed for your daily entertainment.",
+      "descriptionAr": "سماعات لاسلكية مريحة وعملية JBL Wave Beam 2 بتصميم الساق المغلق، وصوت نقي وجهير عميق، وبطارية تدوم حتى 40 ساعة ومقاومة للماء والغبار IP54.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "عمر البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 40 ساعة (10س بالسماعة + 30س بالعلبة)",
+          "valueEn": "Up to 40 Hours (10h buds + 30h case)"
+        },
+        {
+          "keyAr": "المكالمات",
+          "keyEn": "Calls",
+          "valueAr": "4 ميكروفونات لمكالمات فائقة الوضوح",
+          "valueEn": "4 Beamforming microphones with VoiceAware"
+        },
+        {
+          "keyAr": "المقاومة",
+          "keyEn": "Resistance",
+          "valueAr": "مقاومة للرذاذ والغبار IP54",
+          "valueEn": "IP54 Water and Dust resistant"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black",
+          "price": 115,
+          "isDefault": true,
+          "originalPrice": 145,
+          "stockQuantity": 20
+        },
+        {
+          "name": "White",
+          "price": 115,
+          "isDefault": false,
+          "originalPrice": 145,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 35,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.149Z",
+      "updatedAt": "2026-10-31T16:13:43.149Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 54,
+      "slug": "jbl-tune-flex-2-tws-earbuds",
+      "sku": "JBL-TFLEX2",
+      "nameEn": "JBL Tune Flex 2 True Wireless Noise-Cancelling Earbuds",
+      "nameAr": "سماعات أذن لاسلكية متحولة JBL Tune Flex 2 مع عزل الضوضاء وخيارات أطراف الأذن",
+      "descriptionEn": "Tackle your day one song at a time with the JBL Tune Flex 2. True wireless earbuds give you up to 32 hours of exceptional JBL Pure Bass Sound, while the ergonomic and water-resistant design gives you all-day comfort with open or sealing ear tips.",
+      "descriptionAr": "سماعات أذن لاسلكية ذكية تتيح التبديل بين التصميم المفتوح والمغلق لعزل الضوضاء، وصوت بيور باس نقي وبطارية تدوم 32 ساعة.",
+      "condition": "New",
+      "categoryId": 5,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "العزل",
+          "keyEn": "ANC",
+          "valueAr": "عزل ضوضاء نشط مع ميزة الاستماع للبيئة",
+          "valueEn": "Active Noise Cancelling with Smart Ambient"
+        },
+        {
+          "keyAr": "أطراف الأذن",
+          "keyEn": "Ear Tips",
+          "valueAr": "سدادات أذن مفتوحة ومغلقة قابلة للتبديل",
+          "valueEn": "Interchangeable open and sealing tips included"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 32 ساعة تشغيل إجمالي",
+          "valueEn": "Up to 32 Hours Total Playtime"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Ghost Black",
+          "price": 200,
+          "isDefault": true,
+          "originalPrice": 250,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Ghost White",
+          "price": 200,
+          "isDefault": false,
+          "originalPrice": 250,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.152Z",
+      "updatedAt": "2026-10-31T16:13:43.152Z",
+      "categoryNameEn": "Earbuds & Audio",
+      "categoryNameAr": "سماعات الأذن والصوتيات",
+      "categorySlug": "earbuds-audio",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 56,
+      "slug": "jbl-quantum-650-wireless-gaming-headset",
+      "sku": "JBL-QNTM-650",
+      "nameEn": "JBL Quantum 650 Wireless Surround Gaming Headset",
+      "nameAr": "سماعات رأس لاسلكية احترافية للألعاب JBL Quantum 650 بصوت محيطي 3D",
+      "descriptionEn": "Live the game with JBL QuantumSURROUND and DTS Headphone:X v2.0. The JBL Quantum 650 wireless headset delivers crystal-clear spatial audio cues, lossless 2.4GHz wireless connection, voice-focus boom mic, and Game-Chat audio balance dial for PC, PS5, and Xbox.",
+      "descriptionAr": "سماعات قيمنق لاسلكية احترافية بتقنية QuantumSURROUND وصوت محيطي مكاني، اتصال لاسلكي فوري 2.4 جيجاهرتز بدون تأخير، ميكروفون بوم للمحادثات، ومفتاح موازنة صوت اللعبة والدردشة.",
+      "condition": "New",
+      "categoryId": 13,
+      "brandId": 8,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "محرك الصوت",
+          "keyEn": "Audio Engine",
+          "valueAr": "صوت محيطي ثلاثي الأبعاد وتقنية DTS",
+          "valueEn": "JBL QuantumSURROUND & DTS Headphone:X 2.0"
+        },
+        {
+          "keyAr": "الاتصال",
+          "keyEn": "Wireless",
+          "valueAr": "اتصال 2.4 جيجاهرتز بدون أي تأخير",
+          "valueEn": "Lag-free 2.4GHz Wireless + 3.5mm cable"
+        },
+        {
+          "keyAr": "الميكروفون",
+          "keyEn": "Microphone",
+          "valueAr": "ميكروفون عازل للضوضاء يغلق بالرفع",
+          "valueEn": "Voice Focus Flip-Up Boom Mic with Mute"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Quantum Black Edition",
+          "price": 610,
+          "isDefault": true,
+          "originalPrice": 720,
+          "stockQuantity": 12
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 12,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.158Z",
+      "updatedAt": "2026-10-31T16:13:43.158Z",
+      "categoryNameEn": "Gaming & VR Tech",
+      "categoryNameAr": "أجهزة الألعاب والواقع الافتراضي",
+      "categorySlug": "gaming-vr-tech",
+      "brandName": "JBL",
+      "brandSlug": "jbl"
+    },
+    {
+      "id": 57,
+      "slug": "harman-kardon-go-play-3-speaker",
+      "sku": "HK-GOPLAY3",
+      "nameEn": "Harman Kardon Go + Play 3 Premium Portable Bluetooth Speaker",
+      "nameAr": "مكبر صوت بلوتوث فاخر هارمان كاردون جو + بلاي 3 مع مقبض ألومنيوم",
+      "descriptionEn": "With its refined silhouette, substantial high-quality aluminum handle, and tempered glass touch panel, the Harman Kardon Go + Play 3 looks beautiful and sounds even better. 3-way acoustic speaker design delivers crystal clear, detailed stereo sound with automatic self-tuning calibration.",
+      "descriptionAr": "تحفة صوتية تجمع بين التصميم الأنيق ومقبض الألومنيوم وشاشة لمس زجاجية، مع نظام صوتي ثلاثي الاتجاهات يملأ الغرفة بصوت ستيريو نقي ومعايرة ذاتية للصوتيات.",
+      "condition": "New",
+      "categoryId": 10,
+      "brandId": 18,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "النظام الصوتي",
+          "keyEn": "Sound System",
+          "valueAr": "نظام صوتي ثلاثي الاتجاهات 160 واط",
+          "valueEn": "3-way speaker design (160W peak output)"
+        },
+        {
+          "keyAr": "المواد",
+          "keyEn": "Materials",
+          "valueAr": "مقبض ألومنيوم مؤكسد ولوحة لمس زجاجية",
+          "valueEn": "Anodized aluminum handle & tempered glass touch panel"
+        },
+        {
+          "keyAr": "البطارية",
+          "keyEn": "Battery Life",
+          "valueAr": "حتى 8 ساعات تشغيل + منفذ شحن",
+          "valueEn": "Up to 8 Hours Playtime + USB charge out"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Charcoal Black",
+          "price": 760,
+          "isDefault": true,
+          "originalPrice": 890,
+          "stockQuantity": 6
+        },
+        {
+          "name": "Silver Gray",
+          "price": 760,
+          "isDefault": false,
+          "originalPrice": 890,
+          "stockQuantity": 4
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 10,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:13:43.162Z",
+      "updatedAt": "2026-10-31T16:13:43.162Z",
+      "categoryNameEn": "Smart Audio",
+      "categoryNameAr": "الصوتيات الذكية",
+      "categorySlug": "smart-audio",
+      "brandName": "Harman Kardon",
+      "brandSlug": "harman-kardon"
+    },
+    {
+      "id": 58,
+      "slug": "anker-prime-26000mah-300w-powerbank",
+      "sku": "A110AH11",
+      "nameEn": "Anker Prime 26,000mAh Power Bank (300W)",
+      "nameAr": "شاحن متنقل أنكر برايم 26000 مللي أمبير بقوة 300 واط مع شاشة ذكية",
+      "descriptionEn": "Ultra-high capacity 26,000mAh power bank delivering up to 300W total output with smart digital display. Capable of charging a MacBook Pro 16\" to 50% in just 28 minutes while fast-charging two additional devices simultaneously.",
+      "descriptionAr": "باور بنك عملاق بسعة 26,000 مللي أمبير بقوة إجمالية 300 واط مع شاشة رقمية ذكية لعرض الطاقة والوقت المتبقي، يشحن أجهزة ماك بوك برو والهواتف بأقصى سرعة.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "السعة",
+          "keyEn": "Capacity",
+          "valueAr": "26,000 مللي أمبير",
+          "valueEn": "26,000mAh Multi-Day Backup"
+        },
+        {
+          "keyAr": "أقصى طاقة",
+          "keyEn": "Max Output",
+          "valueAr": "300 واط إجمالي (140 واط للمنفذ الواحد)",
+          "valueEn": "300W Combined Max (140W Single Port PD 3.1)"
+        },
+        {
+          "keyAr": "الشاشة الذكية",
+          "keyEn": "Smart Screen",
+          "valueAr": "شاشة رقمية لقراءة الواط والنسبة وصحة البطارية",
+          "valueEn": "Real-time wattage, battery percentage, & health"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Prime Black (300W)",
+          "price": 445,
+          "isDefault": true,
+          "originalPrice": 520,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 15,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.940Z",
+      "updatedAt": "2026-10-31T16:26:58.940Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 59,
+      "slug": "anker-maggo-10000mah-qi2-powerbank",
+      "sku": "A1664H11",
+      "nameEn": "Anker 15W 10,000mAh MagGo Ultra-Slim Qi2 Power Bank",
+      "nameAr": "بطارية أنكر ماج جو النحيفة 10000 مللي أمبير بقوة 15 واط معتمدة Qi2",
+      "descriptionEn": "Certified Qi2 15W ultra-fast wireless charging for iPhone 16 / 15 series. Sleek, pocket-friendly ultra-slim form factor with strong magnetic snap, smart temperature control, and a 10,000mAh battery for all-day mobile power.",
+      "descriptionAr": "شحن لاسلكي مغناطيسي فائق السرعة 15 واط معتمد بتقنية Qi2 لأجهزة آيفون 16 و 15، بتصميم فائق النحافة وبطارية 10,000 مللي أمبير تكفي طوال اليوم.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "سرعة الشحن اللاسلكي",
+          "keyEn": "Wireless Speed",
+          "valueAr": "15 واط شحن لاسلكي مغناطيسي سريع",
+          "valueEn": "15W Qi2 Certified Ultra-Fast Magnetic Snap"
+        },
+        {
+          "keyAr": "سعة البطارية",
+          "keyEn": "Capacity",
+          "valueAr": "10,000 مللي أمبير",
+          "valueEn": "10,000mAh High-Density Cell"
+        },
+        {
+          "keyAr": "التوافق",
+          "keyEn": "Compatibility",
+          "valueAr": "سلسلة آيفون 16 و 15 و 14 و 13 وأجهزة Qi2",
+          "valueEn": "iPhone 16 / 15 / 14 / 13 / 12 & Qi2 Devices"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Midnight Black",
+          "price": 155,
+          "isDefault": true,
+          "originalPrice": 195,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Glacier White",
+          "price": 155,
+          "isDefault": false,
+          "originalPrice": 195,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.944Z",
+      "updatedAt": "2026-10-31T16:26:58.944Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 60,
+      "slug": "anker-533-nano-powerbank-30w",
+      "sku": "A1259H11",
+      "nameEn": "Anker 533 Nano Power Bank 30W with Built-in USB-C Cable",
+      "nameAr": "باور بنك أنكر 533 نانو بقوة 30 واط مع كابل تايب سي مدمج",
+      "descriptionEn": "Compact 30W two-way fast charging power bank with an integrated durable USB-C cable that doubles as a comfortable carrying strap. Smart digital display shows exact remaining battery percentage.",
+      "descriptionAr": "باور بنك أنكر نانو الذكي بقوة 30 واط لشحن الهواتف والأجهزة اللوحية بسرعة فائقة، مزود بكابل تايب سي مدمج عالي المتانة وشاشة رقمية دقيقة.",
+      "condition": "New",
+      "categoryId": 8,
+      "brandId": 7,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "قوة الشحن",
+          "keyEn": "Output",
+          "valueAr": "30 واط PD شحن سريع (50% خلال 25 دقيقة)",
+          "valueEn": "30W Max PD Fast Charge (charges iPhone to 50% in 25 mins)"
+        },
+        {
+          "keyAr": "الكابل",
+          "keyEn": "Cable",
+          "valueAr": "كابل تايب سي مدمج وحبل حمل متين",
+          "valueEn": "Integrated 2-in-1 USB-C Cable & Carrying Loop"
+        },
+        {
+          "keyAr": "الشاشة",
+          "keyEn": "Display",
+          "valueAr": "شاشة رقمية للنسبة المئوية",
+          "valueEn": "Smart Digital Percentage Display"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Phantom Black",
+          "price": 98,
+          "isDefault": true,
+          "originalPrice": 130,
+          "stockQuantity": 15
+        },
+        {
+          "name": "Ice Blue",
+          "price": 95,
+          "isDefault": false,
+          "originalPrice": 125,
+          "stockQuantity": 15
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 30,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.948Z",
+      "updatedAt": "2026-10-31T16:26:58.948Z",
+      "categoryNameEn": "Other Electronics",
+      "categoryNameAr": "إلكترونيات أخرى",
+      "categorySlug": "other-electronics",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 61,
+      "slug": "anker-prime-160w-gan-charging-station",
+      "sku": "A83B62A1",
+      "nameEn": "Anker Prime 160W GaN Charging Docking Station",
+      "nameAr": "محطة شحن أنكر برايم بقوة 160 واط بتقنية جان فائقة السرعة",
+      "descriptionEn": "High-power 160W multi-device desktop docking station. Powered by Anker GaNPrime technology, intelligently allocating power between multiple laptops, tablets, and phones simultaneously with ActiveShield 2.0 safety.",
+      "descriptionAr": "محطة شحن مكتبية ذكية بقوة 160 واط بتقنية GaNPrime المتقدمة لتوزيع الطاقة بذكاء بين أجهزة الكمبيوتر المحمولة والأجهزة الذكية مع نظام حماية ActiveShield 2.0.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الإجمالية",
+          "keyEn": "Total Power",
+          "valueAr": "160 واط بتقنية جان",
+          "valueEn": "160W GaN High-Efficiency Output"
+        },
+        {
+          "keyAr": "المنافذ",
+          "keyEn": "Ports",
+          "valueAr": "منافذ متعددة تايب سي ويو إس بي",
+          "valueEn": "Multi USB-C & USB-A Fast Ports"
+        },
+        {
+          "keyAr": "نظام الأمان",
+          "keyEn": "Cooling",
+          "valueAr": "مراقبة مستمرة لحرارة الشاحن",
+          "valueEn": "ActiveShield 2.0 Dynamic Temperature Monitoring"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Prime Black Dock",
+          "price": 445,
+          "isDefault": true,
+          "originalPrice": 530,
+          "stockQuantity": 12
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 12,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.952Z",
+      "updatedAt": "2026-10-31T16:26:58.952Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 62,
+      "slug": "anker-ganprime-desktop-station-250w",
+      "sku": "A2345241",
+      "nameEn": "Anker GaNPrime Desktop Charging Station 250W (6-Port)",
+      "nameAr": "قاعدة شحن مكتبية أنكر جان برايم بقوة 250 واط بـ 6 منافذ وشاشة رقمية",
+      "descriptionEn": "The powerhouse desktop hub. Features 250W total output across 6 ports (4x USB-C + 2x USB-A) with an interactive 2.26\" LCD control display that tracks charging speeds and port allocations in real-time.",
+      "descriptionAr": "أقوى محطة شحن مكتبية بقوة 250 واط مزودة بـ 6 منافذ شحن وشاشة تفاعلية ملونة مقاس 2.26 إنش تتابع سرعات الشحن واستهلاك الطاقة لكل منفذ لحظة بلحظة.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الكلية",
+          "keyEn": "Output",
+          "valueAr": "250 واط إجمالي عبر 6 منافذ",
+          "valueEn": "250W Total across 6 High-Speed Ports"
+        },
+        {
+          "keyAr": "الشاشة",
+          "keyEn": "Display",
+          "valueAr": "شاشة ذكية 2.26 إنش مع قرص تحكم",
+          "valueEn": "2.26\" LCD Smart Control Screen with Dial"
+        },
+        {
+          "keyAr": "أقصى طاقة للمنفذ",
+          "keyEn": "Single Port Max",
+          "valueAr": "حتى 140 واط لمنفذ USB-C1",
+          "valueEn": "Up to 140W on USB-C1"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Space Silver (250W)",
+          "price": 355,
+          "isDefault": true,
+          "originalPrice": 420,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 10,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.956Z",
+      "updatedAt": "2026-10-31T16:26:58.956Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 63,
+      "slug": "anker-foldable-3in1-maggo-wireless-charger",
+      "sku": "B25M8H11",
+      "nameEn": "Anker Foldable 3-in-1 MagGo Wireless Charger (15W Qi2)",
+      "nameAr": "شاحن أنكر ماج جو اللاسلكي 3 في 1 القابل للطي بقوة 15 واط Qi2",
+      "descriptionEn": "Ultra-compact foldable 3-in-1 travel wireless charging station. Certified 15W Qi2 fast magnetic charging for iPhone, dedicated Apple Watch fast charger, and wireless pad for AirPods. Folds down into a tiny pocket-sized puck.",
+      "descriptionAr": "محطة شحن لاسلكية 3 في 1 للسفر قابلة للطي تشحن الآيفون بقوة 15 واط ماج سيف معتمد Qi2، وساعة آبل وسماعات إيربودز في وقت واحد وبحجم الجيب.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "سرعة الشحن",
+          "keyEn": "Speed",
+          "valueAr": "15 واط شحن لاسلكي مغناطيسي سريع",
+          "valueEn": "15W Qi2 Certified Magnetic Fast Wireless"
+        },
+        {
+          "keyAr": "الأجهزة",
+          "keyEn": "Devices",
+          "valueAr": "شحن الآيفون وساعة آبل وسماعة إيربودز معاً",
+          "valueEn": "Simultaneously charges iPhone, Apple Watch, & AirPods"
+        },
+        {
+          "keyAr": "التنقل",
+          "keyEn": "Portability",
+          "valueAr": "تصميم قابل للطي بالكامل لسهولة السفر",
+          "valueEn": "Full foldable 360 origami design for travel"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Stealth Black",
+          "price": 190,
+          "isDefault": true,
+          "originalPrice": 240,
+          "stockQuantity": 10
+        },
+        {
+          "name": "Arctic White",
+          "price": 190,
+          "isDefault": false,
+          "originalPrice": 240,
+          "stockQuantity": 10
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.960Z",
+      "updatedAt": "2026-10-31T16:26:58.960Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 64,
+      "slug": "anker-140w-4port-gan-laptop-charger",
+      "sku": "B2697K11",
+      "nameEn": "Anker 140W 4-Port GaN Multi-Device Laptop Fast Charger",
+      "nameAr": "شاحن لابتوب وهواتف أنكر فائق السرعة بقوة 140 واط بـ 4 منافذ بتقنية جان",
+      "descriptionEn": "High-speed 140W USB-C wall charger with 3x USB-C and 1x USB-A ports. Features PowerIQ 4.0 and Dynamic Power Distribution to fast charge high-performance MacBooks, Dell XPS, iPads, and smartphones all at once.",
+      "descriptionAr": "شاحن جداري جبار بقوة 140 واط بـ 4 منافذ يدعم تقنية PowerIQ 4.0 لتوزيع الطاقة الذكي بين اللابتوبات والأجهزة اللوحية والهواتف بدون أي تباطؤ.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "أقصى طاقة",
+          "keyEn": "Max Wattage",
+          "valueAr": "140 واط كحد أقصى للمنفذ الواحد",
+          "valueEn": "140W Max Single Port Output (PD 3.1)"
+        },
+        {
+          "keyAr": "المنافذ",
+          "keyEn": "Ports",
+          "valueAr": "3 منافذ تايب سي + 1 منفذ يو إس بي",
+          "valueEn": "3x USB-C + 1x USB-A Multi-Device"
+        },
+        {
+          "keyAr": "التقنية",
+          "keyEn": "Technology",
+          "valueAr": "معمارية جان 3 عالية الكفاءة",
+          "valueEn": "GaN III Silicon Architecture"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black Edition (140W)",
+          "price": 150,
+          "isDefault": true,
+          "originalPrice": 199,
+          "stockQuantity": 18
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 18,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.963Z",
+      "updatedAt": "2026-10-31T16:26:58.963Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 65,
+      "slug": "anker-nano-car-charger-167w",
+      "sku": "B2737H11",
+      "nameEn": "Anker Nano Car Charger 167.5W (3-Port with 100W USB-C Cable)",
+      "nameAr": "شاحن سيارة أنكر نانو فائق السرعة بقوة 167.5 واط مع كابل تايب سي",
+      "descriptionEn": "Rapid-charge on the road. The Anker Nano car adapter delivers a staggering 167.5W of total power across 3 ports with an included 100W USB-C to USB-C cable (3.3ft). Powerful enough to charge laptops and flagship phones at highway speed.",
+      "descriptionAr": "شاحن سيارة استثنائي بقوة 167.5 واط عبر 3 منافذ شحن سريع مرفق معه كابل تايب سي 100 واط أصلي، يشحن اللابتوبات والهواتف بأقصى سرعة أثناء القيادة.",
+      "condition": "New",
+      "categoryId": 4,
+      "brandId": 7,
+      "isFeatured": false,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "القوة الإجمالية",
+          "keyEn": "Total Output",
+          "valueAr": "167.5 واط إجمالي (100 واط لأسرع منفذ)",
+          "valueEn": "167.5W Total Output (100W Max Port)"
+        },
+        {
+          "keyAr": "الكابل المرفق",
+          "keyEn": "Included Cable",
+          "valueAr": "يشمل كابل تايب سي بقدرة 100 واط",
+          "valueEn": "Includes 3.3ft 100W USB-C Fast Cable"
+        },
+        {
+          "keyAr": "التوافق",
+          "keyEn": "Compatibility",
+          "valueAr": "متوافق مع ولاعة 12V و 24V",
+          "valueEn": "12V / 24V Car Socket Compatibility"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Black (167.5W Kit)",
+          "price": 95,
+          "isDefault": true,
+          "originalPrice": 125,
+          "stockQuantity": 25
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 25,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.967Z",
+      "updatedAt": "2026-10-31T16:26:58.967Z",
+      "categoryNameEn": "Chargers & Cables",
+      "categoryNameAr": "الشواحن والكابلات",
+      "categorySlug": "chargers-cables",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 66,
+      "slug": "anker-10in1-usb-c-multihub",
+      "sku": "A83C2HA1",
+      "nameEn": "Anker 10-in-1 USB-C Multi-Port Hub (Dual 4K HDMI & 100W PD)",
+      "nameAr": "موزع ومحول أنكر 10 في 1 بمنفذ تايب سي يدعم شاشات مزدوجة 4K",
+      "descriptionEn": "Expand your laptop connectivity with 10 versatile ports: Dual 4K HDMI, 100W USB-C Power Delivery pass-through, high-speed Gigabit Ethernet, SD & microSD card slots, and multiple USB-A data ports.",
+      "descriptionAr": "موزع تايب سي احترافي 10 في 1 يضيف لجهازك منفذي HDMI بدقة 4K مزدوجة، ومنفذ شحن سريع 100 واط PD، ومنفذ شبكة إيثرنت، وقارئ كروت ذاكرة ومنافذ نقل بيانات.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 7,
+      "isFeatured": false,
+      "isNewArrival": false,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "المنافذ",
+          "keyEn": "Ports",
+          "valueAr": "10 منافذ (HDMI مزدوج 4K، إيثرنت، كروت ذاكرة)",
+          "valueEn": "10 Ports (Dual 4K HDMI, Gigabit LAN, SD, TF, USB 3.0)"
+        },
+        {
+          "keyAr": "تمرير الطاقة",
+          "keyEn": "Power Pass-Through",
+          "valueAr": "شحن 100 واط تايب سي",
+          "valueEn": "100W USB-C Power Delivery"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Space Gray 10-in-1",
+          "price": 125,
+          "isDefault": true,
+          "originalPrice": 165,
+          "stockQuantity": 20
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 20,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.970Z",
+      "updatedAt": "2026-10-31T16:26:58.970Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Anker",
+      "brandSlug": "anker"
+    },
+    {
+      "id": 67,
+      "slug": "anker-iphone16pro-magnetic-ring-case",
+      "sku": "AN.A90H1H0A.CL",
+      "nameEn": "Anker iPhone 16 Pro Magnetic Clear Case with 360° Ring Stand",
+      "nameAr": "كفر حماية شفاف مغناطيسي ماج سيف مع حلقة تثبيت 360 درجة لآيفون 16 برو",
+      "descriptionEn": "Precision-engineered clear protective case for iPhone 16 Pro. Features a built-in 360-degree rotating zinc alloy kickstand, ultra-strong MagSafe magnetic locking array, anti-yellowing German TPU material, and military-grade drop shock absorption.",
+      "descriptionAr": "كفر حماية فائق الشفافية لآيفون 16 برو مع ستاند وحلقة تثبيت مدمجة تدور 360 درجة، ومغناطيس ماج سيف قوي ومقاومة للاصفرار وحماية معتمدة ضد الصدمات.",
+      "condition": "New",
+      "categoryId": 3,
+      "brandId": 7,
+      "isFeatured": true,
+      "isNewArrival": true,
+      "status": "published",
+      "specifications": [
+        {
+          "keyAr": "حلقة التثبيت",
+          "keyEn": "Stand",
+          "valueAr": "حلقة معدنية تدور 360 درجة للاستاند والأصبع",
+          "valueEn": "360° Rotating Zinc Alloy Stand & Finger Loop"
+        },
+        {
+          "keyAr": "الماج سيف",
+          "keyEn": "MagSafe",
+          "valueAr": "مغناطيس N52 قوي مدمج متوافق مع ماج سيف",
+          "valueEn": "Built-in strong N52 neodymium magnetic ring"
+        },
+        {
+          "keyAr": "مستوى الحماية",
+          "keyEn": "Protection",
+          "valueAr": "حواف هوائية ماصة للصدمات بمعيار عسكري",
+          "valueEn": "Military-Grade Drop Air-Cushion Bumpers"
+        }
+      ],
+      "variants": [
+        {
+          "name": "Crystal Clear (No Color)",
+          "price": 15,
+          "isDefault": true,
+          "originalPrice": 25,
+          "stockQuantity": 30
+        },
+        {
+          "name": "Clear with Black Ring",
+          "price": 15,
+          "isDefault": false,
+          "originalPrice": 25,
+          "stockQuantity": 20
+        }
+      ],
+      "images": [],
+      "privateNotes": "",
+      "purchaseCost": "",
+      "stockQuantity": 50,
+      "imeiSerialNumbers": [],
+      "createdAt": "2026-10-31T16:26:58.973Z",
+      "updatedAt": "2026-10-31T16:26:58.973Z",
+      "categoryNameEn": "Accessories",
+      "categoryNameAr": "الإكسسوارات",
+      "categorySlug": "accessories",
+      "brandName": "Anker",
+      "brandSlug": "anker"
     }
-  ],
-  "deletedProductIds": [
-    90001
   ],
   "services": [
     {
@@ -1719,5 +4226,9 @@
       "displayOrder": 6,
       "isActive": true
     }
+  ],
+  "deletedProductIds": [
+    90001,
+    68
   ]
 }

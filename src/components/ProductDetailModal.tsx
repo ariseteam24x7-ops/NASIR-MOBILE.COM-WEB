@@ -79,7 +79,20 @@ export const ProductDetailModal: React.FC<ProductDetailModalProps> = ({
   const categoryName = language === 'ar' ? product.categoryNameAr : product.categoryNameEn;
   const brandName = product.brandName || '';
 
-  const images = product.images && product.images.length > 0 ? product.images : [];
+  const images: string[] = Array.isArray(product.images)
+    ? product.images.map((img: any) => (typeof img === 'string' ? img : img?.url || img?.src || '')).filter(Boolean)
+    : typeof product.images === 'string'
+    ? (() => {
+        try {
+          const parsed = JSON.parse(product.images);
+          return Array.isArray(parsed)
+            ? parsed.map((img: any) => (typeof img === 'string' ? img : img?.url || img?.src || '')).filter(Boolean)
+            : [product.images];
+        } catch {
+          return [product.images];
+        }
+      })()
+    : [];
   const activeImage = images[selectedImageIndex] || null;
 
   const isOptionGroup = Boolean(

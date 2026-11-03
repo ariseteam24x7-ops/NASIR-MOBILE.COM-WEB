@@ -191,6 +191,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [loading, setLoading] = useState(false);
   const [actionSuccess, setActionSuccess] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Category Form State
   const [catNameEn, setCatNameEn] = useState('');
@@ -548,6 +549,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setFormStockQuantity(1);
     setFormImeis([]);
     setImeiInput('');
+    setFormError(null);
     setProductModalOpen(true);
   };
 
@@ -577,6 +579,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setFormStockQuantity(prod.stockQuantity || 0);
     setFormImeis(prod.imeiSerialNumbers || []);
     setImeiInput('');
+    setFormError(null);
     setProductModalOpen(true);
   };
 
@@ -864,20 +867,29 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setProductsList((prev) => prev.map((p) => (p.id === data.id ? { ...p, ...data } : p)));
       } else {
         setProductsList((prev) => [data, ...prev.filter((p) => p.id !== data.id && p.sku !== data.sku)]);
+        // Reset dashboard search and category/brand/status filters so the newly added product is immediately visible
+        setProductSearch('');
+        setProductCategoryFilter('');
+        setProductBrandFilter('');
+        setProductConditionFilter('all');
+        setProductStatusFilter('all');
+        setProductStockFilter('all');
       }
 
+      setFormError(null);
       showNotification(editingProduct ? 'Product updated successfully' : 'Product created successfully');
       setProductModalOpen(false);
       fetchProducts();
       fetchOverview();
     } catch (e: any) {
+      setFormError(e.message || 'Failed to save product. Please check your inputs.');
       showNotification(e.message, true);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle Image Upload via 1080x1080 formatting
+  // Handle Image Upload with preserved dimensions
   const handleImageFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -889,7 +901,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
     try {
       setLoading(true);
-      // Auto-format to 1080x1080 HD square
+      // Preserve original photo aspect ratio, resolution and transparency
       const processed = await processImageTo1080x1080(file, formImageFitMode);
 
       const res = await fetch('/api/admin/upload-image', {
@@ -906,7 +918,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (!res.ok) throw new Error(data.error || 'Failed to upload image');
 
       setFormImages((prev) => [...prev, data.url]);
-      showNotification('Image formatted to 1080 × 1080 and uploaded successfully!');
+      showNotification('Image uploaded successfully with original dimensions preserved!');
     } catch (err: any) {
       showNotification(err.message, true);
     } finally {
@@ -4399,6 +4411,14 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Form Validation / Error Notice */}
+              {formError && (
+                <div className="p-3.5 rounded-2xl bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs font-semibold flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 flex-shrink-0" />
+                  <span>{formError}</span>
+                </div>
+              )}
 
               {/* Form Buttons */}
               <div className="flex items-center justify-end gap-3 pt-4 border-t border-white/10">
