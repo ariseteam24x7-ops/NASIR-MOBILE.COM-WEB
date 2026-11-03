@@ -2950,30 +2950,6 @@ async function startServer() {
     try {
       const pool2 = global._postgresPool;
       if (!pool2) return;
-      try {
-        await pool2.query(`
-          CREATE TABLE IF NOT EXISTS services (
-            id SERIAL PRIMARY KEY,
-            slug TEXT NOT NULL UNIQUE,
-            title_en TEXT NOT NULL,
-            title_ar TEXT NOT NULL,
-            description_en TEXT NOT NULL,
-            description_ar TEXT NOT NULL,
-            icon TEXT DEFAULT 'Wrench',
-            turnaround_en TEXT DEFAULT '30 - 45 Minutes',
-            turnaround_ar TEXT DEFAULT '30 - 45 \u062F\u0642\u064A\u0642\u0629',
-            badge_en TEXT DEFAULT 'Certified',
-            badge_ar TEXT DEFAULT '\u0645\u0639\u062A\u0645\u062F',
-            features_en JSONB DEFAULT '[]',
-            features_ar JSONB DEFAULT '[]',
-            display_order INTEGER DEFAULT 0,
-            is_active BOOLEAN DEFAULT true,
-            created_at TIMESTAMP DEFAULT NOW()
-          );
-        `);
-      } catch (tblErr) {
-        console.warn("Services table creation note:", tblErr);
-      }
       for (const c of [...FALLBACK_CATEGORIES, ...customCategories]) {
         try {
           await pool2.query(`
@@ -3027,44 +3003,13 @@ async function startServer() {
           }
         }
       }
-      for (const s of [...FALLBACK_SERVICES, ...customServices]) {
-        try {
-          await pool2.query(`
-            INSERT INTO services (
-              id, slug, title_en, title_ar, description_en, description_ar,
-              icon, turnaround_en, turnaround_ar, badge_en, badge_ar,
-              features_en, features_ar, display_order, is_active
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
-            ON CONFLICT (id) DO NOTHING;
-          `, [
-            s.id,
-            s.slug,
-            s.titleEn,
-            s.titleAr,
-            s.descriptionEn,
-            s.descriptionAr,
-            s.icon || "Wrench",
-            s.turnaroundEn || "30 - 45 Minutes",
-            s.turnaroundAr || "30 - 45 \u062F\u0642\u064A\u0642\u0629",
-            s.badgeEn || "Certified",
-            s.badgeAr || "\u0645\u0639\u062A\u0645\u062F",
-            JSON.stringify(s.featuresEn || []),
-            JSON.stringify(s.featuresAr || []),
-            s.displayOrder || 0,
-            s.isActive !== false
-          ]);
-        } catch {
-        }
-      }
       try {
         await pool2.query(`
           SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1) + 1, false);
           SELECT setval(pg_get_serial_sequence('categories', 'id'), COALESCE((SELECT MAX(id) FROM categories), 1) + 1, false);
           SELECT setval(pg_get_serial_sequence('brands', 'id'), COALESCE((SELECT MAX(id) FROM brands), 1) + 1, false);
-          SELECT setval(pg_get_serial_sequence('services', 'id'), COALESCE((SELECT MAX(id) FROM services), 1) + 1, false);
         `);
       } catch (seqErr) {
-        console.warn("Sequence alignment note:", seqErr);
       }
       const pgBrands = await db.select({
         id: brands.id,
@@ -3155,39 +3100,8 @@ async function startServer() {
           }
         }
       }
-      try {
-        const pgServs = await pool2.query("SELECT * FROM services ORDER BY display_order ASC, id ASC;");
-        for (const s of pgServs.rows) {
-          const item = {
-            id: s.id,
-            slug: s.slug,
-            titleEn: s.title_en,
-            titleAr: s.title_ar,
-            descriptionEn: s.description_en,
-            descriptionAr: s.description_ar,
-            icon: s.icon,
-            turnaroundEn: s.turnaround_en,
-            turnaroundAr: s.turnaround_ar,
-            badgeEn: s.badge_en,
-            badgeAr: s.badge_ar,
-            featuresEn: s.features_en || [],
-            featuresAr: s.features_ar || [],
-            displayOrder: s.display_order,
-            isActive: s.is_active,
-            createdAt: s.created_at
-          };
-          const idx = customServices.findIndex((cs) => cs.id === item.id || cs.slug === item.slug);
-          if (idx !== -1) {
-            customServices[idx] = { ...customServices[idx], ...item };
-          } else {
-            customServices.push(item);
-          }
-        }
-      } catch (sErr) {
-        console.warn("Services fetch note:", sErr);
-      }
       persistDataStore();
-      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories, ${customProducts.length} products, ${customServices.length} services`);
+      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories, ${customProducts.length} products`);
     } catch (e) {
       console.warn("Store reconciliation note:", e?.message || e);
     }
@@ -3255,52 +3169,8 @@ async function startServer() {
     }
     res.json(merged);
   });
-  app.get(["/api/services", "/api/admin/services"], async (req, res) => {
-    const isPublic = !req.path.includes("/admin/");
-    let dbServices = [];
-    if (isPostgresAvailable) {
-      try {
-        const pool2 = global._postgresPool;
-        if (pool2) {
-          const sqlQuery = isPublic ? "SELECT * FROM services WHERE is_active = true ORDER BY display_order ASC, id ASC;" : "SELECT * FROM services ORDER BY display_order ASC, id ASC;";
-          const pgRes = await pool2.query(sqlQuery);
-          dbServices = pgRes.rows.map((s) => ({
-            id: s.id,
-            slug: s.slug,
-            titleEn: s.title_en,
-            titleAr: s.title_ar,
-            descriptionEn: s.description_en,
-            descriptionAr: s.description_ar,
-            icon: s.icon,
-            turnaroundEn: s.turnaround_en,
-            turnaroundAr: s.turnaround_ar,
-            badgeEn: s.badge_en,
-            badgeAr: s.badge_ar,
-            featuresEn: s.features_en || [],
-            featuresAr: s.features_ar || [],
-            displayOrder: s.display_order,
-            isActive: s.is_active,
-            createdAt: s.created_at
-          }));
-        }
-      } catch (err) {
-        console.warn("Services query fallback:", err?.message);
-      }
-    }
-    const merged = [...dbServices];
-    for (const s of customServices) {
-      if ((!isPublic || s.isActive !== false) && !merged.some((m) => m.slug === s.slug || m.id === s.id)) {
-        merged.push(s);
-      }
-    }
-    if (merged.length === 0) {
-      for (const fs3 of FALLBACK_SERVICES) {
-        if (!isPublic || fs3.isActive !== false) {
-          merged.push(fs3);
-        }
-      }
-    }
-    res.json(merged);
+  app.get(["/api/services", "/api/admin/services"], async (_req, res) => {
+    res.json([]);
   });
   const filterFallbackProducts = (query, isPublic = true, dbItems = []) => {
     const { category, brand, condition, featured, newArrival, search, sort, status, categoryId, brandId } = query;
@@ -3326,8 +3196,26 @@ async function startServer() {
     allMerged = allMerged.map((p) => {
       const cat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === p.categoryId || c.slug === p.categorySlug);
       const br = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === p.brandId || b.slug === p.brandSlug);
+      let safeImages = [];
+      if (Array.isArray(p.images)) {
+        safeImages = p.images.map((img) => typeof img === "string" ? img : img?.url || img?.src || "").filter(Boolean);
+      } else if (typeof p.images === "string") {
+        try {
+          const parsed = JSON.parse(p.images);
+          if (Array.isArray(parsed)) {
+            safeImages = parsed.map((img) => typeof img === "string" ? img : img?.url || img?.src || "").filter(Boolean);
+          } else if (p.images.trim()) {
+            safeImages = [p.images.trim()];
+          }
+        } catch {
+          if (p.images.trim()) {
+            safeImages = [p.images.trim()];
+          }
+        }
+      }
       return {
         ...p,
+        images: safeImages,
         categoryNameEn: p.categoryNameEn || cat?.nameEn || "General",
         categoryNameAr: p.categoryNameAr || cat?.nameAr || "\u0639\u0627\u0645",
         categorySlug: p.categorySlug || cat?.slug || "mobile-phones",
@@ -4460,14 +4348,18 @@ async function startServer() {
         };
         if (!updatedProd) updatedProd = customProducts[idx];
         persistDataStore();
-      } else if (!updatedProd) {
-        updatedProd = {
-          id,
-          sku: (sku || `SKU-${id}`).toUpperCase(),
-          nameEn: nameEn || "Product",
-          nameAr: nameAr || nameEn || "Product",
-          updatedAt: (/* @__PURE__ */ new Date()).toISOString()
-        };
+      } else {
+        if (!updatedProd) {
+          updatedProd = {
+            id,
+            sku: (sku || `SKU-${id}`).toUpperCase(),
+            nameEn: nameEn || "Product",
+            nameAr: nameAr || nameEn || "Product",
+            updatedAt: (/* @__PURE__ */ new Date()).toISOString()
+          };
+        }
+        customProducts.unshift(updatedProd);
+        persistDataStore();
       }
       await logAudit(
         "PRODUCT_UPDATE",
@@ -4839,7 +4731,7 @@ async function startServer() {
       const safeMime = mimeType || "image/jpeg";
       const ext = safeMime.includes("png") ? "png" : safeMime.includes("webp") ? "webp" : "jpg";
       const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+      const diskFileName = `product_${uniqueToken}.${ext}`;
       const diskFilePath = path2.join(UPLOADS_DIR, diskFileName);
       let buffer;
       if (data.startsWith("data:")) {
@@ -4895,7 +4787,7 @@ async function startServer() {
         const safeMime = item.mimeType || "image/jpeg";
         const ext = safeMime.includes("png") ? "png" : safeMime.includes("webp") ? "webp" : "jpg";
         const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const diskFileName = `product_1080x1080_${uniqueToken}.${ext}`;
+        const diskFileName = `product_${uniqueToken}.${ext}`;
         const diskFilePath = path2.join(UPLOADS_DIR, diskFileName);
         let buffer;
         if (item.data.startsWith("data:")) {
@@ -5251,65 +5143,6 @@ async function startServer() {
       if (!baseSlug) baseSlug = `service-${Date.now().toString(36)}`;
       let finalSlug = baseSlug;
       let savedService = null;
-      if (isPostgresAvailable) {
-        try {
-          const pool2 = global._postgresPool;
-          if (pool2) {
-            let counter = 1;
-            while (counter <= 50) {
-              const check = await pool2.query("SELECT id FROM services WHERE slug = $1 LIMIT 1;", [finalSlug]);
-              if (check.rows.length === 0) break;
-              finalSlug = `${baseSlug}-${counter++}`;
-            }
-            const insertRes = await pool2.query(`
-              INSERT INTO services (
-                slug, title_en, title_ar, description_en, description_ar,
-                icon, turnaround_en, turnaround_ar, badge_en, badge_ar,
-                features_en, features_ar, display_order, is_active
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-              RETURNING *;
-            `, [
-              finalSlug,
-              titleEn.trim(),
-              titleAr?.trim() || titleEn.trim(),
-              descriptionEn?.trim() || "",
-              descriptionAr?.trim() || descriptionEn?.trim() || "",
-              icon || "Wrench",
-              turnaroundEn?.trim() || "30 - 45 Minutes",
-              turnaroundAr?.trim() || "30 - 45 \u062F\u0642\u064A\u0642\u0629",
-              badgeEn?.trim() || "Certified",
-              badgeAr?.trim() || "\u0645\u0639\u062A\u0645\u062F",
-              JSON.stringify(featuresEn || []),
-              JSON.stringify(featuresAr || []),
-              parseInt(displayOrder, 10) || 0,
-              isActive !== false
-            ]);
-            if (insertRes.rows.length > 0) {
-              const row = insertRes.rows[0];
-              savedService = {
-                id: row.id,
-                slug: row.slug,
-                titleEn: row.title_en,
-                titleAr: row.title_ar,
-                descriptionEn: row.description_en,
-                descriptionAr: row.description_ar,
-                icon: row.icon,
-                turnaroundEn: row.turnaround_en,
-                turnaroundAr: row.turnaround_ar,
-                badgeEn: row.badge_en,
-                badgeAr: row.badge_ar,
-                featuresEn: row.features_en || [],
-                featuresAr: row.features_ar || [],
-                displayOrder: row.display_order,
-                isActive: row.is_active,
-                createdAt: row.created_at
-              };
-            }
-          }
-        } catch (dbErr) {
-          console.warn("DB service create note:", dbErr);
-        }
-      }
       if (!savedService) {
         const nextId = Math.max(100, ...customServices.map((s) => Number(s.id) || 0)) + 1;
         savedService = {
@@ -5359,69 +5192,6 @@ async function startServer() {
         isActive
       } = req.body;
       let updatedService = null;
-      if (isPostgresAvailable) {
-        try {
-          const pool2 = global._postgresPool;
-          if (pool2) {
-            const updateRes = await pool2.query(`
-              UPDATE services SET
-                title_en = COALESCE($1, title_en),
-                title_ar = COALESCE($2, title_ar),
-                description_en = COALESCE($3, description_en),
-                description_ar = COALESCE($4, description_ar),
-                icon = COALESCE($5, icon),
-                turnaround_en = COALESCE($6, turnaround_en),
-                turnaround_ar = COALESCE($7, turnaround_ar),
-                badge_en = COALESCE($8, badge_en),
-                badge_ar = COALESCE($9, badge_ar),
-                features_en = COALESCE($10, features_en),
-                features_ar = COALESCE($11, features_ar),
-                display_order = COALESCE($12, display_order),
-                is_active = COALESCE($13, is_active)
-              WHERE id = $14
-              RETURNING *;
-            `, [
-              titleEn !== void 0 ? titleEn.trim() : null,
-              titleAr !== void 0 ? titleAr.trim() : null,
-              descriptionEn !== void 0 ? descriptionEn.trim() : null,
-              descriptionAr !== void 0 ? descriptionAr.trim() : null,
-              icon !== void 0 ? icon : null,
-              turnaroundEn !== void 0 ? turnaroundEn.trim() : null,
-              turnaroundAr !== void 0 ? turnaroundAr.trim() : null,
-              badgeEn !== void 0 ? badgeEn.trim() : null,
-              badgeAr !== void 0 ? badgeAr.trim() : null,
-              featuresEn !== void 0 ? JSON.stringify(featuresEn) : null,
-              featuresAr !== void 0 ? JSON.stringify(featuresAr) : null,
-              displayOrder !== void 0 ? parseInt(displayOrder, 10) : null,
-              isActive !== void 0 ? Boolean(isActive) : null,
-              id
-            ]);
-            if (updateRes.rows.length > 0) {
-              const row = updateRes.rows[0];
-              updatedService = {
-                id: row.id,
-                slug: row.slug,
-                titleEn: row.title_en,
-                titleAr: row.title_ar,
-                descriptionEn: row.description_en,
-                descriptionAr: row.description_ar,
-                icon: row.icon,
-                turnaroundEn: row.turnaround_en,
-                turnaroundAr: row.turnaround_ar,
-                badgeEn: row.badge_en,
-                badgeAr: row.badge_ar,
-                featuresEn: row.features_en || [],
-                featuresAr: row.features_ar || [],
-                displayOrder: row.display_order,
-                isActive: row.is_active,
-                createdAt: row.created_at
-              };
-            }
-          }
-        } catch (dbErr) {
-          console.warn("DB service update note:", dbErr);
-        }
-      }
       const idx = customServices.findIndex((s) => s.id === id);
       if (idx !== -1) {
         customServices[idx] = {
@@ -5470,51 +5240,14 @@ async function startServer() {
     }
   });
   app.delete("/api/admin/services/:id", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      if (isPostgresAvailable) {
-        try {
-          const pool2 = global._postgresPool;
-          if (pool2) {
-            await pool2.query("DELETE FROM services WHERE id = $1;", [id]);
-          }
-        } catch (dbErr) {
-          console.warn("DB service delete note:", dbErr);
-        }
-      }
-      customServices = customServices.filter((s) => s.id !== id);
-      persistDataStore();
-      await logAudit("SERVICE_DELETE", `Deleted service ID ${id}`, req.user?.email);
-      res.json({ success: true, id });
-    } catch (error) {
-      res.json({ success: true, id: parseInt(req.params.id, 10) });
-    }
+    const id = parseInt(req.params.id, 10);
+    customServices = customServices.filter((s) => s.id !== id);
+    persistDataStore();
+    res.json({ success: true, id });
   });
   app.patch("/api/admin/services/:id/toggle", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id, 10);
-      let newStatus = true;
-      const idx = customServices.findIndex((s) => s.id === id);
-      if (idx !== -1) {
-        newStatus = !customServices[idx].isActive;
-        customServices[idx].isActive = newStatus;
-      }
-      if (isPostgresAvailable) {
-        try {
-          const pool2 = global._postgresPool;
-          if (pool2) {
-            await pool2.query("UPDATE services SET is_active = $1 WHERE id = $2;", [newStatus, id]);
-          }
-        } catch (dbErr) {
-          console.warn("DB service toggle note:", dbErr);
-        }
-      }
-      persistDataStore();
-      await logAudit("SERVICE_TOGGLE", `Toggled service ID ${id} active to ${newStatus}`, req.user?.email);
-      res.json({ id, isActive: newStatus });
-    } catch (error) {
-      res.json({ id: parseInt(req.params.id, 10), isActive: true });
-    }
+    const id = parseInt(req.params.id, 10);
+    res.json({ id, isActive: false });
   });
   app.get("/api/admin/whatsapp-settings", requireAuth, async (_req, res) => {
     try {
@@ -5942,7 +5675,7 @@ async function startServer() {
   const distDir = path2.resolve(__dirname, "dist");
   const indexHtml = path2.resolve(distDir, "index.html");
   const hasDist = fs2.existsSync(indexHtml);
-  if (process.env.NODE_ENV === "production" || hasDist) {
+  if (process.env.NODE_ENV === "production") {
     if (hasDist) {
       app.use(express.static(distDir));
       app.get("*", (_req, res) => {
