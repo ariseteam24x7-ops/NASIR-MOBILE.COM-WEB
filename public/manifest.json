@@ -1,17 +1,50 @@
 {
-  "name": "Nasir Mobile Dubai",
+  "name": "Nasir Mobile Dubai — Premium Electronics & Smart Devices",
   "short_name": "Nasir Mobile",
-  "description": "Certified premium electronics & smart devices catalogue in Dubai, UAE.",
+  "description": "Authorized retailer of genuine smartphones, luxury smartwatches, laptops, and certified mobile accessories with official Dubai UAE warranty.",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "background_color": "#151419",
   "theme_color": "#151419",
   "icons": [
     {
+      "src": "/favicon-48x48.png",
+      "sizes": "48x48",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/favicon-96x96.png",
+      "sizes": "96x96",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
       "src": "/favicon.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
-  ]
+  ],
+  "categories": ["shopping", "technology", "business"]
 }

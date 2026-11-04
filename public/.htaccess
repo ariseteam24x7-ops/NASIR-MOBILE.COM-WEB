@@ -1,6 +1,11 @@
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
+  
+  # Prevent rewriting of critical SEO files and sitemaps
+  RewriteRule ^(sitemap\.xml|sitemap_index\.xml|sitemaps\.xml|robots\.txt|favicon\.ico|favicon-.*\.png|apple-touch-icon\.png|og-image\.png|logo-.*\.png)$ - [L]
+
+  # Standard SPA single-page application router
   RewriteRule ^index\.html$ - [L]
   RewriteCond %{REQUEST_FILENAME} !-f
   RewriteCond %{REQUEST_FILENAME} !-d
@@ -8,7 +13,17 @@
   RewriteRule . /index.html [L]
 </IfModule>
 
+# Correct MIME types for search engines and crawlers
+<IfModule mod_mime.c>
+  AddType application/xml .xml
+  AddType text/xml .xml
+  AddType image/x-icon .ico
+  AddType image/svg+xml .svg
+  AddType image/png .png
+  AddType application/manifest+json .webmanifest .json
+</IfModule>
+
 # Compression
 <IfModule mod_deflate.c>
-  AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css text/javascript application/javascript application/json
+  AddOutputFilterByType DEFLATE text/html text/plain text/xml application/xml text/css text/javascript application/javascript application/json
 </IfModule>

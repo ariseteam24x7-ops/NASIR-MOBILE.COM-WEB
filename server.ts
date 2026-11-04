@@ -1,5 +1,6 @@
 import express from 'express';
 import fs from 'fs';
+import { execSync } from 'child_process';
 import { createServer as createViteServer } from 'vite';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -50,11 +51,39 @@ async function startServer() {
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
 
   // Ensure persistent public uploads folder exists and is mounted statically
-  const UPLOADS_DIR = path.resolve(__dirname, 'public', 'uploads');
+  const PUBLIC_DIR = path.resolve(__dirname, 'public');
+  const UPLOADS_DIR = path.resolve(PUBLIC_DIR, 'uploads');
   if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   }
   app.use('/uploads', express.static(UPLOADS_DIR));
+  app.use(express.static(PUBLIC_DIR));
+
+  // Dedicated SEO Crawling routes for Googlebot, Bingbot, and Social Crawlers
+  app.get('/robots.txt', (_req, res) => {
+    res.type('text/plain').sendFile(path.join(PUBLIC_DIR, 'robots.txt'));
+  });
+  app.get('/sitemap.xml', (_req, res) => {
+    res.type('application/xml').sendFile(path.join(PUBLIC_DIR, 'sitemap.xml'));
+  });
+  app.get(['/sitemap_index.xml', '/sitemaps.xml'], (_req, res) => {
+    res.type('application/xml').sendFile(path.join(PUBLIC_DIR, 'sitemap_index.xml'));
+  });
+  app.get('/favicon.ico', (_req, res) => {
+    res.type('image/x-icon').sendFile(path.join(PUBLIC_DIR, 'favicon.ico'));
+  });
+
+  // Dynamic on-demand source code ZIP export (keeps repository lightweight so GitHub push never fails)
+  app.get(['/nasir-mobile-dubai-source-code.zip', '/api/admin/export-zip'], (_req, res) => {
+    try {
+      const zipPath = path.resolve('/tmp', 'nasir-mobile-dubai-source-code.zip');
+      execSync(`python3 scripts/package-zip.py "${zipPath}"`, { cwd: path.resolve('.') });
+      res.download(zipPath, 'nasir-mobile-dubai-source-code.zip');
+    } catch (e: any) {
+      console.error('Failed to bundle source code:', e);
+      res.status(500).json({ error: 'Failed to bundle source code' });
+    }
+  });
 
   // Health check endpoints for host reverse proxies and uptime monitors
   app.get(['/health', '/api/health'], (_req, res) => {

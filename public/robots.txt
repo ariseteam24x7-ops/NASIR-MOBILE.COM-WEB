@@ -1,0 +1,35 @@
+# Nasir Mobile Dubai — Official Robots.txt
+# Optimized for Googlebot, Bingbot, and modern search crawlers
+
+User-agent: *
+Allow: /
+Allow: /favicon.ico
+Allow: /favicon.svg
+Allow: /favicon-48x48.png
+Allow: /apple-touch-icon.png
+Allow: /og-image.png
+Allow: /logo-512x512.png
+Disallow: /api/admin/
+Disallow: /admin
+
+# Googlebot specific directives
+User-agent: Googlebot
+Allow: /
+Allow: /*.js$
+Allow: /*.css$
+Allow: /*.png$
+Allow: /*.jpg$
+Allow: /*.jpeg$
+Allow: /*.svg$
+Allow: /*.webp$
+
+User-agent: Googlebot-Image
+Allow: /
+Allow: /favicon*
+Allow: /logo*
+Allow: /og-image*
+Allow: /uploads/
+
+# XML Sitemaps
+Sitemap: https://www.nasirmobile.com/sitemap.xml
+Sitemap: https://www.nasirmobile.com/sitemap_index.xml

@@ -30,78 +30,60 @@ export const Logo: React.FC<LogoProps> = ({
           className="w-full h-full drop-shadow-[0_0_12px_rgba(146,44,181,0.45)] transition-transform duration-300 group-hover:scale-105"
         >
           <defs>
-            <linearGradient id="nmCircleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#922CB5" />
-              <stop offset="60%" stopColor="#391548" />
-              <stop offset="100%" stopColor="#151419" />
+            <linearGradient id="nmPurpleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+              <stop offset="0%" stopColor="#b838e4" />
+              <stop offset="50%" stopColor="#922cb5" />
+              <stop offset="100%" stopColor="#691686" />
             </linearGradient>
             <linearGradient id="nmLimeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#B7F34B" />
-              <stop offset="100%" stopColor="#8AC620" />
-            </linearGradient>
-            <linearGradient id="nmSlashGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-              <stop offset="0%" stopColor="#FFFFFF" />
-              <stop offset="100%" stopColor="#B7F34B" />
+              <stop offset="0%" stopColor="#d4ff6b" />
+              <stop offset="50%" stopColor="#b7f34b" />
+              <stop offset="100%" stopColor="#80be14" />
             </linearGradient>
           </defs>
 
-          {/* Outer Ring with angular cuts */}
+          {/* Outer Ring with cyber glow */}
           <circle
             cx="50"
             cy="50"
-            r="46"
-            stroke="url(#nmCircleGrad)"
-            strokeWidth="3.5"
-            className="opacity-90"
+            r="44"
+            stroke="url(#nmPurpleGrad)"
+            strokeWidth="3"
+            className="opacity-40"
           />
 
           {/* Angular Tech Corner Accents */}
-          <path
-            d="M 50 4 A 46 46 0 0 1 96 50"
-            stroke="#B7F34B"
+          <circle
+            cx="50"
+            cy="50"
+            r="44"
+            stroke="url(#nmLimeGrad)"
             strokeWidth="3.5"
             strokeLinecap="round"
-            strokeDasharray="6 12"
-          />
-          <path
-            d="M 50 96 A 46 46 0 0 1 4 50"
-            stroke="#922CB5"
-            strokeWidth="3.5"
-            strokeLinecap="round"
+            strokeDasharray="28 64"
           />
 
-          {/* Inner Dark Hex/Circle Shield */}
-          <circle cx="50" cy="50" r="38" fill="#151419" />
+          {/* Inner Dark Shield */}
+          <circle cx="50" cy="50" r="38" fill="#151419" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
 
-          {/* Geometric Angular 'N' & 'Z' Interlocking Monogram */}
-          {/* N Left Pillar */}
-          <path
-            d="M 28 70 L 28 30 L 36 30 L 36 70 Z"
-            fill="url(#nmCircleGrad)"
-          />
-          {/* N Diagonal / Z Diagonal */}
-          <path
-            d="M 33 30 L 67 70 L 59 70 L 25 30 Z"
-            fill="url(#nmSlashGrad)"
-          />
-          {/* Z Top Horizontal bar */}
-          <path
-            d="M 40 30 L 72 30 L 72 38 L 48 38 Z"
-            fill="#B7F34B"
-          />
-          {/* Z Bottom Horizontal bar */}
-          <path
-            d="M 28 62 L 52 62 L 52 70 L 28 70 Z"
-            fill="#B7F34B"
-          />
-          {/* Z Right Pillar */}
-          <path
-            d="M 64 30 L 72 30 L 72 70 L 64 70 Z"
-            fill="url(#nmCircleGrad)"
-          />
+          {/* MONOGRAM: Bold, High-Clarity Interlocking NM */}
+          {/* N Left Stem */}
+          <path d="M 25 71 L 25 29 L 34 29 L 34 71 Z" fill="url(#nmLimeGrad)" />
+          {/* N Diagonal */}
+          <path d="M 34 29 L 52 71 L 42 71 L 25 31 Z" fill="url(#nmLimeGrad)" />
+          {/* N Joint / M Left Joint */}
+          <path d="M 43 71 L 52 50 L 52 71 Z" fill="#b7f34b" />
 
-          {/* Central Precision Tech Dot */}
-          <circle cx="50" cy="50" r="4.5" fill="#B7F34B" />
+          {/* M Left Wing Diagonal */}
+          <path d="M 52 29 L 63 56 L 55 56 L 47 29 Z" fill="url(#nmPurpleGrad)" />
+          {/* M Right Wing Diagonal */}
+          <path d="M 63 56 L 74 29 L 82 29 L 68 62 Z" fill="url(#nmPurpleGrad)" />
+          {/* M Right Stem */}
+          <path d="M 73 29 L 82 29 L 82 71 L 73 71 Z" fill="url(#nmPurpleGrad)" />
+
+          {/* Central Tech Precision Core Jewel */}
+          <circle cx="50" cy="74.5" r="3" fill="#b7f34b" />
+          <circle cx="50" cy="74.5" r="1.5" fill="#ffffff" />
         </svg>
       </div>
 
