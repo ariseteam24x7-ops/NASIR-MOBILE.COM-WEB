@@ -133,7 +133,11 @@ function StoreApp() {
       if (savedToken) {
         setCurrentView('admin');
       } else {
-        setCurrentView('admin-login');
+        // If not logged in, gracefully clear hash and show storefront
+        try {
+          window.history.replaceState(null, '', window.location.pathname);
+        } catch {}
+        setCurrentView('store');
       }
     } else if (isHashLogin) {
       setCurrentView('admin-login');
@@ -427,8 +431,18 @@ function StoreApp() {
     localStorage.removeItem('nm_admin_user');
     setAdminToken(null);
     setAdminUser(null);
+    try {
+      window.history.replaceState(null, '', window.location.pathname);
+    } catch {}
     window.location.hash = '';
+    setSelectedCategorySlug('');
+    setSelectedBrandSlug('');
+    setSelectedCondition('all');
+    setSelectedTab('all');
+    setSearchQuery('');
+    setSortBy('newest');
     setCurrentView('store');
+    fetchProductsCatalogue();
   };
 
   // Render Admin Login View

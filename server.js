@@ -2916,7 +2916,10 @@ async function startServer() {
       if (Array.isArray(parsed.categories)) customCategories = parsed.categories;
       if (Array.isArray(parsed.products)) customProducts = parsed.products;
       if (Array.isArray(parsed.services)) customServices = parsed.services;
-      if (Array.isArray(parsed.deletedProductIds)) deletedProductIds = parsed.deletedProductIds.map(Number).filter((n) => !isNaN(n));
+      if (Array.isArray(parsed.deletedProductIds)) {
+        const rawDeleted = parsed.deletedProductIds.map(Number).filter((n) => !isNaN(n));
+        deletedProductIds = rawDeleted.filter((dId) => !customProducts.some((p) => p.id === dId));
+      }
     }
   } catch (err) {
     console.warn("Note: Could not read data-store.json:", err);
@@ -3005,9 +3008,9 @@ async function startServer() {
       }
       try {
         await pool2.query(`
-          SELECT setval(pg_get_serial_sequence('products', 'id'), COALESCE((SELECT MAX(id) FROM products), 1) + 1, false);
-          SELECT setval(pg_get_serial_sequence('categories', 'id'), COALESCE((SELECT MAX(id) FROM categories), 1) + 1, false);
-          SELECT setval(pg_get_serial_sequence('brands', 'id'), COALESCE((SELECT MAX(id) FROM brands), 1) + 1, false);
+          SELECT setval('products_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM products), true);
+          SELECT setval('categories_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM categories), true);
+          SELECT setval('brands_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM brands), true);
         `);
       } catch (seqErr) {
       }
@@ -4208,7 +4211,8 @@ async function startServer() {
         const nextId = Math.max(
           9e4,
           ...customProducts.map((p) => Number(p.id) || 0),
-          ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0)
+          ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0),
+          ...deletedProductIds.map((id) => Number(id) || 0)
         ) + 1;
         createdProduct = {
           id: nextId,
@@ -4246,7 +4250,17 @@ async function startServer() {
       } else {
         customProducts.unshift(createdProduct);
       }
+      deletedProductIds = deletedProductIds.filter((dId) => dId !== createdProduct.id);
       persistDataStore();
+      if (isPostgresAvailable && createdProduct?.id) {
+        try {
+          const pool2 = global._postgresPool;
+          if (pool2) {
+            await pool2.query(`SELECT setval('products_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM products), true);`);
+          }
+        } catch {
+        }
+      }
       await logAudit(
         "PRODUCT_CREATE",
         `Created product: "${nameEn}" [SKU: ${cleanSku}]`,
@@ -4347,6 +4361,7 @@ async function startServer() {
           updatedAt: (/* @__PURE__ */ new Date()).toISOString()
         };
         if (!updatedProd) updatedProd = customProducts[idx];
+        deletedProductIds = deletedProductIds.filter((dId) => dId !== id);
         persistDataStore();
       } else {
         if (!updatedProd) {
@@ -4359,6 +4374,7 @@ async function startServer() {
           };
         }
         customProducts.unshift(updatedProd);
+        deletedProductIds = deletedProductIds.filter((dId) => dId !== id);
         persistDataStore();
       }
       await logAudit(
@@ -4494,6 +4510,7 @@ async function startServer() {
       }
       if (!customProducts.some((p) => p.id === duplicatedProd.id)) {
         customProducts.unshift(duplicatedProd);
+        deletedProductIds = deletedProductIds.filter((dId) => dId !== duplicatedProd.id);
         persistDataStore();
       }
       await logAudit(

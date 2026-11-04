@@ -220,14 +220,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Fetch Products
-  const fetchProducts = async () => {
+  // Fetch Products (supports parameter overrides so newly created products with reset filters load instantly)
+  const fetchProducts = async (overrides?: {
+    status?: string;
+    search?: string;
+    categoryId?: string;
+    brandId?: string;
+    condition?: string;
+  }) => {
     try {
-      let url = `/api/admin/products?status=${productStatusFilter}`;
-      if (productSearch) url += `&search=${encodeURIComponent(productSearch)}`;
-      if (productCategoryFilter) url += `&categoryId=${productCategoryFilter}`;
-      if (productBrandFilter) url += `&brandId=${productBrandFilter}`;
-      if (productConditionFilter !== 'all') url += `&condition=${productConditionFilter}`;
+      const status = overrides?.status !== undefined ? overrides.status : productStatusFilter;
+      const search = overrides?.search !== undefined ? overrides.search : productSearch;
+      const catId = overrides?.categoryId !== undefined ? overrides.categoryId : productCategoryFilter;
+      const brandId = overrides?.brandId !== undefined ? overrides.brandId : productBrandFilter;
+      const condition = overrides?.condition !== undefined ? overrides.condition : productConditionFilter;
+
+      let url = `/api/admin/products?status=${status}`;
+      if (search) url += `&search=${encodeURIComponent(search)}`;
+      if (catId) url += `&categoryId=${catId}`;
+      if (brandId) url += `&brandId=${brandId}`;
+      if (condition !== 'all') url += `&condition=${condition}`;
       const res = await fetch(url, { headers: authHeaders });
       if (res.status === 401) {
         onLogout();
@@ -490,27 +502,24 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (activeTab === 'security') fetchMasterKeyInfo();
   }, [activeTab, productStatusFilter, productCategoryFilter, productBrandFilter, productConditionFilter]);
 
-  // Open Add Product
-  const handleOpenAddProduct = () => {
+  // Reset all product form fields
+  const resetProductFormState = () => {
     setEditingProduct(null);
-    setFormSku(`NM-${Math.floor(10000 + Math.random() * 90000)}`);
+    setFormSku('');
     setFormNameEn('');
     setFormNameAr('');
     setFormDescEn('');
     setFormDescAr('');
     setFormCondition('New');
-    setFormCategoryId(categoriesList.length > 0 ? categoriesList[0].id : '');
-    setFormBrandId(brandsList.length > 0 ? brandsList[0].id : '');
+    setFormCategoryId('');
+    setFormBrandId('');
     setFormStatus('published');
     setFormIsFeatured(false);
     setFormIsNewArrival(true);
     setFormImages([]);
     setFormImageAspectRatio('1:1');
     setFormImageFitMode('contain');
-    setFormSpecs([
-      { keyEn: 'Storage', keyAr: 'السعة', valueEn: '256GB', valueAr: '256 جيجابايت' },
-      { keyEn: 'Network', keyAr: 'الشبكة', valueEn: '5G Dual SIM', valueAr: 'الجيل الخامس شريحتين' },
-    ]);
+    setFormSpecs([]);
     setFormVariants([]);
     setFormPrivateNotes('');
     setFormPurchaseCost('');
@@ -518,6 +527,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setFormImeis([]);
     setImeiInput('');
     setFormError(null);
+  };
+
+  // Open Add Product
+  const handleOpenAddProduct = () => {
+    resetProductFormState();
+    setFormSku(`NM-${Math.floor(10000 + Math.random() * 90000)}`);
+    setFormCategoryId(categoriesList.length > 0 ? categoriesList[0].id : '');
+    setFormBrandId(brandsList.length > 0 ? brandsList[0].id : '');
+    setFormSpecs([
+      { keyEn: 'Storage', keyAr: 'السعة', valueEn: '256GB', valueAr: '256 جيجابايت' },
+      { keyEn: 'Network', keyAr: 'الشبكة', valueEn: '5G Dual SIM', valueAr: 'الجيل الخامس شريحتين' },
+    ]);
     setProductModalOpen(true);
   };
 
@@ -571,12 +592,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (!res.ok) {
         throw new Error(data.error || 'Failed to update product');
       }
+      // Reconcile with authoritative updated product from backend
+      setProductsList((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, ...data } : p))
+      );
       showNotification('Product updated instantly!');
-      fetchOverview();
+      await fetchOverview();
     } catch (e: any) {
       console.error(e);
       showNotification(e.message || 'Failed to update product', true);
-      fetchProducts();
+      await fetchProducts();
     }
   };
 
@@ -585,7 +610,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setStockInputs((prev) => ({ ...prev, [productId]: val }));
   };
 
-  const handleStockInputCommit = (p: Product) => {
+  const handleStockInputCommit = async (p: Product) => {
     const rawVal = stockInputs[p.id];
     if (rawVal === undefined) return;
     const parsed = parseInt(rawVal, 10);
@@ -597,7 +622,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return next;
     });
     if (newStock !== (p.stockQuantity ?? 0)) {
-      handleQuickUpdateProduct(p.id, { stockQuantity: newStock });
+      await handleQuickUpdateProduct(p.id, { stockQuantity: newStock });
     }
   };
 
@@ -610,7 +635,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       delete next[p.id];
       return next;
     });
-    handleQuickUpdateProduct(p.id, { stockQuantity: newStock });
+    await handleQuickUpdateProduct(p.id, { stockQuantity: newStock });
   };
 
   // Bulk status update
@@ -635,11 +660,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       showNotification(`Updated ${targetIds.length} product(s) to "${status}"`);
       setSelectedProductIds([]);
-      fetchProducts();
-      fetchOverview();
+      await fetchProducts();
+      await fetchOverview();
     } catch (e: any) {
       showNotification(e.message, true);
-      fetchProducts();
+      await fetchProducts();
     } finally {
       setLoading(false);
     }
@@ -673,11 +698,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           if (!res.ok) throw new Error(data.error || 'Failed to delete products');
 
           showNotification(`Successfully deleted ${count} product(s)`);
-          fetchProducts();
-          fetchOverview();
+          await fetchProducts();
+          await fetchOverview();
         } catch (e: any) {
           showNotification(e.message, true);
-          fetchProducts();
+          await fetchProducts();
         } finally {
           setLoading(false);
         }
@@ -716,8 +741,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
 
       showNotification(`Product duplicated successfully as draft! SKU: ${data.sku}`);
-      fetchProducts();
-      fetchOverview();
+      await fetchProducts();
+      await fetchOverview();
     } catch (e: any) {
       showNotification(e.message, true);
     } finally {
@@ -749,11 +774,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             throw new Error(data.error || 'Failed to delete');
           }
           showNotification(`Deleted product "${name}"`);
-          fetchProducts();
-          fetchOverview();
+          await fetchProducts();
+          await fetchOverview();
         } catch (e: any) {
           showNotification(e.message, true);
-          fetchProducts();
+          await fetchProducts();
         } finally {
           setLoading(false);
         }
@@ -764,7 +789,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Toggle status
   const handleToggleStatus = async (id: number, currentStatus: ProductStatus) => {
     const nextStatus = currentStatus === 'published' ? 'draft' : 'published';
-    handleQuickUpdateProduct(id, { status: nextStatus });
+    await handleQuickUpdateProduct(id, { status: nextStatus });
   };
 
   // Save Product (Create or Update)
@@ -775,46 +800,100 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       return;
     }
 
+    // 1. Snapshot previous products list for immediate rollback on any network or server error
+    const previousProductsList = [...productsList];
+
+    // Clean specs
+    const cleanSpecs = formSpecs.filter((s) => !s.keyEn.startsWith('_'));
+    cleanSpecs.push({
+      keyEn: '_imageAspectRatio',
+      keyAr: 'نسبة أبعاد الصورة',
+      valueEn: formImageAspectRatio,
+      valueAr: formImageAspectRatio,
+    });
+    cleanSpecs.push({
+      keyEn: '_imageFitMode',
+      keyAr: 'وضع الملاءمة',
+      valueEn: formImageFitMode,
+      valueAr: formImageFitMode,
+    });
+
+    const isEditing = Boolean(editingProduct);
+    const optimisticId = isEditing ? editingProduct!.id : Date.now();
+    const selectedCategory = categoriesList.find((c) => c.id === formCategoryId);
+    const selectedBrand = brandsList.find((b) => b.id === formBrandId);
+
+    // 2. Build optimistic product object
+    const optimisticProduct: Product = {
+      id: optimisticId,
+      slug: isEditing ? editingProduct!.slug : formSku.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      sku: formSku.trim(),
+      nameEn: formNameEn.trim(),
+      nameAr: formNameAr.trim() || formNameEn.trim(),
+      descriptionEn: formDescEn,
+      descriptionAr: formDescAr,
+      condition: formCondition,
+      categoryId: formCategoryId ? Number(formCategoryId) : null,
+      brandId: formBrandId ? Number(formBrandId) : null,
+      categoryNameEn: selectedCategory?.nameEn || 'General',
+      categoryNameAr: selectedCategory?.nameAr || 'عام',
+      categorySlug: selectedCategory?.slug || 'mobile-phones',
+      brandName: selectedBrand?.name || 'General',
+      brandSlug: selectedBrand?.slug || 'apple',
+      isFeatured: formIsFeatured,
+      isNewArrival: formIsNewArrival,
+      status: formStatus,
+      images: formImages,
+      specifications: cleanSpecs,
+      variants: formVariants,
+      privateNotes: formPrivateNotes,
+      purchaseCost: formPurchaseCost,
+      stockQuantity: Number(formStockQuantity) || 0,
+      imeiSerialNumbers: formImeis,
+      createdAt: isEditing ? editingProduct!.createdAt : new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    // 3. Immediately apply optimistic UI update so UI reacts instantly
+    if (isEditing) {
+      setProductsList((prev) =>
+        prev.map((p) => (p.id === optimisticId ? { ...p, ...optimisticProduct } : p))
+      );
+    } else {
+      setProductsList((prev) => [
+        optimisticProduct,
+        ...prev.filter((p) => p.sku !== optimisticProduct.sku && p.id !== optimisticId),
+      ]);
+    }
+
     setLoading(true);
+    setFormError(null);
+
+    const payload = {
+      sku: formSku.trim(),
+      nameEn: formNameEn.trim(),
+      nameAr: formNameAr.trim() || formNameEn.trim(),
+      descriptionEn: formDescEn,
+      descriptionAr: formDescAr,
+      condition: formCondition,
+      categoryId: formCategoryId || null,
+      brandId: formBrandId || null,
+      status: formStatus,
+      isFeatured: formIsFeatured,
+      isNewArrival: formIsNewArrival,
+      images: formImages,
+      specifications: cleanSpecs,
+      variants: formVariants,
+      privateNotes: formPrivateNotes,
+      purchaseCost: formPurchaseCost,
+      stockQuantity: Number(formStockQuantity) || 0,
+      imeiSerialNumbers: formImeis,
+    };
+
     try {
-      const cleanSpecs = formSpecs.filter((s) => !s.keyEn.startsWith('_'));
-      cleanSpecs.push({
-        keyEn: '_imageAspectRatio',
-        keyAr: 'نسبة أبعاد الصورة',
-        valueEn: formImageAspectRatio,
-        valueAr: formImageAspectRatio,
-      });
-      cleanSpecs.push({
-        keyEn: '_imageFitMode',
-        keyAr: 'وضع الملاءمة',
-        valueEn: formImageFitMode,
-        valueAr: formImageFitMode,
-      });
-
-      const payload = {
-        sku: formSku.trim(),
-        nameEn: formNameEn.trim(),
-        nameAr: formNameAr.trim() || formNameEn.trim(),
-        descriptionEn: formDescEn,
-        descriptionAr: formDescAr,
-        condition: formCondition,
-        categoryId: formCategoryId || null,
-        brandId: formBrandId || null,
-        status: formStatus,
-        isFeatured: formIsFeatured,
-        isNewArrival: formIsNewArrival,
-        images: formImages,
-        specifications: cleanSpecs,
-        variants: formVariants,
-        privateNotes: formPrivateNotes,
-        purchaseCost: formPurchaseCost,
-        stockQuantity: Number(formStockQuantity) || 0,
-        imeiSerialNumbers: formImeis,
-      };
-
       let res;
-      if (editingProduct) {
-        res = await fetch(`/api/admin/products/${editingProduct.id}`, {
+      if (isEditing) {
+        res = await fetch(`/api/admin/products/${editingProduct!.id}`, {
           method: 'PUT',
           headers: authHeaders,
           body: JSON.stringify(payload),
@@ -828,13 +907,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
 
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to save product');
+      if (!res.ok) {
+        throw new Error(data.error || 'Failed to save product');
+      }
 
-      // Optimistically update products list state immediately
-      if (editingProduct) {
-        setProductsList((prev) => prev.map((p) => (p.id === data.id ? { ...p, ...data } : p)));
-      } else {
-        setProductsList((prev) => [data, ...prev.filter((p) => p.id !== data.id && p.sku !== data.sku)]);
+      // 4. Persistence confirmed: Replace optimistic product with server authoritative product
+      setProductsList((prev) =>
+        prev.map((p) => (p.id === optimisticId || p.id === data.id ? { ...p, ...data } : p))
+      );
+
+      // 5. Reset component state ONLY after successful database persistence
+      setProductModalOpen(false);
+      resetProductFormState();
+
+      if (!isEditing) {
         // Reset dashboard search and category/brand/status filters so the newly added product is immediately visible
         setProductSearch('');
         setProductCategoryFilter('');
@@ -844,14 +930,21 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setProductStockFilter('all');
       }
 
-      setFormError(null);
-      showNotification(editingProduct ? 'Product updated successfully' : 'Product created successfully');
-      setProductModalOpen(false);
-      fetchProducts();
-      fetchOverview();
+      showNotification(isEditing ? 'Product updated successfully' : 'Product created successfully');
+
+      // 6. Await fresh data fetch to guarantee full synchronization with PostgreSQL & data-store
+      if (isEditing) {
+        await fetchProducts();
+      } else {
+        // Explicitly query with all filters reset so newly created product is guaranteed to display
+        await fetchProducts({ status: 'all', search: '', categoryId: '', brandId: '', condition: 'all' });
+      }
+      await fetchOverview();
     } catch (e: any) {
+      // 7. On error: rollback optimistic list update, leave form inputs and modal open so the user doesn't lose entered data
+      setProductsList(previousProductsList);
       setFormError(e.message || 'Failed to save product. Please check your inputs.');
-      showNotification(e.message, true);
+      showNotification(e.message || 'Failed to save product', true);
     } finally {
       setLoading(false);
     }
@@ -1085,8 +1178,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setCatNameAr('');
       setCatIcon('Smartphone');
       setEditingCategory(null);
-      fetchCategories();
-      fetchOverview();
+      await fetchCategories();
+      await fetchOverview();
     } catch (e: any) {
       showNotification(e.message, true);
     } finally {
@@ -1114,11 +1207,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             throw new Error(d.error || 'Failed to delete category');
           }
           showNotification(`Category "${name}" deleted`);
-          fetchCategories();
-          fetchOverview();
+          await fetchCategories();
+          await fetchOverview();
         } catch (e: any) {
           showNotification(e.message, true);
-          fetchCategories();
+          await fetchCategories();
         } finally {
           setLoading(false);
         }
@@ -1165,8 +1258,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setBrandName('');
       setBrandLogoUrl('');
       setEditingBrand(null);
-      fetchBrands();
-      fetchOverview();
+      await fetchBrands();
+      await fetchOverview();
     } catch (e: any) {
       showNotification(e.message, true);
     } finally {
@@ -1194,11 +1287,11 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
             throw new Error(d.error || 'Failed to delete brand');
           }
           showNotification(`Brand "${name}" deleted`);
-          fetchBrands();
-          fetchOverview();
+          await fetchBrands();
+          await fetchOverview();
         } catch (e: any) {
           showNotification(e.message, true);
-          fetchBrands();
+          await fetchBrands();
         } finally {
           setLoading(false);
         }
@@ -1685,7 +1778,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   </select>
 
                   <button
-                    onClick={fetchProducts}
+                    onClick={() => fetchProducts()}
                     className="px-4 py-2 rounded-xl bg-[#922CB5] hover:bg-[#8023a0] text-xs font-bold text-white cursor-pointer transition-colors"
                   >
                     Apply Filters
@@ -1705,7 +1798,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         setProductBrandFilter('');
                         setProductConditionFilter('all');
                         setProductStockFilter('all');
-                        setTimeout(fetchProducts, 50);
+                        fetchProducts({ status: 'all', search: '', categoryId: '', brandId: '', condition: 'all' });
                       }}
                       className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-bold text-zinc-400 hover:text-white cursor-pointer"
                     >
