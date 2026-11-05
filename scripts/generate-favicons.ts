@@ -40,26 +40,16 @@ const logoSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" w
   <circle cx="256" cy="256" r="196" fill="#151419" stroke="rgba(255,255,255,0.08)" stroke-width="4" />
 
   <!-- MONOGRAM: Bold, High-Clarity Interlocking "NM" (Nasir Mobile) -->
-  <g id="monogram" transform="translate(0, 0)">
-    <!-- Letter 'N' (Left & Diagonal) -->
-    <!-- N Left Stem -->
-    <path d="M 126 364 L 126 148 L 174 148 L 174 364 Z" fill="url(#limeGrad)" />
-    <!-- N Diagonal -->
-    <path d="M 174 148 L 268 364 L 216 364 L 126 158 Z" fill="url(#limeGrad)" />
-    <!-- N Right Stem / M Left Joint -->
-    <path d="M 220 364 L 268 254 L 268 364 Z" fill="#b7f34b" />
+  <g id="monogram">
+    <!-- Letter 'N' (Cyber Lime) -->
+    <path d="M 112 144 L 148 144 L 148 210 L 200 144 L 236 144 L 236 368 L 200 368 L 200 302 L 148 368 L 112 368 Z" fill="url(#limeGrad)" />
 
-    <!-- Letter 'M' (Right & Diagonal Valley) -->
-    <!-- M Left Wing Diagonal -->
-    <path d="M 268 148 L 324 286 L 282 286 L 244 148 Z" fill="url(#purpleGrad)" />
-    <!-- M Right Wing Diagonal -->
-    <path d="M 324 286 L 380 148 L 422 148 L 348 316 Z" fill="url(#purpleGrad)" />
-    <!-- M Right Stem -->
-    <path d="M 374 148 L 422 148 L 422 364 L 374 364 Z" fill="url(#purpleGrad)" />
+    <!-- Letter 'M' (Royal Purple) -->
+    <path d="M 276 368 L 276 144 L 312 144 L 356 266 L 400 144 L 436 144 L 436 368 L 400 368 L 400 235 L 356 317 L 312 235 L 312 368 Z" fill="url(#purpleGrad)" />
 
     <!-- Central Tech Precision Core Jewel -->
-    <circle cx="256" cy="382" r="14" fill="#b7f34b" filter="url(#glow)" />
-    <circle cx="256" cy="382" r="8" fill="#ffffff" />
+    <circle cx="256" cy="404" r="16" fill="#b7f34b" filter="url(#glow)" />
+    <circle cx="256" cy="404" r="9" fill="#ffffff" />
   </g>
 </svg>`;
 
@@ -92,20 +82,18 @@ const ogImageSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 63
   <path d="M 0 100 L 1200 100 M 0 200 L 1200 200 M 0 300 L 1200 300 M 0 400 L 1200 400 M 0 500 L 1200 500" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
   <path d="M 200 0 L 200 630 M 400 0 L 400 630 M 600 0 L 600 630 M 800 0 L 800 630 M 1000 0 L 1000 630" stroke="rgba(255,255,255,0.03)" stroke-width="1" />
 
-  <!-- Brand Emblem on Left (Scaled 512->280) -->
-  <g transform="translate(90, 160)">
-    <rect width="310" height="310" rx="68" fill="#16141c" stroke="rgba(255,255,255,0.12)" stroke-width="2" />
-    <circle cx="155" cy="155" r="132" fill="none" stroke="url(#ogPurple)" stroke-width="8" opacity="0.4" />
-    <circle cx="155" cy="155" r="132" fill="none" stroke="url(#ogLime)" stroke-width="10" stroke-dasharray="80 200" stroke-linecap="round" />
+  <!-- Brand Emblem on Left (Scaled 512->310) -->
+  <g transform="translate(90, 160) scale(0.60546875)">
+    <rect width="512" height="512" rx="112" fill="#151419" stroke="rgba(255,255,255,0.12)" stroke-width="3" />
+    <circle cx="256" cy="256" r="224" fill="none" stroke="url(#ogPurple)" stroke-width="14" opacity="0.4" />
+    <circle cx="256" cy="256" r="224" fill="none" stroke="url(#ogLime)" stroke-width="16" stroke-dasharray="140 320" stroke-linecap="round" />
+    <circle cx="256" cy="256" r="196" fill="#151419" />
     
     <!-- Monogram NM -->
-    <path d="M 76 220 L 76 90 L 106 90 L 106 220 Z" fill="url(#ogLime)" />
-    <path d="M 106 90 L 164 220 L 132 220 L 76 96 Z" fill="url(#ogLime)" />
-    <path d="M 134 220 L 164 154 L 164 220 Z" fill="#b7f34b" />
-    <path d="M 164 90 L 198 172 L 174 172 L 150 90 Z" fill="url(#ogPurple)" />
-    <path d="M 198 172 L 232 90 L 258 90 L 212 192 Z" fill="url(#ogPurple)" />
-    <path d="M 228 90 L 258 90 L 258 220 L 228 220 Z" fill="url(#ogPurple)" />
-    <circle cx="155" cy="232" r="8" fill="#b7f34b" />
+    <path d="M 112 144 L 148 144 L 148 210 L 200 144 L 236 144 L 236 368 L 200 368 L 200 302 L 148 368 L 112 368 Z" fill="url(#ogLime)" />
+    <path d="M 276 368 L 276 144 L 312 144 L 356 266 L 400 144 L 436 144 L 436 368 L 400 368 L 400 235 L 356 317 L 312 235 L 312 368 Z" fill="url(#ogPurple)" />
+    <circle cx="256" cy="404" r="16" fill="#b7f34b" />
+    <circle cx="256" cy="404" r="9" fill="#ffffff" />
   </g>
 
   <!-- Typography & Text on Right -->

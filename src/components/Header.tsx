@@ -75,10 +75,10 @@ export const Header: React.FC<HeaderProps> = ({
       )}
 
       {/* Main Header Bar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-20 gap-4">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="flex items-center justify-between h-16 sm:h-20 gap-2 sm:gap-4">
           {/* Logo & Brand (Triple-click provides secret owner access) */}
-          <div onClick={handleLogoClick} className="flex items-center cursor-pointer select-none">
+          <div onClick={handleLogoClick} className="flex items-center cursor-pointer select-none shrink-0 min-w-0">
             <Logo size="md" />
           </div>
 

@@ -12,16 +12,16 @@ export const Logo: React.FC<LogoProps> = ({
   showText = true,
 }) => {
   const sizeMap = {
-    sm: { box: 'w-8 h-8', font: 'text-base', sub: 'text-[9px]' },
-    md: { box: 'w-10 h-10', font: 'text-xl', sub: 'text-[10px]' },
-    lg: { box: 'w-14 h-14', font: 'text-2xl', sub: 'text-xs' },
+    sm: { box: 'w-7 h-7 sm:w-8 sm:h-8', font: 'text-sm sm:text-base', sub: 'text-[8px] sm:text-[9px]' },
+    md: { box: 'w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10', font: 'text-base xs:text-lg sm:text-xl', sub: 'text-[8px] xs:text-[9px] sm:text-[10px]' },
+    lg: { box: 'w-12 h-12 sm:w-14 sm:h-14', font: 'text-xl sm:text-2xl', sub: 'text-[10px] sm:text-xs' },
   };
 
   const currentSize = sizeMap[size];
 
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
-      {/* Distinctive Circular Angular NZ-inspired SVG Logo */}
+    <div className={`flex items-center gap-2 sm:gap-3 shrink-0 ${className}`}>
+      {/* High-Precision Geometric NM Emblem */}
       <div className={`relative ${currentSize.box} shrink-0 group`}>
         <svg
           viewBox="0 0 100 100"
@@ -42,55 +42,56 @@ export const Logo: React.FC<LogoProps> = ({
             </linearGradient>
           </defs>
 
-          {/* Outer Ring with cyber glow */}
+          {/* Deep Dark Shield Background */}
+          <rect width="100" height="100" rx="22" fill="#151419" />
+
+          {/* Outer Cyber Tech Ring */}
           <circle
             cx="50"
             cy="50"
             r="44"
             stroke="url(#nmPurpleGrad)"
-            strokeWidth="3"
+            strokeWidth="2.5"
             className="opacity-40"
           />
 
-          {/* Angular Tech Corner Accents */}
+          {/* Precision Lime Ring Segments */}
           <circle
             cx="50"
             cy="50"
             r="44"
             stroke="url(#nmLimeGrad)"
-            strokeWidth="3.5"
+            strokeWidth="3"
             strokeLinecap="round"
             strokeDasharray="28 64"
           />
 
-          {/* Inner Dark Shield */}
-          <circle cx="50" cy="50" r="38" fill="#151419" stroke="rgba(255,255,255,0.1)" strokeWidth="1" />
+          {/* Inner Stage Shield */}
+          <circle cx="50" cy="50" r="38" fill="#1b1920" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />
 
-          {/* MONOGRAM: Bold, High-Clarity Interlocking NM */}
-          {/* N Left Stem */}
-          <path d="M 25 71 L 25 29 L 34 29 L 34 71 Z" fill="url(#nmLimeGrad)" />
-          {/* N Diagonal */}
-          <path d="M 34 29 L 52 71 L 42 71 L 25 31 Z" fill="url(#nmLimeGrad)" />
-          {/* N Joint / M Left Joint */}
-          <path d="M 43 71 L 52 50 L 52 71 Z" fill="#b7f34b" />
+          {/* MONOGRAM: Seamless Geometric NM Monogram (No overlapping artifacts) */}
+          {/* Letter 'N' (Cyber Lime) */}
+          <path
+            d="M 22 28 L 29 28 L 29 44 L 39 28 L 46 28 L 46 72 L 39 72 L 39 56 L 29 72 L 22 72 Z"
+            fill="url(#nmLimeGrad)"
+          />
 
-          {/* M Left Wing Diagonal */}
-          <path d="M 52 29 L 63 56 L 55 56 L 47 29 Z" fill="url(#nmPurpleGrad)" />
-          {/* M Right Wing Diagonal */}
-          <path d="M 63 56 L 74 29 L 82 29 L 68 62 Z" fill="url(#nmPurpleGrad)" />
-          {/* M Right Stem */}
-          <path d="M 73 29 L 82 29 L 82 71 L 73 71 Z" fill="url(#nmPurpleGrad)" />
+          {/* Letter 'M' (Royal Purple) */}
+          <path
+            d="M 54 72 L 54 28 L 61 28 L 66 52 L 71 28 L 78 28 L 78 72 L 71 72 L 71 46 L 66 62 L 61 46 L 61 72 Z"
+            fill="url(#nmPurpleGrad)"
+          />
 
-          {/* Central Tech Precision Core Jewel */}
-          <circle cx="50" cy="74.5" r="3" fill="#b7f34b" />
-          <circle cx="50" cy="74.5" r="1.5" fill="#ffffff" />
+          {/* Central Tech Precision Jewel */}
+          <circle cx="50" cy="79" r="3" fill="#b7f34b" />
+          <circle cx="50" cy="79" r="1.5" fill="#ffffff" />
         </svg>
       </div>
 
       {/* Typography */}
       {showText && (
-        <div className="flex flex-col select-none">
-          <div className="flex items-center gap-1.5 leading-none">
+        <div className="flex flex-col select-none whitespace-nowrap min-w-0">
+          <div className="flex items-center gap-1 sm:gap-1.5 leading-none">
             <span className={`font-black tracking-wider uppercase text-slate-900 dark:text-white ${currentSize.font}`}>
               NASIR
             </span>
@@ -98,7 +99,7 @@ export const Logo: React.FC<LogoProps> = ({
               MOBILE
             </span>
           </div>
-          <div className="flex items-center gap-2 mt-0.5">
+          <div className="flex items-center gap-1.5 sm:gap-2 mt-0.5">
             <span className={`tracking-widest font-semibold uppercase text-slate-500 dark:text-zinc-400 ${currentSize.sub}`}>
               DUBAI • UAE
             </span>

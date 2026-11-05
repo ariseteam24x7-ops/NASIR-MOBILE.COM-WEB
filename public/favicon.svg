@@ -32,25 +32,15 @@
   <circle cx="256" cy="256" r="196" fill="#151419" stroke="rgba(255,255,255,0.08)" stroke-width="4" />
 
   <!-- MONOGRAM: Bold, High-Clarity Interlocking "NM" (Nasir Mobile) -->
-  <g id="monogram" transform="translate(0, 0)">
-    <!-- Letter 'N' (Left & Diagonal) -->
-    <!-- N Left Stem -->
-    <path d="M 126 364 L 126 148 L 174 148 L 174 364 Z" fill="url(#limeGrad)" />
-    <!-- N Diagonal -->
-    <path d="M 174 148 L 268 364 L 216 364 L 126 158 Z" fill="url(#limeGrad)" />
-    <!-- N Right Stem / M Left Joint -->
-    <path d="M 220 364 L 268 254 L 268 364 Z" fill="#b7f34b" />
+  <g id="monogram">
+    <!-- Letter 'N' (Cyber Lime) -->
+    <path d="M 112 144 L 148 144 L 148 210 L 200 144 L 236 144 L 236 368 L 200 368 L 200 302 L 148 368 L 112 368 Z" fill="url(#limeGrad)" />
 
-    <!-- Letter 'M' (Right & Diagonal Valley) -->
-    <!-- M Left Wing Diagonal -->
-    <path d="M 268 148 L 324 286 L 282 286 L 244 148 Z" fill="url(#purpleGrad)" />
-    <!-- M Right Wing Diagonal -->
-    <path d="M 324 286 L 380 148 L 422 148 L 348 316 Z" fill="url(#purpleGrad)" />
-    <!-- M Right Stem -->
-    <path d="M 374 148 L 422 148 L 422 364 L 374 364 Z" fill="url(#purpleGrad)" />
+    <!-- Letter 'M' (Royal Purple) -->
+    <path d="M 276 368 L 276 144 L 312 144 L 356 266 L 400 144 L 436 144 L 436 368 L 400 368 L 400 235 L 356 317 L 312 235 L 312 368 Z" fill="url(#purpleGrad)" />
 
     <!-- Central Tech Precision Core Jewel -->
-    <circle cx="256" cy="382" r="14" fill="#b7f34b" filter="url(#glow)" />
-    <circle cx="256" cy="382" r="8" fill="#ffffff" />
+    <circle cx="256" cy="404" r="16" fill="#b7f34b" filter="url(#glow)" />
+    <circle cx="256" cy="404" r="9" fill="#ffffff" />
   </g>
 </svg>
