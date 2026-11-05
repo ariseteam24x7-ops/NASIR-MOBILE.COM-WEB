@@ -123,28 +123,29 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           </nav>
 
-          {/* Actions: Theme Toggle + Language Switcher + WhatsApp CTA */}
-          <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Actions: Search + Language Switcher + Theme Toggle + Mobile Menu */}
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
             {/* Mobile Search Button */}
             <button
               onClick={() => setSearchOpen(!searchOpen)}
-              className="md:hidden p-2 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg"
+              className="md:hidden w-8.5 h-8.5 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shrink-0"
               title="Search"
+              aria-label="Search"
             >
-              <Search className="w-5 h-5" />
+              <Search className="w-4 h-4" />
             </button>
 
-            {/* Light / Dark Mode Toggle Button */}
-            <ThemeToggle />
+            {/* Light / Dark Mode Toggle Button: Hidden on small mobile screens to prevent congestion, fully accessible in mobile drawer */}
+            <ThemeToggle className="hidden sm:flex" />
 
             {/* Language Switcher */}
             <button
               onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:border-[#922CB5] transition-all cursor-pointer"
+              className="h-8.5 sm:h-9 px-2 sm:px-3 rounded-xl flex items-center gap-1 text-xs font-bold bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-200 hover:text-slate-900 dark:hover:text-white hover:border-[#922CB5] transition-all cursor-pointer shrink-0"
               title="Switch Language"
             >
               <Globe className="w-3.5 h-3.5 text-[#922CB5] dark:text-[#B7F34B]" />
-              <span>{language === 'en' ? 'عربي' : 'EN'}</span>
+              <span className="font-mono text-[11px] sm:text-xs">{language === 'en' ? 'عربي' : 'EN'}</span>
             </button>
 
             {/* WhatsApp Quick CTA */}
@@ -163,9 +164,10 @@ export const Header: React.FC<HeaderProps> = ({
             {/* Mobile menu trigger */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 text-slate-600 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg"
+              className="lg:hidden w-8.5 h-8.5 sm:w-9 sm:h-9 flex items-center justify-center rounded-xl bg-slate-100 dark:bg-[#242129] border border-slate-200 dark:border-white/10 text-slate-700 dark:text-zinc-300 hover:text-slate-900 dark:hover:text-white transition-all cursor-pointer shrink-0"
+              aria-label="Toggle navigation menu"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-4 h-4 sm:w-5 sm:h-5" /> : <Menu className="w-4 h-4 sm:w-5 sm:h-5" />}
             </button>
           </div>
         </div>
@@ -236,19 +238,35 @@ export const Header: React.FC<HeaderProps> = ({
             </a>
           </nav>
 
-          <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex flex-col gap-2.5">
-            <div className="flex items-center justify-between px-2 py-1">
-              <span className="text-xs font-semibold text-slate-500 dark:text-zinc-400">
-                {language === 'ar' ? 'مظهر الموقع' : 'Appearance'}
-              </span>
-              <ThemeToggle showLabel />
+          <div className="pt-3 border-t border-slate-200 dark:border-white/10 flex flex-col gap-3">
+            <div className="grid grid-cols-2 gap-2">
+              {/* Appearance / Theme Toggle */}
+              <div className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-[#1f1d24] border border-slate-200 dark:border-white/5">
+                <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                  {language === 'ar' ? 'المظهر' : 'Theme'}
+                </span>
+                <ThemeToggle />
+              </div>
+
+              {/* Language Switcher */}
+              <button
+                onClick={() => setLanguage(language === 'en' ? 'ar' : 'en')}
+                className="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 dark:bg-[#1f1d24] border border-slate-200 dark:border-white/5 hover:border-[#922CB5] transition-colors cursor-pointer"
+              >
+                <span className="text-xs font-semibold text-slate-600 dark:text-zinc-400">
+                  {language === 'ar' ? 'اللغة' : 'Language'}
+                </span>
+                <span className="text-xs font-bold text-[#922CB5] dark:text-[#B7F34B]">
+                  {language === 'en' ? 'العربية' : 'English'}
+                </span>
+              </button>
             </div>
 
             <a
               href={whatsappUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm uppercase tracking-wider"
+              className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm uppercase tracking-wider shadow-lg shadow-emerald-600/20 active:scale-98 transition-all"
             >
               <MessageCircle className="w-5 h-5 fill-current" />
               <span>{t('enquire_whatsapp')}</span>

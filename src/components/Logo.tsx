@@ -12,9 +12,9 @@ export const Logo: React.FC<LogoProps> = ({
   showText = true,
 }) => {
   const sizeMap = {
-    sm: { box: 'w-7 h-7 sm:w-8 sm:h-8', font: 'text-sm sm:text-base', sub: 'text-[8px] sm:text-[9px]' },
-    md: { box: 'w-8 h-8 xs:w-9 xs:h-9 sm:w-10 sm:h-10', font: 'text-base xs:text-lg sm:text-xl', sub: 'text-[8px] xs:text-[9px] sm:text-[10px]' },
-    lg: { box: 'w-12 h-12 sm:w-14 sm:h-14', font: 'text-xl sm:text-2xl', sub: 'text-[10px] sm:text-xs' },
+    sm: { box: 'w-7 h-7 sm:w-8 sm:h-8', font: 'text-xs sm:text-sm', sub: 'text-[7.5px] sm:text-[9px]' },
+    md: { box: 'w-8 h-8 sm:w-9 sm:h-9 md:w-10 md:h-10', font: 'text-sm sm:text-base md:text-xl', sub: 'text-[8px] sm:text-[9px] md:text-[10px]' },
+    lg: { box: 'w-11 h-11 sm:w-14 sm:h-14', font: 'text-lg sm:text-2xl', sub: 'text-[9px] sm:text-xs' },
   };
 
   const currentSize = sizeMap[size];
