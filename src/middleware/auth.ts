@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import crypto from 'crypto';
-import { adminAuth } from '../lib/firebase-admin.ts';
 import { db } from '../db/index.ts';
 import { users } from '../db/schema.ts';
 import { eq } from 'drizzle-orm';
@@ -20,44 +19,66 @@ export interface SessionPayload {
   expiresAt: number;
 }
 
-const SESSION_SECRET = process.env.SESSION_SECRET || 'nasir-mobile-dubai-secret-2026';
+const SESSION_SECRET = process.env.SESSION_SECRET || '';
 
-// In-memory cache for fast lookups
+if (Buffer.byteLength(SESSION_SECRET, 'utf8') < 32) {
+  throw new Error('SESSION_SECRET must be configured with at least 32 bytes before the server can start.');
+}
+
 export const adminSessions = new Map<string, SessionPayload>();
 
-// Generate a cryptographically signed HMAC token that persists across server restarts
+const isValidPayload = (value: any): value is SessionPayload =>
+  value !== null &&
+  typeof value === 'object' &&
+  typeof value.uid === 'string' &&
+  value.uid.length > 0 &&
+  typeof value.email === 'string' &&
+  value.email.length > 0 &&
+  (value.role === 'owner' || value.role === 'admin') &&
+  Number.isSafeInteger(value.expiresAt) &&
+  value.expiresAt > Date.now();
+
+const signatureFor = (data: string): string =>
+  crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
+
 export const createSignedToken = (payload: SessionPayload): string => {
+  if (!isValidPayload(payload)) {
+    throw new Error('Cannot create a session with an invalid payload.');
+  }
+
   const data = Buffer.from(JSON.stringify(payload)).toString('base64url');
-  const hmac = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
-  const token = `nm_sess_${data}.${hmac}`;
+  const token = `nm_sess_${data}.${signatureFor(data)}`;
   adminSessions.set(token, payload);
   return token;
 };
 
-// Verify HMAC signed token (checks cache first, then verifies signature if server restarted)
 export const verifySignedToken = (token: string): SessionPayload | null => {
-  if (adminSessions.has(token)) {
-    const session = adminSessions.get(token)!;
-    if (Date.now() < session.expiresAt) {
-      return session;
-    }
-    adminSessions.delete(token);
+  if (typeof token !== 'string' || !token.startsWith('nm_sess_')) return null;
+
+  // Only sessions issued by this running process are valid.
+  // Deleting a token on logout therefore revokes it permanently.
+  if (!adminSessions.has(token)) return null;
+
+  const parts = token.slice('nm_sess_'.length).split('.');
+  if (parts.length !== 2) return null;
+
+  const [data, suppliedSignature] = parts;
+  if (!data || !suppliedSignature) return null;
+
+  const expected = Buffer.from(signatureFor(data));
+  const supplied = Buffer.from(suppliedSignature);
+
+  if (
+    expected.length !== supplied.length ||
+    !crypto.timingSafeEqual(expected, supplied)
+  ) {
     return null;
   }
 
-  if (!token.startsWith('nm_sess_')) return null;
-  const raw = token.slice('nm_sess_'.length);
-  const parts = raw.split('.');
-  if (parts.length !== 2) return null;
-  const [data, sig] = parts;
-  const expectedSig = crypto.createHmac('sha256', SESSION_SECRET).update(data).digest('base64url');
-  if (sig !== expectedSig) return null;
-
   try {
-    const payload: SessionPayload = JSON.parse(Buffer.from(data, 'base64url').toString('utf-8'));
-    if (Date.now() > payload.expiresAt) return null;
-    // Cache verified session
-    adminSessions.set(token, payload);
+    const payload = JSON.parse(Buffer.from(data, 'base64url').toString('utf8'));
+    if (!isValidPayload(payload)) return null;
+
     return payload;
   } catch {
     return null;
@@ -69,52 +90,50 @@ export const requireAuth = async (
   res: Response,
   next: NextFunction
 ) => {
-  const authHeader = req.headers.authorization;
-  const adminToken = (req.headers['x-admin-token'] as string | undefined) ||
-    (authHeader && authHeader.startsWith('Bearer ') ? authHeader.split('Bearer ')[1].trim() : undefined);
+  const authHeader = req.headers.authorization || '';
+  const bearerToken = authHeader.startsWith('Bearer ')
+    ? authHeader.slice(7).trim()
+    : '';
+  const adminToken =
+    (req.headers['x-admin-token'] as string | undefined) || bearerToken;
 
   if (!adminToken) {
     return res.status(401).json({ error: 'Unauthorized: Missing authentication credentials' });
   }
 
-  // 1. Verify custom signed admin token
-  const validSession = verifySignedToken(adminToken);
-  if (validSession) {
-    req.user = { uid: validSession.uid, email: validSession.email, role: validSession.role };
-    return next();
+  const session = verifySignedToken(adminToken);
+
+  if (!session) {
+    adminSessions.delete(adminToken);
+    return res.status(401).json({ error: 'Unauthorized: Invalid or expired session' });
   }
 
-  // 2. Otherwise, check if token is a Firebase Auth ID Token
   try {
-    const decodedToken = await adminAuth.verifyIdToken(adminToken);
-    const email = decodedToken.email?.toLowerCase() || '';
+    const account = await db
+      .select()
+      .from(users)
+      .where(eq(users.uid, session.uid))
+      .limit(1);
 
-    // Verify if user is an authorized owner
-    const configuredOwnerEmail = (process.env.OWNER_EMAIL || 'shazzzbusiness@gmail.com').toLowerCase();
-    
-    let isOwner = email === configuredOwnerEmail;
-    
-    if (!isOwner && email) {
-      const dbUsers = await db.select().from(users).where(eq(users.email, email));
-      if (dbUsers.length > 0 && (dbUsers[0].role === 'owner' || dbUsers[0].role === 'admin')) {
-        isOwner = true;
-      }
-    }
-
-    if (!isOwner) {
-      return res.status(403).json({ 
-        error: 'Forbidden: Access restricted to authorized Nasir Mobile store owner.' 
-      });
+    if (
+      account.length !== 1 ||
+      account[0].email.toLowerCase() !== session.email.toLowerCase() ||
+      account[0].role !== session.role ||
+      (account[0].role !== 'owner' && account[0].role !== 'admin')
+    ) {
+      adminSessions.delete(adminToken);
+      return res.status(403).json({ error: 'Forbidden: Account is not authorized' });
     }
 
     req.user = {
-      uid: decodedToken.uid,
-      email: email,
-      role: 'owner',
+      uid: account[0].uid,
+      email: account[0].email,
+      role: account[0].role,
     };
-    next();
+
+    return next();
   } catch (error) {
-    console.error('Error verifying auth token:', error);
-    return res.status(401).json({ error: 'Unauthorized: Invalid or expired token' });
+    console.error('Authentication account check failed:', error);
+    return res.status(503).json({ error: 'Unable to verify account authorization' });
   }
 };

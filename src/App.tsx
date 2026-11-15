@@ -130,14 +130,12 @@ function StoreApp() {
     const isHashLogin = window.location.hash === '#admin-login' || window.location.hash === '#login';
 
     if (isPathAdmin || isHashAdmin) {
-      if (savedToken) {
+      if (window.location.pathname === '/admin/reset-password') {
+        setCurrentView('admin-login');
+      } else if (savedToken) {
         setCurrentView('admin');
       } else {
-        // If not logged in, gracefully clear hash and show storefront
-        try {
-          window.history.replaceState(null, '', window.location.pathname);
-        } catch {}
-        setCurrentView('store');
+        setCurrentView('admin-login');
       }
     } else if (isHashLogin) {
       setCurrentView('admin-login');
@@ -147,25 +145,25 @@ function StoreApp() {
   // Fetch Public Metadata & Settings
   useEffect(() => {
     // Categories
-    fetch('/api/categories')
+    fetch('/api/categories', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => setCategories(Array.isArray(data) ? data : []))
       .catch((err) => console.warn('Failed to load categories:', err?.message || err));
 
     // Brands
-    fetch('/api/brands')
+    fetch('/api/brands', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => setBrands(Array.isArray(data) ? data : []))
       .catch((err) => console.warn('Failed to load brands:', err?.message || err));
 
     // WhatsApp Settings
-    fetch('/api/whatsapp-settings')
+    fetch('/api/whatsapp-settings', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => setWhatsAppSettings(data))
       .catch((err) => console.warn('Failed to load whatsapp settings:', err?.message || err));
 
     // Site Content
-    fetch('/api/site-content')
+    fetch('/api/site-content', { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => setSiteContent(data))
       .catch((err) => console.warn('Failed to load site content:', err?.message || err));
@@ -183,7 +181,7 @@ function StoreApp() {
     if (searchQuery.trim()) params.set('search', searchQuery.trim());
     if (sortBy) params.set('sort', sortBy);
 
-    fetch(`/api/products?${params.toString()}`)
+    fetch(`/api/products?${params.toString()}`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((data) => {
         setProducts(Array.isArray(data) ? data : []);
@@ -236,7 +234,9 @@ function StoreApp() {
       const hash = window.location.hash;
       const isPathAdmin = window.location.pathname.startsWith('/admin');
 
-      if (hash === '#admin' || hash === '#owner' || hash === '#portal' || hash === '#admin-panel' || isPathAdmin) {
+      if (isPathAdmin && window.location.pathname === '/admin/reset-password') {
+        setCurrentView('admin-login');
+      } else if (hash === '#admin' || hash === '#owner' || hash === '#portal' || hash === '#admin-panel' || isPathAdmin) {
         const savedToken = localStorage.getItem('nm_admin_token');
         if (savedToken) {
           setCurrentView('admin');
@@ -247,7 +247,7 @@ function StoreApp() {
         setCurrentView('admin-login');
       } else if (hash.startsWith('#product-')) {
         const slug = hash.replace('#product-', '');
-        fetch(`/api/products/${slug}`)
+        fetch(`/api/products/${slug}`, { cache: 'no-store' })
           .then((r) => r.json())
           .then((data) => {
             if (data.product) {

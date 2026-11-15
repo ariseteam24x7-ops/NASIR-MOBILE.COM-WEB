@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Upload,
   Link as LinkIcon,
@@ -49,6 +49,33 @@ export const IconImageUploader: React.FC<IconImageUploaderProps> = ({
     currentValue && (currentValue.startsWith('http') || currentValue.startsWith('/')) ? currentValue : ''
   );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (timerRef.current) clearTimeout(timerRef.current);
+    };
+  }, []);
+
+  const scheduleNoticeClear = (setter: React.Dispatch<React.SetStateAction<string | null>>, ms: number) => {
+    if (timerRef.current) clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setter(null), ms);
+  };
+
+  const isValidPersistedImageUrl = (url: unknown): url is string => {
+    if (typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    if (/^data:/i.test(trimmed)) return false;
+    return (
+      trimmed.startsWith('/uploads/') ||
+      trimmed.startsWith('/api/images/') ||
+      trimmed.startsWith('/assets/') ||
+      trimmed.startsWith('/src/assets/') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://')
+    );
+  };
 
   const authHeaders = {
     'Content-Type': 'application/json',
@@ -69,58 +96,70 @@ export const IconImageUploader: React.FC<IconImageUploaderProps> = ({
 
       const img = new Image();
       const objectUrl = URL.createObjectURL(file);
+      let objectUrlRevoked = false;
+      const revokeObjectUrlOnce = () => {
+        if (!objectUrlRevoked) {
+          objectUrlRevoked = true;
+          URL.revokeObjectURL(objectUrl);
+        }
+        img.onload = null;
+        img.onerror = null;
+      };
 
       img.onload = () => {
-        URL.revokeObjectURL(objectUrl);
-        const canvas = document.createElement('canvas');
-        const targetDimension = 512; // Ideal 1:1 square canvas resolution
-        canvas.width = targetDimension;
-        canvas.height = targetDimension;
-        const ctx = canvas.getContext('2d');
+        try {
+          const canvas = document.createElement('canvas');
+          const targetDimension = 512; // Ideal 1:1 square canvas resolution
+          canvas.width = targetDimension;
+          canvas.height = targetDimension;
+          const ctx = canvas.getContext('2d');
 
-        if (!ctx) {
-          const reader = new FileReader();
-          reader.onload = () => resolve({ dataUrl: reader.result as string, mimeType: file.type || 'image/jpeg' });
-          reader.onerror = () => reject(new Error('Failed to read image'));
-          reader.readAsDataURL(file);
-          return;
+          if (!ctx) {
+            const reader = new FileReader();
+            reader.onload = () => resolve({ dataUrl: reader.result as string, mimeType: file.type || 'image/jpeg' });
+            reader.onerror = () => reject(new Error('Failed to read image'));
+            reader.readAsDataURL(file);
+            return;
+          }
+
+          // Clean transparent canvas
+          ctx.clearRect(0, 0, targetDimension, targetDimension);
+
+          // Center and contain image to guarantee perfect 1:1 square aspect ratio without distortion
+          const aspect = img.width / img.height;
+          let drawWidth = targetDimension;
+          let drawHeight = targetDimension;
+          let offsetX = 0;
+          let offsetY = 0;
+
+          if (aspect > 1) {
+            // Wider than tall
+            drawWidth = targetDimension;
+            drawHeight = Math.round(targetDimension / aspect);
+            offsetY = Math.round((targetDimension - drawHeight) / 2);
+          } else {
+            // Taller than wide or square
+            drawHeight = targetDimension;
+            drawWidth = Math.round(targetDimension * aspect);
+            offsetX = Math.round((targetDimension - drawWidth) / 2);
+          }
+
+          ctx.imageSmoothingEnabled = true;
+          ctx.imageSmoothingQuality = 'high';
+          ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
+
+          // Export as PNG for transparency support, WebP if supported
+          const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
+          const outMime = isPng ? 'image/png' : 'image/webp';
+          const dataUrl = canvas.toDataURL(outMime, 0.88);
+          resolve({ dataUrl, mimeType: outMime });
+        } finally {
+          revokeObjectUrlOnce();
         }
-
-        // Clean transparent canvas
-        ctx.clearRect(0, 0, targetDimension, targetDimension);
-
-        // Center and contain image to guarantee perfect 1:1 square aspect ratio without distortion
-        const aspect = img.width / img.height;
-        let drawWidth = targetDimension;
-        let drawHeight = targetDimension;
-        let offsetX = 0;
-        let offsetY = 0;
-
-        if (aspect > 1) {
-          // Wider than tall
-          drawWidth = targetDimension;
-          drawHeight = Math.round(targetDimension / aspect);
-          offsetY = Math.round((targetDimension - drawHeight) / 2);
-        } else {
-          // Taller than wide or square
-          drawHeight = targetDimension;
-          drawWidth = Math.round(targetDimension * aspect);
-          offsetX = Math.round((targetDimension - drawWidth) / 2);
-        }
-
-        ctx.imageSmoothingEnabled = true;
-        ctx.imageSmoothingQuality = 'high';
-        ctx.drawImage(img, offsetX, offsetY, drawWidth, drawHeight);
-
-        // Export as PNG for transparency support, WebP if supported
-        const isPng = file.type === 'image/png' || file.name.toLowerCase().endsWith('.png');
-        const outMime = isPng ? 'image/png' : 'image/webp';
-        const dataUrl = canvas.toDataURL(outMime, 0.88);
-        resolve({ dataUrl, mimeType: outMime });
       };
 
       img.onerror = () => {
-        URL.revokeObjectURL(objectUrl);
+        revokeObjectUrlOnce();
         const reader = new FileReader();
         reader.onload = () => resolve({ dataUrl: reader.result as string, mimeType: file.type || 'image/jpeg' });
         reader.onerror = () => reject(new Error('Invalid image file format'));
@@ -136,7 +175,7 @@ export const IconImageUploader: React.FC<IconImageUploaderProps> = ({
 
     if (file.size > 15 * 1024 * 1024) {
       setUploadError('File exceeds 15MB limit. Please choose a smaller file.');
-      setTimeout(() => setUploadError(null), 4000);
+      scheduleNoticeClear(setUploadError, 4000);
       return;
     }
 
@@ -147,49 +186,57 @@ export const IconImageUploader: React.FC<IconImageUploaderProps> = ({
     try {
       // 1. Process and square image to 1:1 ratio
       const { dataUrl, mimeType } = await optimizeAndSquareImage(file);
+      const ext =
+        mimeType === 'image/png'
+          ? '.png'
+          : mimeType === 'image/svg+xml'
+            ? '.svg'
+            : mimeType === 'image/jpeg'
+              ? '.jpg'
+              : '.webp';
 
-      // 2. Attempt server persistent upload
-      let appliedUrl = dataUrl;
-      let isServerPersisted = false;
+      // 2. Require durable server persistent upload (never call onChange with base64 dataUrl)
+      const res = await fetch('/api/admin/upload-image', {
+        method: 'POST',
+        cache: 'no-store',
+        headers: authHeaders,
+        body: JSON.stringify({
+          fileName: file.name.replace(/\.[^/.]+$/, '') + ext,
+          mimeType: mimeType,
+          data: dataUrl,
+        }),
+      });
 
+      let data: any = null;
       try {
-        const res = await fetch('/api/admin/upload-image', {
-          method: 'POST',
-          headers: authHeaders,
-          body: JSON.stringify({
-            fileName: file.name.replace(/\.[^/.]+$/, '') + (mimeType === 'image/png' ? '.png' : '.webp'),
-            mimeType: mimeType,
-            data: dataUrl,
-          }),
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.url) {
-            appliedUrl = data.url;
-            isServerPersisted = true;
-          }
-        }
-      } catch (networkErr) {
-        console.warn('Backend image upload note, using optimized square direct emblem:', networkErr);
+        data = await res.json();
+      } catch {
+        data = null;
       }
 
-      // 3. Apply image immediately (never leave user blocked)
-      onChange(appliedUrl);
-      setCustomUrlInput(appliedUrl.startsWith('data:') ? '1:1 Optimized Square Emblem' : appliedUrl);
-
-      if (isServerPersisted) {
-        setUploadSuccess('Image auto-squared to 1:1 ratio & securely saved to database!');
-      } else {
-        setUploadSuccess('Image auto-squared to 1:1 ratio & applied successfully!');
+      if (!res.ok || !isValidPersistedImageUrl(data?.url)) {
+        throw new Error(
+          data?.error ||
+            `Failed to save uploaded image (HTTP ${res.status}). Persistent image URL was not confirmed.`
+        );
       }
-      setTimeout(() => setUploadSuccess(null), 4000);
+
+      const persistedUrl = data.url.trim();
+
+      // 3. Apply persisted server URL only after confirmed save
+      onChange(persistedUrl);
+      setCustomUrlInput(persistedUrl);
+      setUploadSuccess('Image auto-squared to 1:1 ratio & securely saved to database!');
+      scheduleNoticeClear(setUploadSuccess, 4000);
     } catch (err: any) {
       console.error('Image upload error:', err);
-      setUploadError(err.message || 'Image processing failed. Please select a valid PNG or JPG.');
-      setTimeout(() => setUploadError(null), 5000);
+      setUploadError(err?.message || 'Image upload failed. Please select a valid PNG, JPG, WebP, or SVG.');
+      scheduleNoticeClear(setUploadError, 5000);
     } finally {
       setUploading(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -227,11 +274,16 @@ export const IconImageUploader: React.FC<IconImageUploaderProps> = ({
       e.preventDefault();
       e.stopPropagation();
     }
-    if (customUrlInput.trim()) {
-      onChange(customUrlInput.trim());
-      setUploadSuccess('Image URL applied successfully!');
-      setTimeout(() => setUploadSuccess(null), 3000);
+    const candidate = customUrlInput.trim();
+    if (!isValidPersistedImageUrl(candidate)) {
+      setUploadError('Please enter a valid http(s) or /uploads/ image URL (base64 data URIs are not allowed).');
+      scheduleNoticeClear(setUploadError, 4000);
+      return;
     }
+    setUploadError(null);
+    onChange(candidate);
+    setUploadSuccess('Image URL applied successfully!');
+    scheduleNoticeClear(setUploadSuccess, 3000);
   };
 
   // Render system Lucide icon helper for Category

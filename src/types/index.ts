@@ -28,6 +28,8 @@ export interface Product {
   isFeatured: boolean;
   isNewArrival: boolean;
   status: ProductStatus;
+  storefrontVisible?: boolean;
+  version?: number;
   specifications: ProductSpec[];
   variants: ProductVariant[];
   images: string[];

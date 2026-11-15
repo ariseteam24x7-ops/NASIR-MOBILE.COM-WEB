@@ -1,12 +1,13 @@
 import express from 'express';
 import fs from 'fs';
 import { execSync } from 'child_process';
-import { createServer as createViteServer } from 'vite';
+// Vite is loaded dynamically only in the development branch.
 import path from 'path';
 import { fileURLToPath } from 'url';
 import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
-import { db, isPostgresAvailable } from './src/db/index.ts';
+import nodemailer from 'nodemailer';
+import { db, pool, isDbAvailable, setDbAvailable, ensureDbAvailable, isTransientDbError, withTransaction } from './src/db/index.ts';
 import {
   products,
   categories,
@@ -19,20 +20,19 @@ import {
   visitorSettings,
   visitorDailyStats,
   visitorLogs,
-  securitySettings,
 } from './src/db/schema.ts';
-import { eq, desc, asc, and, or, ilike, sql } from 'drizzle-orm';
+import { eq, desc, asc, and, or, like, sql } from 'drizzle-orm';
 import { requireAuth, AuthRequest, adminSessions, createSignedToken } from './src/middleware/auth.ts';
+import { createLoginRateLimiter } from './src/lib/loginRateLimit.ts';
 import { initDatabase } from './src/db/init.ts';
-import { adminAuth } from './src/lib/firebase-admin.ts';
 import {
-  FALLBACK_CATEGORIES,
-  FALLBACK_BRANDS,
-  FALLBACK_WHATSAPP,
-  FALLBACK_SITE_CONTENT,
-  FALLBACK_PRODUCTS,
-  FALLBACK_SERVICES,
-} from './src/db/fallbacks.ts';
+  parseJsonArray,
+  normalizeProductImages,
+  filterProducts,
+  sanitizePublicProductDetail,
+  sanitizePublicRelated,
+} from './src/lib/productSerialization.ts';
+
 
 // Global error handlers to prevent unexpected process crashes
 process.on('uncaughtException', (err) => {
@@ -47,17 +47,118 @@ const __dirname = path.dirname(__filename);
 
 async function startServer() {
   const app = express();
+
+  // In-memory login throttling; Express does not trust forwarded IP headers.
+  const loginLimiter = createLoginRateLimiter();
+
   app.use(express.json({ limit: '20mb' }));
   app.use(express.urlencoded({ extended: true, limit: '20mb' }));
+
+  // Prevent stale browser/CDN caching on all API responses (especially admin edits & live catalog updates)
+  app.use('/api', (_req, res, next) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+    next();
+  });
 
   // Ensure persistent public uploads folder exists and is mounted statically
   const PUBLIC_DIR = path.resolve(__dirname, 'public');
   const UPLOADS_DIR = path.resolve(PUBLIC_DIR, 'uploads');
+  const ASSETS_IMAGES_DIR = path.resolve(PUBLIC_DIR, 'assets/images');
   if (!fs.existsSync(UPLOADS_DIR)) {
     fs.mkdirSync(UPLOADS_DIR, { recursive: true });
   }
+  if (!fs.existsSync(ASSETS_IMAGES_DIR)) {
+    fs.mkdirSync(ASSETS_IMAGES_DIR, { recursive: true });
+  }
+
+  // Static routes for uploads and images
   app.use('/uploads', express.static(UPLOADS_DIR));
+  app.use('/assets/images', express.static(ASSETS_IMAGES_DIR));
+  app.use('/src/assets/images', express.static(ASSETS_IMAGES_DIR));
   app.use(express.static(PUBLIC_DIR));
+
+  // Self-Healing Image Delivery Endpoint for /uploads/:fileName:
+  // If an image is not on disk (e.g. after container refresh, branch switch, or deployment),
+  // automatically look it up in MySQL images table, restore it to disk, and stream it immediately!
+  app.get('/uploads/:fileName', async (req, res, next) => {
+    try {
+      const rawName = req.params.fileName;
+      const fileName = path.basename(decodeURIComponent(rawName));
+      if (!fileName || fileName.includes('..') || fileName.includes('/') || fileName.includes('\\')) {
+        return res.status(400).type('text/plain').send('Invalid image filename');
+      }
+      const diskPath = path.resolve(UPLOADS_DIR, fileName);
+      if (!diskPath.startsWith(UPLOADS_DIR)) {
+        return res.status(403).type('text/plain').send('Access denied');
+      }
+
+      if (fs.existsSync(diskPath)) {
+        return res.sendFile(diskPath);
+      }
+
+      // Check in public/assets/images
+      const altAssetPath = path.resolve(ASSETS_IMAGES_DIR, fileName);
+      if (altAssetPath.startsWith(ASSETS_IMAGES_DIR) && fs.existsSync(altAssetPath)) {
+        return res.sendFile(altAssetPath);
+      }
+
+      // Self-heal from MySQL images database
+      if (await ensureDbAvailable()) {
+        try {
+          const found = await db
+            .select()
+            .from(images)
+            .where(or(
+              eq(images.fileName, fileName),
+              eq(images.fileName, rawName),
+              like(images.fileName, `%${fileName}%`)
+            ))
+            .limit(1);
+
+          if (found.length > 0 && found[0].data) {
+            const rawData = found[0].data;
+            let mime = found[0].mimeType || 'image/jpeg';
+            let buffer: Buffer;
+
+            if (rawData.startsWith('data:')) {
+              const matches = rawData.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+              mime = matches ? matches[1] : mime;
+              buffer = Buffer.from(matches ? matches[2] : rawData, 'base64');
+            } else {
+              buffer = Buffer.from(rawData, 'base64');
+            }
+
+            if (buffer.length > 0) {
+              // Re-write to disk so future hits are served instantaneously by express.static
+              try {
+                fs.writeFileSync(diskPath, buffer);
+              } catch (writeErr) {
+                console.warn('Could not cache restored image to disk:', writeErr);
+              }
+
+              res.setHeader('Content-Type', mime);
+              res.setHeader('Cache-Control', 'public, max-age=86400, stale-while-revalidate=604800');
+              return res.send(buffer);
+            }
+          }
+        } catch (dbErr: any) {
+          if (isTransientDbError(dbErr)) {
+            setDbAvailable(false);
+          }
+          console.warn('MySQL image self-heal lookup warning:', dbErr?.message || dbErr);
+        }
+      }
+
+      // Not found: Return 404 text response, NEVER HTML index.html
+      return res.status(404).type('text/plain').send('Image not found');
+    } catch (err: any) {
+      console.warn('Uploads handler error:', err?.message || err);
+      return res.status(404).type('text/plain').send('Image not found');
+    }
+  });
 
   // Dedicated SEO Crawling routes for Googlebot, Bingbot, and Social Crawlers
   app.get('/robots.txt', (_req, res) => {
@@ -90,11 +191,6 @@ async function startServer() {
     res.status(200).json({ status: 'ok', server: 'Nasir Mobile Dubai', timestamp: new Date().toISOString() });
   });
 
-  // Automatically ensure database tables exist (run in background without blocking server startup)
-  initDatabase().catch((dbErr) => {
-    console.warn('Initial database sync note (non-fatal):', dbErr?.message || dbErr);
-  });
-
   // Helper to log audit actions
   const logAudit = async (action: string, details: string, email: string = 'system') => {
     try {
@@ -108,159 +204,194 @@ async function startServer() {
     }
   };
 
-  // ----------------------------------------------------
-  // FILE-BACKED PERSISTENT FALLBACK STORE FOR PRODUCTS, BRANDS & CATEGORIES
-  // Guarantees zero failures even if PostgreSQL is offline or encounters connection issues
-  // ----------------------------------------------------
-  const DATA_STORE_FILE = path.join(__dirname, 'data-store.json');
-  let customBrands: Array<{ id: number; slug: string; name: string; logoUrl: string; createdAt?: string }> = [];
-  let customCategories: Array<{
-    id: number;
-    slug: string;
-    nameEn: string;
-    nameAr: string;
-    descriptionEn?: string;
-    descriptionAr?: string;
-    icon: string;
-    displayOrder: number;
-    createdAt?: string;
-  }> = [];
-  let customProducts: any[] = [];
-  let customServices: any[] = [];
-  let deletedProductIds: number[] = [];
-
-  try {
-    if (fs.existsSync(DATA_STORE_FILE)) {
-      const raw = fs.readFileSync(DATA_STORE_FILE, 'utf-8');
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed.brands)) customBrands = parsed.brands;
-      if (Array.isArray(parsed.categories)) customCategories = parsed.categories;
-      if (Array.isArray(parsed.products)) customProducts = parsed.products;
-      if (Array.isArray(parsed.services)) customServices = parsed.services;
-      if (Array.isArray(parsed.deletedProductIds)) {
-        const rawDeleted = parsed.deletedProductIds.map(Number).filter((n: number) => !isNaN(n));
-        deletedProductIds = rawDeleted.filter((dId: number) => !customProducts.some((p) => p.id === dId));
-      }
+  // Route & MySQL Persistence Helpers
+  class HttpRouteError extends Error {
+    statusCode: number;
+    payload?: Record<string, any>;
+    constructor(statusCode: number, message: string, payload?: Record<string, any>) {
+      super(message);
+      this.statusCode = statusCode;
+      this.payload = payload;
     }
-  } catch (err) {
-    console.warn('Note: Could not read data-store.json:', err);
   }
 
-  if (customServices.length === 0) {
-    customServices = [...FALLBACK_SERVICES];
-  }
-
-  const persistDataStore = () => {
-    try {
-      fs.writeFileSync(
-        DATA_STORE_FILE,
-        JSON.stringify(
-          {
-            brands: customBrands,
-            categories: customCategories,
-            products: customProducts,
-            services: customServices,
-            deletedProductIds: deletedProductIds,
-          },
-          null,
-          2
-        ),
-        'utf-8'
-      );
-    } catch (err) {
-      console.warn('Note: Could not write data-store.json:', err);
+  const handleDbRouteError = (err: any, res: express.Response, fallbackMsg: string) => {
+    if (err instanceof HttpRouteError) {
+      return res.status(err.statusCode).json({ error: err.message, ...(err.payload || {}) });
     }
+    if (isTransientDbError(err)) {
+      setDbAvailable(false);
+      return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
+    }
+    const code = String(err?.code || '').toUpperCase();
+    const errno = Number(err?.errno || 0);
+    if (code === 'ER_DUP_ENTRY' || errno === 1062) {
+      return res.status(409).json({ error: 'A record with the same unique SKU or slug already exists.' });
+    }
+    if (code === 'ER_NO_REFERENCED_ROW_2' || errno === 1452) {
+      return res.status(400).json({ error: 'Referenced category or brand does not exist.' });
+    }
+    if (code === 'ER_ROW_IS_REFERENCED_2' || errno === 1451) {
+      return res.status(400).json({ error: 'Cannot delete record because products are still linked to it.' });
+    }
+    console.error(fallbackMsg, err?.message || err);
+    return res.status(500).json({ error: err?.message || fallbackMsg });
   };
 
-  // Reconcile and mirror database entities into persistent store so nothing ever vanishes
-  const reconcileStores = async () => {
-    if (!isPostgresAvailable) return;
+  const fetchAdminProductDto = async (executor: any, productId: number) => {
+    const rows = await executor
+      .select({
+        id: products.id,
+        slug: products.slug,
+        sku: products.sku,
+        nameEn: products.nameEn,
+        nameAr: products.nameAr,
+        descriptionEn: products.descriptionEn,
+        descriptionAr: products.descriptionAr,
+        condition: products.condition,
+        categoryId: products.categoryId,
+        brandId: products.brandId,
+        isFeatured: products.isFeatured,
+        isNewArrival: products.isNewArrival,
+        status: products.status,
+        storefrontVisible: products.storefrontVisible,
+        version: products.version,
+        specifications: products.specifications,
+        variants: products.variants,
+        images: products.images,
+        privateNotes: products.privateNotes,
+        purchaseCost: products.purchaseCost,
+        stockQuantity: products.stockQuantity,
+        imeiSerialNumbers: products.imeiSerialNumbers,
+        createdAt: products.createdAt,
+        updatedAt: products.updatedAt,
+        categoryNameEn: categories.nameEn,
+        categoryNameAr: categories.nameAr,
+        categorySlug: categories.slug,
+        brandName: brands.name,
+        brandSlug: brands.slug,
+        brandLogoUrl: brands.logoUrl,
+      })
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .leftJoin(brands, eq(products.brandId, brands.id))
+      .where(eq(products.id, productId))
+      .limit(1);
+
+    if (!rows || rows.length === 0) return null;
+    const row = rows[0];
+    return {
+      ...row,
+      isFeatured: Boolean(row.isFeatured),
+      isNewArrival: Boolean(row.isNewArrival),
+      storefrontVisible: Boolean(row.storefrontVisible),
+      version: Number(row.version) || 1,
+      specifications: parseJsonArray(row.specifications),
+      variants: parseJsonArray(row.variants),
+      images: normalizeProductImages(row.images, { filterBrokenPlaceholders: false }),
+      imeiSerialNumbers: parseJsonArray(row.imeiSerialNumbers),
+      categoryNameEn: row.categoryNameEn || 'General',
+      categoryNameAr: row.categoryNameAr || 'عام',
+      categorySlug: row.categorySlug || 'mobile-phones',
+      brandName: row.brandName || 'General',
+      brandSlug: row.brandSlug || 'general',
+      brandLogoUrl: row.brandLogoUrl || '',
+      inStock: (row.stockQuantity ?? 1) > 0,
+    };
+  };
+
+  const MAX_IMAGE_BYTES = 20 * 1024 * 1024;
+  const ALLOWED_IMAGE_MIME_TYPES = new Set([
+    'image/png',
+    'image/jpeg',
+    'image/jpg',
+    'image/webp',
+    'image/gif',
+    'image/svg+xml',
+  ]);
+
+  const decodeAndValidateImageUpload = (
+    rawData: unknown,
+    declaredMime?: unknown
+  ): { buffer: Buffer; mimeType: string; ext: string } => {
+    if (typeof rawData !== 'string' || !rawData.trim()) {
+      throw new HttpRouteError(400, 'Image payload must be a non-empty base64 string or data URI.');
+    }
+
+    let safeMime = typeof declaredMime === 'string' && declaredMime.trim() ? declaredMime.trim().toLowerCase() : 'image/jpeg';
+    let base64Body = rawData.trim();
+
+    if (base64Body.startsWith('data:')) {
+      const matches = base64Body.match(/^data:([^;]+);base64,(.+)$/i);
+      if (!matches || matches.length !== 3) {
+        throw new HttpRouteError(400, 'Malformed base64 data URI.');
+      }
+      safeMime = matches[1].toLowerCase();
+      base64Body = matches[2];
+    }
+
+    if (!ALLOWED_IMAGE_MIME_TYPES.has(safeMime)) {
+      throw new HttpRouteError(400, `Unsupported image MIME type: ${safeMime}`);
+    }
+
+    const buffer = Buffer.from(base64Body, 'base64');
+    if (buffer.length === 0) {
+      throw new HttpRouteError(400, 'Decoded image buffer is empty.');
+    }
+    if (buffer.length > MAX_IMAGE_BYTES) {
+      throw new HttpRouteError(400, 'Decoded image exceeds 20MB maximum size limit.');
+    }
+
+    // Validate binary magic bytes / SVG structure to reject corrupt or spoofed payloads
+    const isPng = buffer.length >= 4 && buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47;
+    const isJpeg = buffer.length >= 3 && buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff;
+    const isWebp =
+      buffer.length >= 12 &&
+      buffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      buffer.subarray(8, 12).toString('ascii') === 'WEBP';
+    const isGif =
+      buffer.length >= 6 &&
+      (buffer.subarray(0, 6).toString('ascii') === 'GIF87a' || buffer.subarray(0, 6).toString('ascii') === 'GIF89a');
+    const svgHead = buffer.subarray(0, Math.min(buffer.length, 512)).toString('utf8').toLowerCase();
+    const isSvg = safeMime === 'image/svg+xml' && svgHead.includes('<svg');
+
+    if (isPng) {
+      return { buffer, mimeType: 'image/png', ext: 'png' };
+    }
+    if (isJpeg) {
+      return { buffer, mimeType: 'image/jpeg', ext: 'jpg' };
+    }
+    if (isWebp) {
+      return { buffer, mimeType: 'image/webp', ext: 'webp' };
+    }
+    if (isGif) {
+      return { buffer, mimeType: 'image/gif', ext: 'gif' };
+    }
+    if (isSvg) {
+      return { buffer, mimeType: 'image/svg+xml', ext: 'svg' };
+    }
+
+    throw new HttpRouteError(400, 'Invalid or corrupted image binary signature.');
+  };
+
+  // ----------------------------------------------------
+  // INITIALIZE DATABASE CONNECTION (Zero startup DDL / Zero automatic migration)
+  // ----------------------------------------------------
+  initDatabase().catch((err) => {
+    console.warn('[WARN] Initial database connection check:', err?.message || err);
+  });
+
+  // ----------------------------------------------------
+  // PUBLIC APIS (ABSOLUTE PRIVACY: NO COSTS, STOCK, IMEIS, ETC.)
+  // ----------------------------------------------------
+
+  // Public & Admin Categories (Authoritative MySQL Database)
+  app.get(['/api/categories', '/api/admin/categories'], async (_req, res) => {
+    if (!(await ensureDbAvailable())) {
+      return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
+    }
     try {
-      const pool = (global as any)._postgresPool;
-      if (!pool) return;
-
-      // 1. Seed any missing categories into PostgreSQL (DO NOTHING on conflict so custom edits are never lost)
-      for (const c of [...FALLBACK_CATEGORIES, ...customCategories]) {
-        try {
-          await pool.query(`
-            INSERT INTO categories (id, slug, name_en, name_ar, description_en, description_ar, icon, display_order)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-            ON CONFLICT (id) DO NOTHING;
-          `, [c.id, c.slug, c.nameEn, c.nameAr, c.descriptionEn || '', c.descriptionAr || '', c.icon || 'Smartphone', c.displayOrder || 0]);
-        } catch {}
-      }
-
-      // 2. Seed any missing brands into PostgreSQL
-      for (const b of [...FALLBACK_BRANDS, ...customBrands]) {
-        try {
-          await pool.query(`
-            INSERT INTO brands (id, slug, name, logo_url)
-            VALUES ($1, $2, $3, $4)
-            ON CONFLICT (id) DO NOTHING;
-          `, [b.id, b.slug, b.name, b.logoUrl || '']);
-        } catch {}
-      }
-
-      // 3. Seed any missing products into PostgreSQL
-      for (const p of [...FALLBACK_PRODUCTS, ...customProducts]) {
-        if (!deletedProductIds.includes(p.id)) {
-          try {
-            await pool.query(`
-              INSERT INTO products (
-                id, slug, sku, name_en, name_ar, description_en, description_ar,
-                condition, category_id, brand_id, is_featured, is_new_arrival,
-                status, specifications, variants, images, stock_quantity
-              ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
-              ON CONFLICT (id) DO NOTHING;
-            `, [
-              p.id, p.slug, p.sku, p.nameEn, p.nameAr, p.descriptionEn || '', p.descriptionAr || '',
-              p.condition || 'New', p.categoryId, p.brandId, Boolean(p.isFeatured), Boolean(p.isNewArrival),
-              p.status || 'published', JSON.stringify(p.specifications || []), JSON.stringify(p.variants || []),
-              JSON.stringify(p.images || []), p.stockQuantity ?? 10
-            ]);
-          } catch {}
-        }
-      }
-
-      // Align PostgreSQL ID sequences so nextval() never collides with seeded IDs
-      try {
-        await pool.query(`
-          SELECT setval('products_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM products), true);
-          SELECT setval('categories_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM categories), true);
-          SELECT setval('brands_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM brands), true);
-        `);
-      } catch (seqErr) {
-        // Safe sequence alignment
-      }
-
-      // 6. Query PostgreSQL and mirror to in-memory custom stores
-      const pgBrands = await db
-        .select({
-          id: brands.id,
-          slug: brands.slug,
-          name: brands.name,
-          logoUrl: brands.logoUrl,
-          createdAt: brands.createdAt,
-        })
-        .from(brands);
-
-      for (const b of pgBrands) {
-        const item = {
-          id: b.id,
-          slug: b.slug,
-          name: b.name,
-          logoUrl: b.logoUrl || '',
-          createdAt: b.createdAt ? new Date(b.createdAt).toISOString() : undefined,
-        };
-        const idx = customBrands.findIndex((cb) => cb.id === b.id || cb.slug === b.slug);
-        if (idx !== -1) {
-          customBrands[idx] = { ...customBrands[idx], ...item };
-        } else {
-          customBrands.push(item);
-        }
-      }
-
-      const pgCats = await db
+      const dbCategories = await db
         .select({
           id: categories.id,
           slug: categories.slug,
@@ -271,28 +402,54 @@ async function startServer() {
           icon: categories.icon,
           displayOrder: categories.displayOrder,
         })
-        .from(categories);
+        .from(categories)
+        .orderBy(asc(categories.displayOrder), asc(categories.nameEn));
 
-      for (const c of pgCats) {
-        const item = {
-          id: c.id,
-          slug: c.slug,
-          nameEn: c.nameEn,
-          nameAr: c.nameAr,
-          descriptionEn: c.descriptionEn || '',
-          descriptionAr: c.descriptionAr || '',
-          icon: c.icon || 'Smartphone',
-          displayOrder: c.displayOrder || 0,
-        };
-        const idx = customCategories.findIndex((cc) => cc.id === c.id || cc.slug === c.slug);
-        if (idx !== -1) {
-          customCategories[idx] = { ...customCategories[idx], ...item };
-        } else {
-          customCategories.push(item);
-        }
+      return res.json(dbCategories);
+    } catch (err: any) {
+      return handleDbRouteError(err, res, 'Categories query error:');
+    }
+  });
+
+  // Public & Admin Brands (Authoritative MySQL Database)
+  app.get(['/api/brands', '/api/admin/brands'], async (_req, res) => {
+    if (!(await ensureDbAvailable())) {
+      return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
+    }
+    try {
+      const dbBrands = await db
+        .select({
+          id: brands.id,
+          slug: brands.slug,
+          name: brands.name,
+          logoUrl: brands.logoUrl,
+          createdAt: brands.createdAt,
+        })
+        .from(brands)
+        .orderBy(asc(brands.name));
+
+      return res.json(dbBrands);
+    } catch (err: any) {
+      return handleDbRouteError(err, res, 'Brands query error:');
+    }
+  });
+
+  // Public & Admin Services (Services section has been removed; returns empty array safely)
+  app.get(['/api/services', '/api/admin/services'], async (_req, res) => {
+    res.json([]);
+  });
+
+  // Product filtering engine imported from src/lib/productSerialization.ts
+  // (Handles stringified MariaDB JSON for specifications, variants, images, and imeiSerialNumbers)
+
+  // Public Products Catalogue (Filters: category, brand, condition, featured, newArrival, search, sort)
+  // ABSOLUTE PRIVACY: Only public catalogue fields returned
+  app.get('/api/products', async (req, res) => {
+    try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
       }
-
-      const pgProds = await db
+      const dbItems = await db
         .select({
           id: products.id,
           slug: products.slug,
@@ -307,360 +464,38 @@ async function startServer() {
           isFeatured: products.isFeatured,
           isNewArrival: products.isNewArrival,
           status: products.status,
+          storefrontVisible: products.storefrontVisible,
           specifications: products.specifications,
           variants: products.variants,
           images: products.images,
-          privateNotes: products.privateNotes,
-          purchaseCost: products.purchaseCost,
           stockQuantity: products.stockQuantity,
-          imeiSerialNumbers: products.imeiSerialNumbers,
           createdAt: products.createdAt,
-          updatedAt: products.updatedAt,
           categoryNameEn: categories.nameEn,
           categoryNameAr: categories.nameAr,
           categorySlug: categories.slug,
           brandName: brands.name,
           brandSlug: brands.slug,
+          brandLogoUrl: brands.logoUrl,
         })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
-        .leftJoin(brands, eq(products.brandId, brands.id));
+        .leftJoin(brands, eq(products.brandId, brands.id))
+        .where(and(eq(products.status, 'published'), eq(products.storefrontVisible, true)));
 
-      for (const p of pgProds) {
-        if (!deletedProductIds.includes(p.id)) {
-          const idx = customProducts.findIndex((cp) => cp.id === p.id);
-          if (idx !== -1) {
-            customProducts[idx] = { ...p, ...customProducts[idx] };
-          } else {
-            customProducts.push(p);
-          }
-        }
-      }
-
-      persistDataStore();
-      console.log(`Reconciled database stores: ${customBrands.length} brands, ${customCategories.length} categories, ${customProducts.length} products`);
-    } catch (e: any) {
-      console.warn('Store reconciliation note:', e?.message || e);
-    }
-  };
-
-  // Run reconciliation once DB is ready
-  initDatabase().then(() => {
-    reconcileStores();
-  }).catch(() => {});
-
-  // ----------------------------------------------------
-  // PUBLIC APIS (ABSOLUTE PRIVACY: NO COSTS, STOCK, IMEIS, ETC.)
-  // ----------------------------------------------------
-
-  // Public & Admin Categories (Merged PostgreSQL + Data-Store so no category ever vanishes)
-  app.get(['/api/categories', '/api/admin/categories'], async (_req, res) => {
-    let dbCategories: any[] = [];
-    if (isPostgresAvailable) {
-      try {
-        dbCategories = await db
-          .select({
-            id: categories.id,
-            slug: categories.slug,
-            nameEn: categories.nameEn,
-            nameAr: categories.nameAr,
-            descriptionEn: categories.descriptionEn,
-            descriptionAr: categories.descriptionAr,
-            icon: categories.icon,
-            displayOrder: categories.displayOrder,
-          })
-          .from(categories)
-          .orderBy(asc(categories.displayOrder), asc(categories.nameEn));
-      } catch (err) {
-        console.warn('PostgreSQL categories query failed, serving persistent store:', err);
-      }
-    }
-
-    const merged = [...dbCategories];
-    for (const c of customCategories) {
-      if (!merged.some((m) => m.slug === c.slug || m.id === c.id)) {
-        merged.push(c as any);
-      }
-    }
-
-    if (merged.length === 0) {
-      for (const fc of FALLBACK_CATEGORIES) {
-        merged.push(fc as any);
-      }
-    }
-
-    res.json(merged);
-  });
-
-  // Public & Admin Brands (Merged PostgreSQL + Data-Store so no brand ever vanishes)
-  app.get(['/api/brands', '/api/admin/brands'], async (_req, res) => {
-    let dbBrands: any[] = [];
-    if (isPostgresAvailable) {
-      try {
-        dbBrands = await db
-          .select({
-            id: brands.id,
-            slug: brands.slug,
-            name: brands.name,
-            logoUrl: brands.logoUrl,
-            createdAt: brands.createdAt,
-          })
-          .from(brands)
-          .orderBy(asc(brands.name));
-      } catch (err) {
-        console.warn('Brands query fallback, serving persistent store:', (err as any)?.message);
-      }
-    }
-
-    const merged = [...dbBrands];
-    for (const b of customBrands) {
-      if (!merged.some((m) => m.slug === b.slug || m.id === b.id)) {
-        merged.push(b as any);
-      }
-    }
-
-    if (merged.length === 0) {
-      for (const fb of FALLBACK_BRANDS) {
-        merged.push(fb as any);
-      }
-    }
-
-    res.json(merged);
-  });
-
-  // Public & Admin Services (Services section has been removed; returns empty array safely)
-  app.get(['/api/services', '/api/admin/services'], async (_req, res) => {
-    res.json([]);
-  });
-
-  // High-reliability unified product filtering engine (guarantees zero products ever vanish)
-  const filterFallbackProducts = (query: any, isPublic = true, dbItems: any[] = []) => {
-    const { category, brand, condition, featured, newArrival, search, sort, status, categoryId, brandId } = query;
-
-    // Merge order:
-    // 1. FALLBACK_PRODUCTS (base catalog)
-    // 2. dbItems (PostgreSQL)
-    // 3. customProducts (data-store.json manual additions/edits take highest priority)
-    const productMap = new Map<number, any>();
-
-    for (const fp of FALLBACK_PRODUCTS) {
-      if (!deletedProductIds.includes(fp.id)) {
-        productMap.set(fp.id, { ...fp, status: fp.status || 'published' });
-      }
-    }
-
-    for (const p of (dbItems || [])) {
-      if (!deletedProductIds.includes(p.id)) {
-        const existing = productMap.get(p.id) || {};
-        productMap.set(p.id, { ...existing, ...p });
-      }
-    }
-
-    for (const cp of customProducts) {
-      if (!deletedProductIds.includes(cp.id)) {
-        const existing = productMap.get(cp.id) || {};
-        productMap.set(cp.id, { ...existing, ...cp });
-      }
-    }
-
-    let allMerged = Array.from(productMap.values());
-
-    // Resolve category and brand names and slugs cleanly, and normalize images
-    allMerged = allMerged.map((p) => {
-      const cat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === p.categoryId || c.slug === p.categorySlug);
-      const br = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === p.brandId || b.slug === p.brandSlug);
-
-      let safeImages: string[] = [];
-      if (Array.isArray(p.images)) {
-        safeImages = p.images
-          .map((img: any) => (typeof img === 'string' ? img : (img?.url || img?.src || '')))
-          .filter(Boolean);
-      } else if (typeof p.images === 'string') {
-        try {
-          const parsed = JSON.parse(p.images);
-          if (Array.isArray(parsed)) {
-            safeImages = parsed
-              .map((img: any) => (typeof img === 'string' ? img : (img?.url || img?.src || '')))
-              .filter(Boolean);
-          } else if (p.images.trim()) {
-            safeImages = [p.images.trim()];
-          }
-        } catch {
-          if (p.images.trim()) {
-            safeImages = [p.images.trim()];
-          }
-        }
-      }
-
-      return {
-        ...p,
-        images: safeImages,
-        categoryNameEn: p.categoryNameEn || cat?.nameEn || 'General',
-        categoryNameAr: p.categoryNameAr || cat?.nameAr || 'عام',
-        categorySlug: p.categorySlug || cat?.slug || 'mobile-phones',
-        brandName: p.brandName || br?.name || 'General',
-        brandSlug: p.brandSlug || br?.slug || 'apple',
-        brandLogoUrl: p.brandLogoUrl || br?.logoUrl || '',
-        inStock: (p.stockQuantity ?? 1) > 0,
-        status: p.status || 'published',
-      };
-    });
-
-    if (isPublic) {
-      allMerged = allMerged.filter((p) => !p.status || p.status === 'published');
-    } else if (status && status !== 'all') {
-      allMerged = allMerged.filter((p) => p.status === status);
-    }
-
-    let filtered = [...allMerged];
-
-    // Category filter: match slug or ID, including aliases (smartphones <=> mobile-phones, tablets <=> tablets-laptops)
-    if (category && typeof category === 'string') {
-      const normCat = category.trim().toLowerCase();
-      filtered = filtered.filter((p) => {
-        const pSlug = (p.categorySlug || '').toLowerCase();
-        if (pSlug === normCat || String(p.categoryId) === normCat) return true;
-        if ((normCat === 'smartphones' || normCat === 'mobile-phones') && (pSlug === 'smartphones' || pSlug === 'mobile-phones')) return true;
-        if ((normCat === 'tablets' || normCat === 'tablets-laptops') && (pSlug === 'tablets' || pSlug === 'tablets-laptops')) return true;
-        return false;
-      });
-    }
-    if (categoryId && !isNaN(parseInt(categoryId as string, 10))) {
-      const cid = parseInt(categoryId as string, 10);
-      filtered = filtered.filter((p) => p.categoryId === cid);
-    }
-
-    // Brand filter: match slug or ID
-    if (brand && typeof brand === 'string') {
-      const normBrand = brand.trim().toLowerCase();
-      filtered = filtered.filter((p) => {
-        const bSlug = (p.brandSlug || '').toLowerCase();
-        const bName = (p.brandName || '').toLowerCase();
-        return bSlug === normBrand || bName === normBrand || String(p.brandId) === normBrand;
-      });
-    }
-    if (brandId && !isNaN(parseInt(brandId as string, 10))) {
-      const bid = parseInt(brandId as string, 10);
-      filtered = filtered.filter((p) => p.brandId === bid);
-    }
-
-    if (condition && typeof condition === 'string' && ['New', 'Used', 'Refurbished'].includes(condition)) {
-      filtered = filtered.filter((p) => p.condition === condition);
-    }
-    if (featured === 'true') {
-      filtered = filtered.filter((p) => Boolean(p.isFeatured));
-    }
-    if (newArrival === 'true') {
-      filtered = filtered.filter((p) => Boolean(p.isNewArrival));
-    }
-    if (search && typeof search === 'string' && search.trim() !== '') {
-      const q = search.trim().toLowerCase();
-      filtered = filtered.filter(
-        (p) =>
-          p.nameEn?.toLowerCase().includes(q) ||
-          p.nameAr?.includes(q) ||
-          p.sku?.toLowerCase().includes(q) ||
-          p.descriptionEn?.toLowerCase().includes(q)
-      );
-    }
-    if (sort === 'name-asc') {
-      filtered.sort((a, b) => (a.nameEn || '').localeCompare(b.nameEn || ''));
-    } else if (sort === 'name-desc') {
-      filtered.sort((a, b) => (b.nameEn || '').localeCompare(a.nameEn || ''));
-    } else {
-      filtered.sort((a, b) => (Number(b.id) || 0) - (Number(a.id) || 0));
-    }
-
-    if (isPublic) {
-      return filtered.map((p) => ({
-        id: p.id,
-        slug: p.slug,
-        sku: p.sku,
-        nameEn: p.nameEn,
-        nameAr: p.nameAr,
-        descriptionEn: p.descriptionEn || '',
-        descriptionAr: p.descriptionAr || '',
-        condition: p.condition || 'New',
-        categoryId: p.categoryId,
-        brandId: p.brandId,
-        categoryNameEn: p.categoryNameEn || 'General',
-        categoryNameAr: p.categoryNameAr || 'عام',
-        categorySlug: p.categorySlug,
-        brandName: p.brandName || '',
-        brandSlug: p.brandSlug,
-        brandLogoUrl: p.brandLogoUrl,
-        isFeatured: Boolean(p.isFeatured),
-        isNewArrival: Boolean(p.isNewArrival),
-        specifications: p.specifications || [],
-        variants: p.variants || [],
-        images: p.images || [],
-        inStock: (p.stockQuantity ?? 1) > 0,
-      }));
-    }
-
-    return filtered;
-  };
-
-  // Public Products Catalogue (Filters: category, brand, condition, featured, newArrival, search, sort)
-  // ABSOLUTE PRIVACY: Only public catalogue fields returned
-  app.get('/api/products', async (req, res) => {
-    try {
-      let dbItems: any[] = [];
-      if (isPostgresAvailable) {
-        try {
-          dbItems = await db
-            .select({
-              id: products.id,
-              slug: products.slug,
-              sku: products.sku,
-              nameEn: products.nameEn,
-              nameAr: products.nameAr,
-              descriptionEn: products.descriptionEn,
-              descriptionAr: products.descriptionAr,
-              condition: products.condition,
-              categoryId: products.categoryId,
-              brandId: products.brandId,
-              isFeatured: products.isFeatured,
-              isNewArrival: products.isNewArrival,
-              status: products.status,
-              specifications: products.specifications,
-              variants: products.variants,
-              images: products.images,
-              createdAt: products.createdAt,
-              categoryNameEn: categories.nameEn,
-              categoryNameAr: categories.nameAr,
-              categorySlug: categories.slug,
-              brandName: brands.name,
-              brandSlug: brands.slug,
-            })
-            .from(products)
-            .leftJoin(categories, eq(products.categoryId, categories.id))
-            .leftJoin(brands, eq(products.brandId, brands.id));
-        } catch (dbErr) {
-          console.warn('DB query note in /api/products:', dbErr);
-        }
-      }
-      res.json(filterFallbackProducts(req.query, true, dbItems));
-    } catch {
-      res.json(filterFallbackProducts(req.query, true));
+      return res.json(filterProducts(req.query, true, dbItems));
+    } catch (err: any) {
+      return handleDbRouteError(err, res, 'DB query error in /api/products:');
     }
   });
 
-  // Public Single Product by Slug
+  // Public product detail & related sanitization helpers are imported from src/lib/productSerialization.ts
+
+  // Public Single Product by Slug (STRICT PRIVACY: never exposes internal inventory/costs)
   app.get('/api/products/:slug', async (req, res) => {
-    const slug = req.params.slug;
-    const allFallbackItems = [...customProducts, ...FALLBACK_PRODUCTS].filter((p) => !deletedProductIds.includes(p.id));
-
-    if (!isPostgresAvailable) {
-      const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
-      if (fallbackItem) {
-        return res.json({
-          product: fallbackItem,
-          related: allFallbackItems.filter((p) => p.id !== fallbackItem.id).slice(0, 4),
-        });
-      }
-      return res.status(404).json({ error: 'Product not found' });
+    if (!(await ensureDbAvailable())) {
+      return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
     }
+    const slug = req.params.slug;
     try {
       const product = await db
         .select({
@@ -679,17 +514,25 @@ async function startServer() {
           specifications: products.specifications,
           variants: products.variants,
           images: products.images,
+          stockQuantity: products.stockQuantity,
           createdAt: products.createdAt,
           categoryNameEn: categories.nameEn,
           categoryNameAr: categories.nameAr,
           categorySlug: categories.slug,
           brandName: brands.name,
           brandSlug: brands.slug,
+          brandLogoUrl: brands.logoUrl,
         })
         .from(products)
         .leftJoin(categories, eq(products.categoryId, categories.id))
         .leftJoin(brands, eq(products.brandId, brands.id))
-        .where(and(eq(products.slug, slug), eq(products.status, 'published')))
+        .where(
+          and(
+            eq(products.slug, slug),
+            eq(products.status, 'published'),
+            eq(products.storefrontVisible, true)
+          )
+        )
         .limit(1);
 
       if (product.length > 0) {
@@ -705,6 +548,7 @@ async function startServer() {
               nameAr: products.nameAr,
               condition: products.condition,
               images: products.images,
+              stockQuantity: products.stockQuantity,
               categoryNameEn: categories.nameEn,
               categoryNameAr: categories.nameAr,
               brandName: brands.name,
@@ -716,6 +560,7 @@ async function startServer() {
               and(
                 eq(products.categoryId, currentCatId),
                 eq(products.status, 'published'),
+                eq(products.storefrontVisible, true),
                 sql`${products.id} != ${product[0].id}`
               )
             )
@@ -723,36 +568,21 @@ async function startServer() {
         }
 
         return res.json({
-          product: product[0],
-          related,
-        });
-      }
-
-      const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
-      if (fallbackItem) {
-        return res.json({
-          product: fallbackItem,
-          related: allFallbackItems.filter((p) => p.id !== fallbackItem.id).slice(0, 4),
+          product: sanitizePublicProductDetail(product[0]),
+          related: sanitizePublicRelated(related),
         });
       }
 
       return res.status(404).json({ error: 'Product not found' });
-    } catch {
-      const fallbackItem = allFallbackItems.find((p) => p.slug === slug || p.sku?.toLowerCase() === slug.toLowerCase());
-      if (fallbackItem) {
-        return res.json({
-          product: fallbackItem,
-          related: allFallbackItems.filter((p) => p.id !== fallbackItem.id).slice(0, 4),
-        });
-      }
-      res.status(404).json({ error: 'Product not found' });
+    } catch (err: any) {
+      return handleDbRouteError(err, res, 'DB query error in /api/products/:slug:');
     }
   });
 
-  // Public WhatsApp Settings (Safe public subset)
+  // Public WhatsApp Settings (Authoritative MySQL)
   app.get('/api/whatsapp-settings', async (_req, res) => {
-    if (!isPostgresAvailable) {
-      return res.json(FALLBACK_WHATSAPP);
+    if (!(await ensureDbAvailable())) {
+      return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
     }
     try {
       const settings = await db.select().from(whatsappSettings).limit(1);
@@ -766,25 +596,25 @@ async function startServer() {
           templateAr: settings[0].templateAr,
         });
       }
-      res.json(FALLBACK_WHATSAPP);
-    } catch {
-      res.json(FALLBACK_WHATSAPP);
+      return res.status(404).json({ error: 'WhatsApp settings not configured.' });
+    } catch (err: any) {
+      return handleDbRouteError(err, res, 'WhatsApp settings query error:');
     }
   });
 
-  // Public Site Content
+  // Public Site Content (Authoritative MySQL)
   app.get('/api/site-content', async (_req, res) => {
-    if (!isPostgresAvailable) {
-      return res.json(FALLBACK_SITE_CONTENT);
+    if (!(await ensureDbAvailable())) {
+      return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
     }
     try {
       const content = await db.select().from(siteContent).limit(1);
       if (content.length > 0) {
         return res.json(content[0]);
       }
-      res.json(FALLBACK_SITE_CONTENT);
-    } catch {
-      res.json(FALLBACK_SITE_CONTENT);
+      return res.status(404).json({ error: 'Site content not configured.' });
+    } catch (err: any) {
+      return handleDbRouteError(err, res, 'Site content query error:');
     }
   });
 
@@ -792,7 +622,7 @@ async function startServer() {
   const fallbackImagesStore = new Map<number | string, { fileName: string; mimeType: string; data: string }>();
   let fallbackImageCounter = 50000;
 
-  // Stored Image delivery endpoint from PostgreSQL persistent storage or fallback cache
+  // Stored Image delivery endpoint from MySQL persistent storage or fallback cache
   app.get('/api/images/:id', async (req, res) => {
     try {
       const rawId = req.params.id;
@@ -835,7 +665,7 @@ async function startServer() {
         return res.status(400).send('Invalid image ID');
       }
 
-      if (isPostgresAvailable) {
+      if (await ensureDbAvailable()) {
         try {
           const img = await db.select().from(images).where(eq(images.id, numId)).limit(1);
           if (img.length > 0) {
@@ -867,6 +697,7 @@ async function startServer() {
             return res.send(buffer);
           }
         } catch (dbErr) {
+          if (isTransientDbError(dbErr)) setDbAvailable(false);
           console.warn('Database error fetching image:', dbErr);
         }
       }
@@ -882,219 +713,226 @@ async function startServer() {
   // ADMIN AUTHENTICATION
   // ----------------------------------------------------
 
-  // Master Setup Key tracking with database persistence
-  let currentMasterKey = (process.env.OWNER_SETUP_KEY || 'NasirMobileDubai2026!').trim();
 
-  const syncSecuritySettings = async () => {
-    if (!isPostgresAvailable) return;
-    try {
-      const rows = await db.select().from(securitySettings).where(eq(securitySettings.id, 1)).limit(1);
-      if (rows && rows.length > 0 && rows[0].masterKey) {
-        currentMasterKey = rows[0].masterKey.trim();
-      }
-    } catch (err) {
-      console.warn('Note: Master key sync using in-memory state:', (err as any)?.message);
+  // STAGING-ONLY owner password reset by email.
+  const resetRequestAttempts = new Map<string, { count: number; started: number }>();
+
+  app.post('/api/admin/password/forgot', async (req, res) => {
+    if (process.env.USE_STAGING_DB !== 'true') {
+      return res.status(404).json({ error: 'Not available.' });
     }
-  };
-  syncSecuritySettings();
 
-  const isMasterKey = (key: string | undefined | null) => {
-    if (!key) return false;
-    const trimmed = String(key).trim();
-    const envKey = (process.env.OWNER_SETUP_KEY || '').trim();
-    return (
-      trimmed === currentMasterKey ||
-      (Boolean(envKey) && trimmed === envKey) ||
-      trimmed === 'Shazz.99' ||
-      trimmed === 'NasirMobileDubai2026!'
-    );
-  };
+    const email = typeof req.body?.email === 'string'
+      ? req.body.email.trim().toLowerCase() : '';
 
-  // Owner Login: supports both owner setup key / master password AND Google Firebase auth token exchange
+    if (!email || !email.includes('@')) {
+      return res.status(400).json({ error: 'Enter a valid email address.' });
+    }
+
+    const key = `${req.socket.remoteAddress || 'unknown'}:${email}`;
+    const now = Date.now();
+    const attempt = resetRequestAttempts.get(key);
+
+    if (attempt && now - attempt.started < 15 * 60 * 1000 && attempt.count >= 3) {
+      return res.status(429).json({ error: 'Please wait before requesting another link.' });
+    }
+
+    if (!attempt || now - attempt.started >= 15 * 60 * 1000) {
+      resetRequestAttempts.set(key, { count: 1, started: now });
+    } else {
+      attempt.count++;
+    }
+
+    try {
+      const [rows]: any = await pool.execute(
+        'SELECT id, email, role FROM users WHERE email = ? LIMIT 1',
+        [email]
+      );
+      const account = rows?.[0];
+
+      // Same outward response whether or not an account exists.
+      if (account && (account.role === 'owner' || account.role === 'admin')) {
+        const token = crypto.randomBytes(32).toString('hex');
+        const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+        await pool.execute(
+          'DELETE FROM admin_password_resets WHERE user_id = ?',
+          [account.id]
+        );
+
+        await pool.execute(
+          'INSERT INTO admin_password_resets (user_id, token_hash, expires_at) VALUES (?, ?, DATE_ADD(NOW(), INTERVAL 15 MINUTE))',
+          [account.id, tokenHash]
+        );
+
+        const publicUrl = process.env.APP_PUBLIC_URL;
+        const smtpHost = process.env.SMTP_HOST;
+        const smtpUser = process.env.SMTP_USER;
+        const smtpPass = process.env.SMTP_PASS;
+
+        if (!publicUrl || !publicUrl.startsWith('https://') ||
+            !smtpHost || !smtpUser || !smtpPass) {
+          throw new Error('Password reset email configuration is incomplete.');
+        }
+
+        const resetUrl = new URL('/admin/reset-password', publicUrl);
+        resetUrl.searchParams.set('token', token);
+
+        const transporter = nodemailer.createTransport({
+          host: smtpHost,
+          port: Number(process.env.SMTP_PORT || 465),
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: { user: smtpUser, pass: smtpPass },
+        });
+
+        await transporter.sendMail({
+          from: process.env.SMTP_FROM || smtpUser,
+          to: account.email,
+          subject: 'Nasir Mobile – Admin Password Reset',
+          text: `A password reset was requested for your admin account.\n\nUse this link within 15 minutes:\n${resetUrl.toString()}\n\nIf you did not request this, ignore this email.`,
+          html: `<p>A password reset was requested for your admin account.</p><p><a href="${resetUrl.toString()}">Reset your password</a></p><p>This link expires in 15 minutes and can only be used once. If you did not request this, ignore this email.</p>`,
+        });
+      }
+
+      return res.json({
+        success: true,
+        message: 'If that admin account exists, a reset link has been sent to its email address.',
+      });
+    } catch (error: any) {
+      console.error('Password reset email service error:', error?.message || 'Unknown error');
+      return res.status(503).json({ error: 'Email service is temporarily unavailable. Please try again later.' });
+    }
+  });
+
+  app.post('/api/admin/password/reset', async (req, res) => {
+    if (process.env.USE_STAGING_DB !== 'true') {
+      return res.status(404).json({ error: 'Not available.' });
+    }
+
+    const token = typeof req.body?.token === 'string' ? req.body.token : '';
+    const password = typeof req.body?.password === 'string' ? req.body.password : '';
+
+    if (!/^[a-f0-9]{64}$/.test(token)) {
+      return res.status(400).json({ error: 'This reset link is invalid or expired.' });
+    }
+
+    const passwordBytes = Buffer.byteLength(password, 'utf8');
+    if (passwordBytes < 12 || passwordBytes > 72) {
+      return res.status(400).json({ error: 'Choose a password between 12 and 72 bytes.' });
+    }
+
+    const tokenHash = crypto.createHash('sha256').update(token).digest('hex');
+
+    try {
+      const passwordHash = await bcrypt.hash(password, 12);
+      const connection = await pool.getConnection();
+
+      try {
+        await connection.beginTransaction();
+
+        const [rows]: any = await connection.execute(
+          'SELECT id, user_id FROM admin_password_resets WHERE token_hash = ? AND used_at IS NULL AND expires_at > NOW() LIMIT 1 FOR UPDATE',
+          [tokenHash]
+        );
+
+        const reset = rows?.[0];
+        if (!reset) {
+          await connection.rollback();
+          return res.status(400).json({ error: 'This reset link is invalid, expired, or already used.' });
+        }
+
+        const [updateResult]: any = await connection.execute(
+          "UPDATE users SET password_hash = ? WHERE id = ? AND role IN ('owner', 'admin')",
+          [passwordHash, reset.user_id]
+        );
+
+        if (updateResult.affectedRows !== 1) {
+          await connection.rollback();
+          return res.status(400).json({ error: 'The admin account could not be updated.' });
+        }
+
+        await connection.execute(
+          'UPDATE admin_password_resets SET used_at = NOW() WHERE id = ?',
+          [reset.id]
+        );
+
+        await connection.execute(
+          'UPDATE admin_password_resets SET used_at = NOW() WHERE user_id = ? AND used_at IS NULL',
+          [reset.user_id]
+        );
+
+        await connection.commit();
+        return res.json({ success: true, message: 'Password updated. You can now sign in.' });
+      } catch (error) {
+        await connection.rollback();
+        throw error;
+      } finally {
+        connection.release();
+      }
+    } catch (error: any) {
+      console.error('Password reset error:', error?.message || 'Unknown error');
+      return res.status(500).json({ error: 'Password reset could not be completed.' });
+    }
+  });
+
+  // Secure owner/admin login: existing database accounts only.
   app.post('/api/admin/login', async (req, res) => {
     try {
-      const { email, password, firebaseToken } = req.body;
-      const ownerEmail = (process.env.OWNER_EMAIL || 'shazzzbusiness@gmail.com').toLowerCase();
+      const email = typeof req.body?.email === 'string'
+        ? req.body.email.trim().toLowerCase()
+        : '';
+      const password = typeof req.body?.password === 'string'
+        ? req.body.password
+        : '';
 
-      // Case A: Owner credentials / initial owner key login
-      if (password) {
-        const inputEmail = (email || '').toLowerCase().trim();
-        const effectiveEmail = inputEmail || ownerEmail;
-
-        const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000; // 7 days
-
-        // 1. If password matches master setup key, grant owner access!
-        if (isMasterKey(password)) {
-          const sessionToken = createSignedToken({
-            uid: 'owner_master',
-            email: ownerEmail,
-            role: 'owner',
-            expiresAt,
-          });
-
-          // Ensure owner is recorded in users table if DB is reachable
-          try {
-            const existingOwner = await db.select().from(users).where(eq(users.email, ownerEmail)).limit(1);
-            if (existingOwner.length === 0) {
-              const hash = await bcrypt.hash(password, 10);
-              await db.insert(users).values({
-                uid: 'owner_' + Date.now(),
-                email: ownerEmail,
-                role: 'owner',
-                passwordHash: hash,
-              });
-            }
-            await logAudit('OWNER_LOGIN', 'Owner logged in via master setup credentials', ownerEmail);
-          } catch (dbErr) {
-            console.warn('Database note: Owner record sync skipped while DB is offline:', (dbErr as any)?.message);
-          }
-
-          return res.json({
-            success: true,
-            token: sessionToken,
-            user: { email: ownerEmail, role: 'owner' },
-          });
-        }
-
-        // 2. Check if user credentials match in database (by inputEmail or ownerEmail)
-        const targetEmail = (inputEmail && inputEmail.includes('@')) ? inputEmail : ownerEmail;
-        const matchingUsers = await db
-          .select()
-          .from(users)
-          .where(or(eq(users.email, targetEmail), eq(users.email, ownerEmail)));
-
-        for (const user of matchingUsers) {
-          if (user.passwordHash && (user.role === 'owner' || user.role === 'admin')) {
-            const passwordMatches = await bcrypt.compare(password, user.passwordHash);
-            if (passwordMatches) {
-              const sessionToken = createSignedToken({
-                uid: user.uid,
-                email: user.email,
-                role: user.role,
-                expiresAt,
-              });
-
-              await logAudit('OWNER_LOGIN', 'Owner logged in via password', user.email);
-
-              return res.json({
-                success: true,
-                token: sessionToken,
-                user: { email: user.email, role: user.role },
-              });
-            }
-          }
-        }
-
-        // 3. First-time owner initialization:
-        // If no owner account exists in users table, initialize it with this password
-        const allUsers = await db.select().from(users).limit(1);
-        if (allUsers.length === 0 && password.length >= 4) {
-          const hash = await bcrypt.hash(password, 10);
-          const newOwner = await db
-            .insert(users)
-            .values({
-              uid: 'owner_' + Date.now(),
-              email: ownerEmail,
-              role: 'owner',
-              passwordHash: hash,
-            })
-            .returning();
-
-          const sessionToken = createSignedToken({
-            uid: newOwner[0].uid,
-            email: newOwner[0].email,
-            role: 'owner',
-            expiresAt,
-          });
-
-          await logAudit('OWNER_SETUP', 'Owner initialized on first login', ownerEmail);
-
-          return res.json({
-            success: true,
-            token: sessionToken,
-            user: { email: newOwner[0].email, role: 'owner' },
-          });
-        }
-
-        return res.status(401).json({
-          error: 'Incorrect owner password. You can click "Use Master Key" or enter the master setup key "NasirMobileDubai2026!" to access the panel immediately.',
-        });
+      if (!email || !email.includes('@') || !password) {
+        return res.status(400).json({ error: 'Email and password are required.' });
       }
 
-      if (firebaseToken) {
-        let tokenEmail = '';
-        let uid = '';
-        try {
-          const decoded = await adminAuth.verifyIdToken(firebaseToken);
-          tokenEmail = (decoded.email || '').toLowerCase();
-          uid = decoded.uid;
-        } catch (adminErr) {
-          console.warn('Firebase Admin verifyIdToken error, attempting tokeninfo fallback:', adminErr);
-          try {
-            const verifyRes = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${firebaseToken}`);
-            if (verifyRes.ok) {
-              const tokenInfo = await verifyRes.json();
-              tokenEmail = (tokenInfo.email || '').toLowerCase();
-              uid = tokenInfo.sub || tokenInfo.user_id || 'google_user';
-            } else {
-              throw adminErr;
-            }
-          } catch (fetchErr) {
-            console.error('Failed to verify token with fallback:', fetchErr);
-            throw adminErr;
-          }
-        }
-
-        // Check if token email is the owner email or recorded in users
-        let isOwner = tokenEmail === ownerEmail || tokenEmail === 'shazzzbusiness@gmail.com';
-        if (!isOwner) {
-          const existingUser = await db.select().from(users).where(eq(users.email, tokenEmail)).limit(1);
-          if (existingUser.length > 0 && (existingUser[0].role === 'owner' || existingUser[0].role === 'admin')) {
-            isOwner = true;
-          }
-        }
-
-        if (!isOwner) {
-          return res.status(403).json({
-            error: `Access denied. ${tokenEmail} is not authorized as the Nasir Mobile store owner.`,
-          });
-        }
-
-        // Ensure owner record exists in users
-        const existingOwner = await db.select().from(users).where(eq(users.email, tokenEmail)).limit(1);
-        if (existingOwner.length === 0) {
-          await db.insert(users).values({
-            uid: uid || 'google_' + Date.now(),
-            email: tokenEmail,
-            role: 'owner',
-            passwordHash: await bcrypt.hash(process.env.OWNER_SETUP_KEY || 'NasirMobileDubai2026!', 10),
-          });
-        }
-
-        const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
-        const sessionToken = createSignedToken({
-          uid,
-          email: tokenEmail,
-          role: 'owner',
-          expiresAt,
-        });
-
-        await logAudit('GOOGLE_LOGIN', 'Owner logged in via Google Authentication', tokenEmail);
-
-        return res.json({
-          success: true,
-          token: sessionToken,
-          user: {
-            email: tokenEmail,
-            role: 'owner',
-          },
-        });
+      const attemptKey = loginLimiter.keyFor(req.socket.remoteAddress || 'unknown', email);
+      const retryAfter = loginLimiter.retryAfter(attemptKey);
+      if (retryAfter > 0) {
+        res.setHeader('Retry-After', String(retryAfter));
+        return res.status(429).json({ error: 'Too many failed login attempts. Try again later.' });
       }
 
-      return res.status(400).json({ error: 'Missing login credentials.' });
+      const accounts = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+
+      const account = accounts[0];
+
+      if (
+        !account ||
+        !account.passwordHash ||
+        (account.role !== 'owner' && account.role !== 'admin') ||
+        !(await bcrypt.compare(password, account.passwordHash))
+      ) {
+        loginLimiter.recordFailure(attemptKey);
+        return res.status(401).json({ error: 'Invalid email or password.' });
+      }
+
+      loginLimiter.clear(attemptKey);
+
+      const sessionToken = createSignedToken({
+        uid: account.uid,
+        email: account.email,
+        role: account.role,
+        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
+      });
+
+      await logAudit('OWNER_LOGIN', 'Admin logged in using database password', account.email);
+
+      return res.json({
+        success: true,
+        token: sessionToken,
+        user: { email: account.email, role: account.role },
+      });
     } catch (error: any) {
       console.error('Login error:', error);
-      res.status(500).json({ error: error.message || 'Authentication error' });
+      return res.status(500).json({ error: 'Authentication service unavailable.' });
     }
   });
 
@@ -1117,329 +955,79 @@ async function startServer() {
     res.json({ success: true });
   });
 
-  // Reset Password using Master Setup Key (secure owner recovery)
-  app.post('/api/admin/reset-password', async (req, res) => {
-    try {
-      const { email, setupKey, newPassword } = req.body;
-      const ownerEmail = (process.env.OWNER_EMAIL || 'shazzzbusiness@gmail.com').toLowerCase();
-
-      if (!setupKey || !isMasterKey(setupKey)) {
-        return res.status(401).json({
-          error: 'Invalid Master Setup Key. Only the verified store owner can reset the password.',
-        });
-      }
-
-      if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
-        return res.status(400).json({
-          error: 'New password must be at least 8 characters long for security.',
-        });
-      }
-
-      const targetEmail = (email || ownerEmail).toLowerCase().trim();
-      const hash = await bcrypt.hash(newPassword, 10);
-
-      const existing = await db.select().from(users).where(eq(users.email, targetEmail)).limit(1);
-      if (existing.length > 0) {
-        await db.update(users).set({ passwordHash: hash }).where(eq(users.email, targetEmail));
-      } else {
-        await db.insert(users).values({
-          uid: 'owner_' + Date.now(),
-          email: targetEmail,
-          role: 'owner',
-          passwordHash: hash,
-        });
-      }
-
-      // Also ensure main owner email is updated if targetEmail differs
-      if (targetEmail !== ownerEmail) {
-        await db.update(users).set({ passwordHash: hash }).where(eq(users.email, ownerEmail));
-      }
-
-      await logAudit('PASSWORD_RESET', `Owner password reset using Master Setup Key for ${targetEmail}`, targetEmail);
-
-      res.json({
-        success: true,
-        message: 'Owner password has been securely reset. You can now log in with your new password.',
-      });
-    } catch (error: any) {
-      console.error('Password reset error:', error);
-      res.status(500).json({ error: error.message || 'Failed to reset password.' });
-    }
-  });
-
-  // Change Password (authenticated owner from dashboard)
+  // Change password: authenticated account must verify its existing bcrypt password.
   app.post('/api/admin/change-password', requireAuth, async (req: AuthRequest, res) => {
     try {
-      const { currentPassword, newPassword } = req.body;
-      const userEmail = req.user?.email || 'shazzzbusiness@gmail.com';
+      const currentPassword = typeof req.body?.currentPassword === 'string'
+        ? req.body.currentPassword
+        : '';
+      const newPassword = typeof req.body?.newPassword === 'string'
+        ? req.body.newPassword
+        : '';
+      const uid = req.user?.uid;
+      const userEmail = req.user?.email;
+      const role = req.user?.role;
+
+      if (!uid || !userEmail || !role) {
+        return res.status(401).json({ error: 'Authenticated account not found.' });
+      }
 
       if (!currentPassword) {
-        return res.status(400).json({ error: 'Current password or Master Setup Key is required.' });
+        return res.status(400).json({ error: 'Current password is required.' });
       }
 
-      if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
-        return res.status(400).json({
-          error: 'New password must be at least 8 characters long for security.',
-        });
+      if (newPassword.length < 12) {
+        return res.status(400).json({ error: 'New password must be at least 12 characters long.' });
       }
 
-      // Verify current password against database or master key
-      let isVerified = isMasterKey(currentPassword);
-      if (!isVerified) {
-        const existing = await db.select().from(users).where(eq(users.email, userEmail)).limit(1);
-        if (existing.length > 0 && existing[0].passwordHash) {
-          isVerified = await bcrypt.compare(currentPassword, existing[0].passwordHash);
-        }
+      const accounts = await db
+        .select()
+        .from(users)
+        .where(eq(users.uid, uid))
+        .limit(1);
+      const account = accounts[0];
+
+      if (
+        !account ||
+        account.email.toLowerCase() !== userEmail.toLowerCase() ||
+        account.role !== role ||
+        !account.passwordHash ||
+        !(await bcrypt.compare(currentPassword, account.passwordHash))
+      ) {
+        return res.status(401).json({ error: 'Current password verification failed.' });
       }
 
-      if (!isVerified) {
-        return res.status(401).json({
-          error: 'Current password verification failed. Please check your current password or Master Setup Key.',
-        });
-      }
+      const hash = await bcrypt.hash(newPassword, 12);
+      await db.update(users).set({ passwordHash: hash }).where(eq(users.uid, uid));
 
-      const hash = await bcrypt.hash(newPassword, 10);
-      const existing = await db.select().from(users).where(eq(users.email, userEmail)).limit(1);
-      if (existing.length > 0) {
-        await db.update(users).set({ passwordHash: hash }).where(eq(users.email, userEmail));
-      } else {
-        await db.insert(users).values({
-          uid: 'owner_' + Date.now(),
-          email: userEmail,
-          role: 'owner',
-          passwordHash: hash,
-        });
-      }
+      await logAudit('PASSWORD_CHANGED', 'Authenticated account changed its password', userEmail);
 
-      await logAudit('PASSWORD_CHANGED', `Owner changed password from dashboard for ${userEmail}`, userEmail);
-
-      const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000;
       const freshToken = createSignedToken({
-        uid: req.user?.uid || 'owner',
+        uid,
         email: userEmail,
-        role: 'owner',
-        expiresAt,
+        role,
+        expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
       });
 
-      res.json({
+      return res.json({
         success: true,
         message: 'Password successfully updated.',
         token: freshToken,
       });
     } catch (error: any) {
       console.error('Password change error:', error);
-      res.status(500).json({ error: error.message || 'Failed to change password.' });
+      return res.status(500).json({ error: 'Unable to change password.' });
     }
   });
 
-  // Get Master Key Info (Authenticated Owner)
-  app.get('/api/admin/master-key-info', requireAuth, (_req: AuthRequest, res) => {
-    const isDefault = currentMasterKey === 'NasirMobileDubai2026!';
-    const maskedKey =
-      currentMasterKey.length > 4
-        ? `${currentMasterKey.slice(0, 3)}••••••••${currentMasterKey.slice(-2)}`
-        : '••••';
-
-    res.json({
-      isDefault,
-      maskedKey,
-      hasCustomKey: !isDefault,
-    });
-  });
-
-  // Change or Reset Master Key (Authenticated from Admin Dashboard)
-  app.post('/api/admin/reset-master-key', requireAuth, async (req: AuthRequest, res) => {
-    try {
-      const { currentPassword, newMasterKey, resetToDefault } = req.body;
-      const userEmail = req.user?.email || 'shazzzbusiness@gmail.com';
-
-      if (!currentPassword) {
-        return res.status(400).json({ error: 'Owner password verification is required.' });
-      }
-
-      // Verify current authorization
-      let isVerified = isMasterKey(currentPassword);
-      if (!isVerified && isPostgresAvailable) {
-        try {
-          const existing = await db.select().from(users).where(eq(users.email, userEmail)).limit(1);
-          if (existing.length > 0 && existing[0].passwordHash) {
-            isVerified = await bcrypt.compare(currentPassword, existing[0].passwordHash);
-          }
-        } catch (dbErr) {
-          console.warn('DB check skipped in reset-master-key:', dbErr);
-        }
-      }
-
-      if (!isVerified) {
-        return res.status(401).json({
-          error: 'Verification failed. Please enter your valid current Owner Password or Master Key.',
-        });
-      }
-
-      let updatedKey = '';
-      if (resetToDefault) {
-        updatedKey = 'NasirMobileDubai2026!';
-      } else {
-        if (!newMasterKey || typeof newMasterKey !== 'string' || newMasterKey.trim().length < 6) {
-          return res.status(400).json({
-            error: 'New Master Key must be at least 6 characters long.',
-          });
-        }
-        updatedKey = newMasterKey.trim();
-      }
-
-      currentMasterKey = updatedKey;
-
-      if (isPostgresAvailable) {
-        try {
-          await db
-            .insert(securitySettings)
-            .values({
-              id: 1,
-              masterKey: updatedKey,
-              updatedAt: new Date(),
-            })
-            .onConflictDoUpdate({
-              target: securitySettings.id,
-              set: {
-                masterKey: updatedKey,
-                updatedAt: new Date(),
-              },
-            });
-        } catch (dbErr) {
-          console.warn('DB update skipped in reset-master-key:', dbErr);
-        }
-      }
-
-      await logAudit(
-        'MASTER_KEY_RESET',
-        resetToDefault ? 'Reset Master Key back to factory default' : 'Updated Master Key to custom value',
-        userEmail
-      );
-
-      res.json({
-        success: true,
-        message: resetToDefault
-          ? 'Master Key has been restored to default (NasirMobileDubai2026!).'
-          : 'Master Key has been updated successfully.',
-      });
-    } catch (error: any) {
-      console.error('Error updating master key:', error);
-      res.status(500).json({ error: error.message || 'Failed to update Master Key' });
-    }
-  });
-
-  // Public Reset Master Key (From login screen with verified owner email & password)
-  app.post('/api/admin/public-reset-master-key', async (req, res) => {
-    try {
-      const { ownerEmail, ownerPassword, newMasterKey, resetToDefault } = req.body;
-      const expectedEmail = (process.env.OWNER_EMAIL || 'shazzzbusiness@gmail.com').toLowerCase().trim();
-
-      const inputEmail = (ownerEmail || '').toLowerCase().trim();
-      if (!inputEmail || (inputEmail !== expectedEmail && inputEmail !== 'shazzzbusiness@gmail.com')) {
-        return res.status(403).json({
-          error: 'Access denied. Only the registered store owner email can request a Master Key reset.',
-        });
-      }
-
-      if (!ownerPassword) {
-        return res.status(400).json({
-          error: 'Owner account password is required to verify your identity.',
-        });
-      }
-
-      // Verify owner account password
-      let isVerified = isMasterKey(ownerPassword);
-      if (!isVerified && isPostgresAvailable) {
-        try {
-          const ownerUser = await db.select().from(users).where(eq(users.email, inputEmail)).limit(1);
-          if (ownerUser.length > 0 && ownerUser[0].passwordHash) {
-            isVerified = await bcrypt.compare(ownerPassword, ownerUser[0].passwordHash);
-          }
-        } catch (dbErr) {
-          console.warn('DB check skipped in public-reset-master-key:', dbErr);
-        }
-      }
-
-      // Fallback verification if users table not yet populated or offline
-      if (!isVerified) {
-        if (ownerPassword === currentMasterKey || ownerPassword === 'Shazz.99' || ownerPassword === 'NasirMobileDubai2026!') {
-          isVerified = true;
-        }
-      }
-
-      if (!isVerified) {
-        return res.status(401).json({
-          error: 'Incorrect Owner Password. Identity could not be verified.',
-        });
-      }
-
-      let updatedKey = '';
-      if (resetToDefault) {
-        updatedKey = 'NasirMobileDubai2026!';
-      } else {
-        if (!newMasterKey || typeof newMasterKey !== 'string' || newMasterKey.trim().length < 6) {
-          return res.status(400).json({
-            error: 'New Master Key must be at least 6 characters long.',
-          });
-        }
-        updatedKey = newMasterKey.trim();
-      }
-
-      currentMasterKey = updatedKey;
-
-      if (isPostgresAvailable) {
-        await db
-          .insert(securitySettings)
-          .values({
-            id: 1,
-            masterKey: updatedKey,
-            updatedAt: new Date(),
-          })
-          .onConflictDoUpdate({
-            target: securitySettings.id,
-            set: {
-              masterKey: updatedKey,
-              updatedAt: new Date(),
-            },
-          });
-      }
-
-      await logAudit(
-        'MASTER_KEY_RESET_PUBLIC',
-        `Master Key reset from login portal by verified owner ${inputEmail}`,
-        inputEmail
-      );
-
-      res.json({
-        success: true,
-        message: resetToDefault
-          ? 'Master Key has been restored to default (NasirMobileDubai2026!). You can now log in.'
-          : 'Master Key has been reset successfully! You can now log in using your new Master Key.',
-      });
-    } catch (error: any) {
-      console.error('Error resetting master key publicly:', error);
-      res.status(500).json({ error: error.message || 'Failed to reset Master Key' });
-    }
-  });
-
-  // ----------------------------------------------------
   // ADMIN DASHBOARD & CATALOGUE MANAGEMENT
   // ----------------------------------------------------
 
   // Dashboard Overview
   app.get('/api/admin/overview', requireAuth, async (_req: AuthRequest, res) => {
     try {
-      if (!isPostgresAvailable) {
-        return res.json({
-          totalProducts: FALLBACK_PRODUCTS.length,
-          publishedCount: FALLBACK_PRODUCTS.length,
-          draftCount: 0,
-          archivedCount: 0,
-          totalCategories: FALLBACK_CATEGORIES.length,
-          totalBrands: FALLBACK_BRANDS.length,
-          recentLogs: [],
-        });
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Dashboard overview unavailable.' });
       }
       const allProducts = await db.select().from(products);
       const allCategories = await db.select().from(categories);
@@ -1454,7 +1042,7 @@ async function startServer() {
       const draftCount = allProducts.filter((p) => p.status === 'draft').length;
       const archivedCount = allProducts.filter((p) => p.status === 'archived').length;
 
-      res.json({
+      return res.json({
         totalProducts: allProducts.length,
         publishedCount,
         draftCount,
@@ -1463,68 +1051,58 @@ async function startServer() {
         totalBrands: allBrands.length,
         recentLogs,
       });
-    } catch (error) {
-      console.warn('Database note: Using fallback admin overview:', (error as any)?.message);
-      res.json({
-        totalProducts: FALLBACK_PRODUCTS.length,
-        publishedCount: FALLBACK_PRODUCTS.length,
-        draftCount: 0,
-        archivedCount: 0,
-        totalCategories: FALLBACK_CATEGORIES.length,
-        totalBrands: FALLBACK_BRANDS.length,
-        recentLogs: [],
-      });
+    } catch (error: any) {
+      return handleDbRouteError(error, res, 'Database error in /api/admin/overview:');
     }
   });
 
   // Admin: Get all products (includes private notes, costs, serial numbers for the owner)
   app.get('/api/admin/products', requireAuth, async (req: AuthRequest, res) => {
     try {
-      let dbItems: any[] = [];
-      if (isPostgresAvailable) {
-        try {
-          dbItems = await db
-            .select({
-              id: products.id,
-              slug: products.slug,
-              sku: products.sku,
-              nameEn: products.nameEn,
-              nameAr: products.nameAr,
-              descriptionEn: products.descriptionEn,
-              descriptionAr: products.descriptionAr,
-              condition: products.condition,
-              categoryId: products.categoryId,
-              brandId: products.brandId,
-              isFeatured: products.isFeatured,
-              isNewArrival: products.isNewArrival,
-              status: products.status,
-              specifications: products.specifications,
-              variants: products.variants,
-              images: products.images,
-              // Private administrative fields
-              privateNotes: products.privateNotes,
-              purchaseCost: products.purchaseCost,
-              stockQuantity: products.stockQuantity,
-              imeiSerialNumbers: products.imeiSerialNumbers,
-              createdAt: products.createdAt,
-              updatedAt: products.updatedAt,
-              categoryNameEn: categories.nameEn,
-              categoryNameAr: categories.nameAr,
-              categorySlug: categories.slug,
-              brandName: brands.name,
-              brandSlug: brands.slug,
-            })
-            .from(products)
-            .leftJoin(categories, eq(products.categoryId, categories.id))
-            .leftJoin(brands, eq(products.brandId, brands.id));
-        } catch (dbErr) {
-          console.warn('DB query note in /api/admin/products:', dbErr);
-        }
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
       }
-      res.json(filterFallbackProducts(req.query, false, dbItems));
-    } catch (error) {
-      console.warn('Database note: Using fallback admin products:', (error as any)?.message);
-      res.json(filterFallbackProducts(req.query, false));
+      const dbItems = await db
+        .select({
+          id: products.id,
+          slug: products.slug,
+          sku: products.sku,
+          nameEn: products.nameEn,
+          nameAr: products.nameAr,
+          descriptionEn: products.descriptionEn,
+          descriptionAr: products.descriptionAr,
+          condition: products.condition,
+          categoryId: products.categoryId,
+          brandId: products.brandId,
+          isFeatured: products.isFeatured,
+          isNewArrival: products.isNewArrival,
+          status: products.status,
+          storefrontVisible: products.storefrontVisible,
+          version: products.version,
+          specifications: products.specifications,
+          variants: products.variants,
+          images: products.images,
+          // Private administrative fields
+          privateNotes: products.privateNotes,
+          purchaseCost: products.purchaseCost,
+          stockQuantity: products.stockQuantity,
+          imeiSerialNumbers: products.imeiSerialNumbers,
+          createdAt: products.createdAt,
+          updatedAt: products.updatedAt,
+          categoryNameEn: categories.nameEn,
+          categoryNameAr: categories.nameAr,
+          categorySlug: categories.slug,
+          brandName: brands.name,
+          brandSlug: brands.slug,
+          brandLogoUrl: brands.logoUrl,
+        })
+        .from(products)
+        .leftJoin(categories, eq(products.categoryId, categories.id))
+        .leftJoin(brands, eq(products.brandId, brands.id));
+
+      return res.json(filterProducts(req.query, false, dbItems));
+    } catch (error: any) {
+      return handleDbRouteError(error, res, 'DB query error in /api/admin/products:');
     }
   });
 
@@ -1538,9 +1116,55 @@ async function startServer() {
       .replace(/^-+|-+$/g, '');
   };
 
+  // Helper to resolve optional relational parent IDs strictly against MySQL
+  const validateParentIds = async (executor: any, rawCategoryId: any, rawBrandId: any) => {
+    let safeCategoryId: number | null | undefined = undefined;
+    let safeBrandId: number | null | undefined = undefined;
+
+    if (rawCategoryId !== undefined) {
+      if (rawCategoryId === null || rawCategoryId === '') {
+        safeCategoryId = null;
+      } else {
+        const parsedCatId = parseInt(String(rawCategoryId), 10);
+        if (isNaN(parsedCatId) || parsedCatId <= 0) {
+          throw new HttpRouteError(400, 'Invalid category ID supplied.');
+        }
+        const dbCat = await executor.select({ id: categories.id }).from(categories).where(eq(categories.id, parsedCatId)).limit(1);
+        if (dbCat.length === 0) {
+          throw new HttpRouteError(400, `Category ID ${parsedCatId} does not exist.`);
+        }
+        safeCategoryId = dbCat[0].id;
+      }
+    }
+
+    if (rawBrandId !== undefined) {
+      if (rawBrandId === null || rawBrandId === '') {
+        safeBrandId = null;
+      } else {
+        const parsedBrandId = parseInt(String(rawBrandId), 10);
+        if (isNaN(parsedBrandId) || parsedBrandId <= 0) {
+          throw new HttpRouteError(400, 'Invalid brand ID supplied.');
+        }
+        const dbBrand = await executor.select({ id: brands.id }).from(brands).where(eq(brands.id, parsedBrandId)).limit(1);
+        if (dbBrand.length === 0) {
+          throw new HttpRouteError(400, `Brand ID ${parsedBrandId} does not exist.`);
+        }
+        safeBrandId = dbBrand[0].id;
+      }
+    }
+
+    return { safeCategoryId, safeBrandId };
+  };
+
   // Admin: Create Product
   app.post('/api/admin/products', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({
+          error: 'Database service is offline. Product creation requires an active database connection.',
+        });
+      }
+
       const {
         sku,
         nameEn,
@@ -1553,6 +1177,7 @@ async function startServer() {
         isFeatured,
         isNewArrival,
         status,
+        storefrontVisible,
         specifications,
         variants,
         images: productImages,
@@ -1562,236 +1187,98 @@ async function startServer() {
         imeiSerialNumbers,
       } = req.body;
 
-      if (!sku || !sku.trim()) {
+      if (!sku || typeof sku !== 'string' || !sku.trim()) {
         return res.status(400).json({ error: 'SKU is required and must be unique.' });
       }
 
-      if (!nameEn || !nameEn.trim()) {
+      if (!nameEn || typeof nameEn !== 'string' || !nameEn.trim()) {
         return res.status(400).json({ error: 'English product name is required.' });
       }
 
       const cleanSku = sku.trim().toUpperCase();
+      const targetStatus = ['published', 'draft', 'archived'].includes(status) ? status : 'published';
+      const parsedStock = stockQuantity !== undefined && stockQuantity !== null && stockQuantity !== ''
+        ? Math.max(0, parseInt(String(stockQuantity), 10) || 0)
+        : 0;
 
-      // Check unique SKU against database safely
-      let skuExistsInDb = false;
-      if (isPostgresAvailable) {
-        try {
-          const existingSku = await db.select().from(products).where(eq(products.sku, cleanSku)).limit(1);
-          if (existingSku.length > 0) {
-            skuExistsInDb = true;
-          }
-        } catch (dbErr) {
-          console.warn('Database SKU check note:', dbErr);
+      const createdProduct = await withTransaction(async (tx) => {
+        const existingSku = await tx.select({ id: products.id }).from(products).where(eq(products.sku, cleanSku)).limit(1);
+        if (existingSku.length > 0) {
+          throw new HttpRouteError(400, `Product with SKU "${cleanSku}" already exists.`);
         }
-      }
 
-      const skuExistsInCustom = customProducts.some((p) => p.sku && p.sku.toUpperCase() === cleanSku);
+        let baseSlug = makeSlug(nameEn);
+        if (!baseSlug) baseSlug = `product-${Date.now()}`;
+        let finalSlug = baseSlug;
+        let counter = 1;
 
-      if (skuExistsInDb || skuExistsInCustom) {
-        return res.status(400).json({ error: `Product with SKU "${sku.trim()}" already exists.` });
-      }
-
-      // Generate base slug
-      let baseSlug = makeSlug(nameEn);
-      if (!baseSlug) baseSlug = `product-${Date.now()}`;
-      let finalSlug = baseSlug;
-      let counter = 1;
-
-      // Safe slug lookup
-      while (true) {
-        let slugExists = customProducts.some((p) => p.slug === finalSlug) || FALLBACK_PRODUCTS.some((p) => p.slug === finalSlug);
-        if (!slugExists && isPostgresAvailable) {
-          try {
-            const existingSlug = await db.select().from(products).where(eq(products.slug, finalSlug)).limit(1);
-            if (existingSlug.length > 0) {
-              slugExists = true;
-            }
-          } catch (dbErr) {
-            console.warn('Database slug check note:', dbErr);
-          }
+        while (counter <= 50) {
+          const existingSlug = await tx.select({ id: products.id }).from(products).where(eq(products.slug, finalSlug)).limit(1);
+          if (existingSlug.length === 0) break;
+          finalSlug = `${baseSlug}-${counter++}`;
         }
-        if (!slugExists) break;
-        finalSlug = `${baseSlug}-${counter++}`;
-      }
 
-      // Safely verify category and brand exist in DB to prevent foreign key violations
-      let safeCategoryId: number | null = null;
-      let safeBrandId: number | null = null;
-      let catNameEn = '';
-      let catNameAr = '';
-      let catSlug = '';
-      let brandName = '';
-      let brandSlug = '';
+        const { safeCategoryId, safeBrandId } = await validateParentIds(tx, categoryId ?? null, brandId ?? null);
 
-      const parsedCatId = categoryId ? parseInt(String(categoryId), 10) : null;
-      const parsedBrandId = brandId ? parseInt(String(brandId), 10) : null;
-
-      const foundCat = [...customCategories, ...FALLBACK_CATEGORIES].find((c) => c.id === parsedCatId || c.slug === categoryId);
-      if (foundCat) {
-        catNameEn = foundCat.nameEn;
-        catNameAr = foundCat.nameAr;
-        catSlug = foundCat.slug;
-      }
-
-      const foundBrand = [...customBrands, ...FALLBACK_BRANDS].find((b) => b.id === parsedBrandId || b.slug === brandId);
-      if (foundBrand) {
-        brandName = foundBrand.name;
-        brandSlug = foundBrand.slug;
-      }
-
-      if (isPostgresAvailable && parsedCatId && !isNaN(parsedCatId)) {
-        try {
-          const dbCat = await db.select().from(categories).where(eq(categories.id, parsedCatId)).limit(1);
-          if (dbCat.length > 0) {
-            safeCategoryId = dbCat[0].id;
-            catNameEn = dbCat[0].nameEn;
-            catNameAr = dbCat[0].nameAr;
-            catSlug = dbCat[0].slug;
-          }
-        } catch (catErr) {
-          console.warn('Database category verification note:', catErr);
-        }
-      }
-
-      if (isPostgresAvailable && parsedBrandId && !isNaN(parsedBrandId)) {
-        try {
-          const dbBrand = await db.select().from(brands).where(eq(brands.id, parsedBrandId)).limit(1);
-          if (dbBrand.length > 0) {
-            safeBrandId = dbBrand[0].id;
-            brandName = dbBrand[0].name;
-            brandSlug = dbBrand[0].slug;
-          }
-        } catch (brandErr) {
-          console.warn('Database brand verification note:', brandErr);
-        }
-      }
-
-      let createdProduct: any = null;
-
-      // 1. Try PostgreSQL insert if available
-      if (isPostgresAvailable) {
-        try {
-          const newProduct = await db
-            .insert(products)
-            .values({
-              slug: finalSlug,
-              sku: cleanSku,
-              nameEn: nameEn.trim(),
-              nameAr: (nameAr || nameEn).trim(),
-              descriptionEn: descriptionEn || '',
-              descriptionAr: descriptionAr || '',
-              condition: condition || 'New',
-              categoryId: safeCategoryId,
-              brandId: safeBrandId,
-              isFeatured: Boolean(isFeatured),
-              isNewArrival: Boolean(isNewArrival),
-              status: status || 'published',
-              specifications: specifications || [],
-              variants: variants || [],
-              images: productImages || [],
-              privateNotes: privateNotes || '',
-              purchaseCost: purchaseCost || '',
-              stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : 0,
-              imeiSerialNumbers: imeiSerialNumbers || [],
-            })
-            .returning();
-
-          if (newProduct && newProduct.length > 0) {
-            createdProduct = {
-              ...newProduct[0],
-              categoryId: parsedCatId || safeCategoryId,
-              brandId: parsedBrandId || safeBrandId,
-              categoryNameEn: catNameEn,
-              categoryNameAr: catNameAr,
-              categorySlug: catSlug,
-              brandName: brandName,
-              brandSlug: brandSlug,
-            };
-          }
-        } catch (dbErr: any) {
-          console.warn('PostgreSQL insert product failed, persisting via high-reliability fallback:', dbErr?.message);
-        }
-      }
-
-      // 2. High-reliability persistent store fallback
-      if (!createdProduct) {
-        const nextId =
-          Math.max(
-            90000,
-            ...customProducts.map((p) => Number(p.id) || 0),
-            ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0),
-            ...deletedProductIds.map((id) => Number(id) || 0)
-          ) + 1;
-
-        createdProduct = {
-          id: nextId,
+        const [insertRes]: any = await tx.insert(products).values({
           slug: finalSlug,
           sku: cleanSku,
           nameEn: nameEn.trim(),
           nameAr: (nameAr || nameEn).trim(),
           descriptionEn: descriptionEn || '',
           descriptionAr: descriptionAr || '',
-          condition: condition || 'New',
-          categoryId: parsedCatId,
-          brandId: parsedBrandId,
-          categoryNameEn: catNameEn || 'General',
-          categoryNameAr: catNameAr || 'عام',
-          categorySlug: catSlug,
-          brandName: brandName,
-          brandSlug: brandSlug,
+          condition: ['New', 'Used', 'Refurbished'].includes(condition) ? condition : 'New',
+          categoryId: safeCategoryId ?? null,
+          brandId: safeBrandId ?? null,
           isFeatured: Boolean(isFeatured),
           isNewArrival: Boolean(isNewArrival),
-          status: status || 'published',
-          specifications: specifications || [],
-          variants: variants || [],
-          images: productImages || [],
+          status: targetStatus,
+          storefrontVisible: storefrontVisible !== undefined ? Boolean(storefrontVisible) : true,
+          version: 1,
+          specifications: parseJsonArray(specifications),
+          variants: parseJsonArray(variants),
+          images: normalizeProductImages(productImages, { filterBrokenPlaceholders: false }),
           privateNotes: privateNotes || '',
           purchaseCost: purchaseCost || '',
-          stockQuantity: stockQuantity ? parseInt(stockQuantity, 10) : 0,
-          imeiSerialNumbers: imeiSerialNumbers || [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      }
+          stockQuantity: parsedStock,
+          imeiSerialNumbers: parseJsonArray(imeiSerialNumbers),
+        });
 
-      // Always ensure createdProduct is in customProducts for rock-solid persistence
-      const existIdx = customProducts.findIndex((p) => p.id === createdProduct.id || p.sku === createdProduct.sku);
-      if (existIdx !== -1) {
-        customProducts[existIdx] = createdProduct;
-      } else {
-        customProducts.unshift(createdProduct);
-      }
-      // Never allow active product ID to be suppressed by deletedProductIds
-      deletedProductIds = deletedProductIds.filter((dId) => dId !== createdProduct.id);
-      persistDataStore();
+        const insertedId = Number(insertRes?.insertId);
+        if (!insertedId) {
+          throw new HttpRouteError(500, 'Failed to obtain inserted product ID from MySQL.');
+        }
 
-      if (isPostgresAvailable && createdProduct?.id) {
-        try {
-          const pool = (global as any)._postgresPool;
-          if (pool) {
-            await pool.query(`SELECT setval('products_id_seq', (SELECT GREATEST(COALESCE(MAX(id), 1), 1) FROM products), true);`);
-          }
-        } catch {}
-      }
+        const dto = await fetchAdminProductDto(tx, insertedId);
+        if (!dto) {
+          throw new HttpRouteError(500, 'Failed to read back created product from database.');
+        }
+        return dto;
+      });
 
       await logAudit(
         'PRODUCT_CREATE',
-        `Created product: "${nameEn}" [SKU: ${cleanSku}]`,
+        `Created product: "${createdProduct.nameEn}" [SKU: ${cleanSku}]`,
         req.user?.email
       );
 
-      res.status(201).json(createdProduct);
+      return res.status(201).json(createdProduct);
     } catch (error: any) {
-      console.error('Error creating product:', error);
-      res.status(500).json({ error: error.message || 'Failed to create product' });
+      return handleDbRouteError(error, res, 'Error creating product:');
     }
   });
 
-  // Admin: Update Product
+  // Admin: Update Product (Transactional + Optimistic Concurrency Control)
   app.put('/api/admin/products/:id', requireAuth, async (req: AuthRequest, res) => {
     try {
       const id = parseInt(req.params.id, 10);
       if (isNaN(id)) return res.status(400).json({ error: 'Invalid product ID' });
+
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({
+          error: 'Database service is offline. Modifications require an active database connection.',
+        });
+      }
 
       const {
         sku,
@@ -1805,6 +1292,8 @@ async function startServer() {
         isFeatured,
         isNewArrival,
         status,
+        storefrontVisible,
+        version: clientVersion,
         specifications,
         variants,
         images: productImages,
@@ -1814,225 +1303,119 @@ async function startServer() {
         imeiSerialNumbers,
       } = req.body;
 
-      let updatedProd: any = null;
+      const updatedProd = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(products).where(eq(products.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Product not found.');
+        }
+        const cur = existing[0];
 
-      // 1. Try PostgreSQL update if available
-      if (isPostgresAvailable) {
-        try {
-          const existing = await db.select().from(products).where(eq(products.id, id)).limit(1);
-          if (existing.length > 0) {
-            if (sku && sku.trim().toUpperCase() !== existing[0].sku) {
-              const skuCheck = await db.select().from(products).where(eq(products.sku, sku.trim().toUpperCase())).limit(1);
-              if (skuCheck.length > 0 && skuCheck[0].id !== id) {
-                return res.status(400).json({ error: `SKU "${sku.trim()}" is already assigned to another product.` });
-              }
-            }
-
-            const updated = await db
-              .update(products)
-              .set({
-                sku: sku ? sku.trim().toUpperCase() : existing[0].sku,
-                nameEn: nameEn !== undefined ? nameEn.trim() : existing[0].nameEn,
-                nameAr: nameAr !== undefined ? nameAr.trim() : existing[0].nameAr,
-                descriptionEn: descriptionEn !== undefined ? descriptionEn : existing[0].descriptionEn,
-                descriptionAr: descriptionAr !== undefined ? descriptionAr : existing[0].descriptionAr,
-                condition: condition || existing[0].condition,
-                categoryId: categoryId !== undefined ? (categoryId ? parseInt(categoryId, 10) : null) : existing[0].categoryId,
-                brandId: brandId !== undefined ? (brandId ? parseInt(brandId, 10) : null) : existing[0].brandId,
-                isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : existing[0].isFeatured,
-                isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : existing[0].isNewArrival,
-                status: status || existing[0].status,
-                specifications: specifications !== undefined ? specifications : existing[0].specifications,
-                variants: variants !== undefined ? variants : existing[0].variants,
-                images: productImages !== undefined ? productImages : existing[0].images,
-                privateNotes: privateNotes !== undefined ? privateNotes : existing[0].privateNotes,
-                purchaseCost: purchaseCost !== undefined ? purchaseCost : existing[0].purchaseCost,
-                stockQuantity: stockQuantity !== undefined ? parseInt(stockQuantity, 10) : existing[0].stockQuantity,
-                imeiSerialNumbers: imeiSerialNumbers !== undefined ? imeiSerialNumbers : existing[0].imeiSerialNumbers,
-                updatedAt: new Date(),
-              })
-              .where(eq(products.id, id))
-              .returning();
-
-            if (updated && updated.length > 0) {
-              updatedProd = updated[0];
-            }
+        const nextSku = sku !== undefined && String(sku).trim() ? String(sku).trim().toUpperCase() : cur.sku;
+        if (nextSku !== cur.sku) {
+          const skuCheck = await tx.select({ id: products.id }).from(products).where(eq(products.sku, nextSku)).limit(1);
+          if (skuCheck.length > 0 && skuCheck[0].id !== id) {
+            throw new HttpRouteError(400, `SKU "${nextSku}" is already assigned to another product.`);
           }
-        } catch (dbErr) {
-          console.warn('PostgreSQL product update note:', dbErr);
         }
-      }
 
-      // 2. Persistent store sync & fallback
-      const idx = customProducts.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        customProducts[idx] = {
-          ...customProducts[idx],
-          ...(sku ? { sku: sku.trim().toUpperCase() } : {}),
-          ...(nameEn ? { nameEn: nameEn.trim() } : {}),
-          ...(nameAr ? { nameAr: nameAr.trim() } : {}),
-          ...(descriptionEn !== undefined ? { descriptionEn } : {}),
-          ...(descriptionAr !== undefined ? { descriptionAr } : {}),
-          ...(condition ? { condition } : {}),
-          ...(categoryId !== undefined ? { categoryId: categoryId ? parseInt(categoryId, 10) : null } : {}),
-          ...(brandId !== undefined ? { brandId: brandId ? parseInt(brandId, 10) : null } : {}),
-          ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
-          ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
-          ...(status ? { status } : {}),
-          ...(specifications !== undefined ? { specifications } : {}),
-          ...(variants !== undefined ? { variants } : {}),
-          ...(productImages !== undefined ? { images: productImages } : {}),
-          ...(privateNotes !== undefined ? { privateNotes } : {}),
-          ...(purchaseCost !== undefined ? { purchaseCost } : {}),
-          ...(stockQuantity !== undefined ? { stockQuantity: parseInt(stockQuantity, 10) } : {}),
-          ...(imeiSerialNumbers !== undefined ? { imeiSerialNumbers } : {}),
-          updatedAt: new Date().toISOString(),
-        };
-        if (!updatedProd) updatedProd = customProducts[idx];
-        deletedProductIds = deletedProductIds.filter((dId) => dId !== id);
-        persistDataStore();
-      } else {
-        if (!updatedProd) {
-          updatedProd = {
-            id,
-            sku: (sku || `SKU-${id}`).toUpperCase(),
-            nameEn: nameEn || 'Product',
-            nameAr: nameAr || nameEn || 'Product',
-            updatedAt: new Date().toISOString(),
-          };
+        const { safeCategoryId, safeBrandId } = await validateParentIds(tx, categoryId, brandId);
+
+        const nextStatus = status !== undefined && ['published', 'draft', 'archived'].includes(status) ? status : cur.status;
+        const nextCondition = condition !== undefined && ['New', 'Used', 'Refurbished'].includes(condition) ? condition : cur.condition;
+        const nextStock =
+          stockQuantity !== undefined && stockQuantity !== null && stockQuantity !== ''
+            ? Math.max(0, parseInt(String(stockQuantity), 10) || 0)
+            : cur.stockQuantity;
+
+        const hasClientVersion =
+          clientVersion !== undefined && clientVersion !== null && !isNaN(parseInt(String(clientVersion), 10));
+        const expectedVersion = hasClientVersion ? parseInt(String(clientVersion), 10) : null;
+
+        const whereCondition = hasClientVersion
+          ? and(eq(products.id, id), eq(products.version, expectedVersion!))
+          : eq(products.id, id);
+
+        const [updateRes]: any = await tx
+          .update(products)
+          .set({
+            sku: nextSku,
+            nameEn: nameEn !== undefined ? String(nameEn).trim() : cur.nameEn,
+            nameAr: nameAr !== undefined ? String(nameAr).trim() : cur.nameAr,
+            descriptionEn: descriptionEn !== undefined ? descriptionEn : cur.descriptionEn,
+            descriptionAr: descriptionAr !== undefined ? descriptionAr : cur.descriptionAr,
+            condition: nextCondition,
+            categoryId: safeCategoryId !== undefined ? safeCategoryId : cur.categoryId,
+            brandId: safeBrandId !== undefined ? safeBrandId : cur.brandId,
+            isFeatured: isFeatured !== undefined ? Boolean(isFeatured) : cur.isFeatured,
+            isNewArrival: isNewArrival !== undefined ? Boolean(isNewArrival) : cur.isNewArrival,
+            status: nextStatus,
+            storefrontVisible: storefrontVisible !== undefined ? Boolean(storefrontVisible) : cur.storefrontVisible,
+            version: sql`${products.version} + 1`,
+            specifications: specifications !== undefined ? parseJsonArray(specifications) : parseJsonArray(cur.specifications),
+            variants: variants !== undefined ? parseJsonArray(variants) : parseJsonArray(cur.variants),
+            images:
+              productImages !== undefined
+                ? normalizeProductImages(productImages, { filterBrokenPlaceholders: false })
+                : normalizeProductImages(cur.images, { filterBrokenPlaceholders: false }),
+            privateNotes: privateNotes !== undefined ? privateNotes : cur.privateNotes,
+            purchaseCost: purchaseCost !== undefined ? purchaseCost : cur.purchaseCost,
+            stockQuantity: nextStock,
+            imeiSerialNumbers:
+              imeiSerialNumbers !== undefined ? parseJsonArray(imeiSerialNumbers) : parseJsonArray(cur.imeiSerialNumbers),
+            updatedAt: new Date(),
+          })
+          .where(whereCondition);
+
+        if (hasClientVersion && Number(updateRes?.affectedRows || 0) === 0) {
+          const latestProduct = await fetchAdminProductDto(tx, id);
+          throw new HttpRouteError(
+            409,
+            'This product was modified by another session. Latest saved data has been fetched.',
+            { latestProduct }
+          );
         }
-        customProducts.unshift(updatedProd);
-        deletedProductIds = deletedProductIds.filter((dId) => dId !== id);
-        persistDataStore();
-      }
+
+        const dto = await fetchAdminProductDto(tx, id);
+        if (!dto) {
+          throw new HttpRouteError(404, 'Product not found after update.');
+        }
+        return dto;
+      });
 
       await logAudit(
         'PRODUCT_UPDATE',
-        `Updated product: "${updatedProd.nameEn}" [SKU: ${updatedProd.sku}]`,
+        `Updated product: "${updatedProd.nameEn}" [SKU: ${updatedProd.sku}, v${updatedProd.version}]`,
         req.user?.email
       );
 
-      res.json(updatedProd);
+      return res.json(updatedProd);
     } catch (error: any) {
-      console.error('Error updating product:', error);
-      res.json({ id: parseInt(req.params.id, 10), nameEn: req.body?.nameEn, sku: req.body?.sku });
+      return handleDbRouteError(error, res, 'Error updating product:');
     }
   });
 
-  // Admin: Duplicate Product
+  // Admin: Duplicate Product (Authoritative MySQL)
   app.post('/api/admin/products/:id/duplicate', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service temporarily unavailable.' });
+      }
+
       const id = parseInt(req.params.id, 10);
-      let prod: any = null;
+      if (isNaN(id)) return res.status(400).json({ error: 'Invalid product ID' });
 
-      // 1. Try PostgreSQL lookup
-      if (isPostgresAvailable) {
-        try {
-          const original = await db.select().from(products).where(eq(products.id, id)).limit(1);
-          if (original.length > 0) {
-            prod = original[0];
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL duplicate lookup note:', dbErr);
+      const duplicatedProd = await withTransaction(async (tx) => {
+        const original = await tx.select().from(products).where(eq(products.id, id)).limit(1);
+        if (original.length === 0) {
+          throw new HttpRouteError(404, 'Original product not found');
         }
-      }
+        const prod = original[0];
 
-      // 2. Fallback to customProducts
-      if (!prod) {
-        prod = customProducts.find((p) => p.id === id);
-      }
+        const randomSuffix = Math.floor(1000 + Math.random() * 9000);
+        const newSku = `${prod.sku || 'SKU'}-COPY-${randomSuffix}`;
+        const finalSlug = `${prod.slug || makeSlug(prod.nameEn || 'product')}-copy-${randomSuffix}`;
 
-      // 3. Fallback to FALLBACK_PRODUCTS
-      if (!prod) {
-        prod = FALLBACK_PRODUCTS.find((p) => p.id === id);
-      }
-
-      if (!prod) {
-        return res.status(404).json({ error: 'Original product not found' });
-      }
-
-      const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-      const newSku = `${prod.sku || 'SKU'}-COPY-${randomSuffix}`;
-      const baseSlug = `${prod.slug || makeSlug(prod.nameEn || 'product')}-copy-${randomSuffix}`;
-      let finalSlug = baseSlug;
-
-      // Safe foreign key resolution for PostgreSQL
-      let safeCategoryId: number | null = null;
-      let safeBrandId: number | null = null;
-      const parsedCatId = prod.categoryId ? parseInt(String(prod.categoryId), 10) : null;
-      const parsedBrandId = prod.brandId ? parseInt(String(prod.brandId), 10) : null;
-
-      if (isPostgresAvailable) {
-        if (parsedCatId && !isNaN(parsedCatId)) {
-          try {
-            const dbCat = await db.select().from(categories).where(eq(categories.id, parsedCatId)).limit(1);
-            if (dbCat.length > 0) safeCategoryId = dbCat[0].id;
-          } catch {}
-        }
-        if (parsedBrandId && !isNaN(parsedBrandId)) {
-          try {
-            const dbBrand = await db.select().from(brands).where(eq(brands.id, parsedBrandId)).limit(1);
-            if (dbBrand.length > 0) safeBrandId = dbBrand[0].id;
-          } catch {}
-        }
-      }
-
-      let duplicatedProd: any = null;
-
-      // Insert into PostgreSQL if available
-      if (isPostgresAvailable) {
-        try {
-          const inserted = await db
-            .insert(products)
-            .values({
-              slug: finalSlug,
-              sku: newSku,
-              nameEn: `${prod.nameEn || 'Product'} (Copy)`,
-              nameAr: `${prod.nameAr || prod.nameEn || 'Product'} (نسخة)`,
-              descriptionEn: prod.descriptionEn || '',
-              descriptionAr: prod.descriptionAr || '',
-              condition: prod.condition || 'New',
-              categoryId: safeCategoryId,
-              brandId: safeBrandId,
-              isFeatured: false,
-              isNewArrival: false,
-              status: 'draft', // duplicated items start in draft mode
-              specifications: prod.specifications || [],
-              variants: prod.variants || [],
-              images: prod.images || [],
-              privateNotes: prod.privateNotes || '',
-              purchaseCost: prod.purchaseCost || '',
-              stockQuantity: 0,
-              imeiSerialNumbers: [],
-            })
-            .returning();
-
-          if (inserted && inserted.length > 0) {
-            duplicatedProd = {
-              ...inserted[0],
-              categoryId: parsedCatId || safeCategoryId,
-              brandId: parsedBrandId || safeBrandId,
-              categoryNameEn: prod.categoryNameEn,
-              categoryNameAr: prod.categoryNameAr,
-              brandName: prod.brandName,
-            };
-          }
-        } catch (dbErr: any) {
-          console.warn('PostgreSQL duplicate insert error, falling back to data-store:', dbErr?.message);
-        }
-      }
-
-      // If PostgreSQL failed or not available, assign ID from data-store
-      if (!duplicatedProd) {
-        const nextId =
-          Math.max(
-            90000,
-            ...customProducts.map((p) => Number(p.id) || 0),
-            ...FALLBACK_PRODUCTS.map((p) => Number(p.id) || 0)
-          ) + 1;
-
-        duplicatedProd = {
-          id: nextId,
+        const [insertRes]: any = await tx.insert(products).values({
           slug: finalSlug,
           sku: newSku,
           nameEn: `${prod.nameEn || 'Product'} (Copy)`,
@@ -2040,133 +1423,130 @@ async function startServer() {
           descriptionEn: prod.descriptionEn || '',
           descriptionAr: prod.descriptionAr || '',
           condition: prod.condition || 'New',
-          categoryId: parsedCatId,
-          brandId: parsedBrandId,
-          categoryNameEn: prod.categoryNameEn || '',
-          categoryNameAr: prod.categoryNameAr || '',
-          brandName: prod.brandName || '',
+          categoryId: prod.categoryId,
+          brandId: prod.brandId,
           isFeatured: false,
           isNewArrival: false,
           status: 'draft',
-          specifications: prod.specifications || [],
-          variants: prod.variants || [],
-          images: prod.images || [],
+          storefrontVisible: false,
+          version: 1,
+          specifications: parseJsonArray(prod.specifications),
+          variants: parseJsonArray(prod.variants),
+          images: normalizeProductImages(prod.images, { filterBrokenPlaceholders: false }),
           privateNotes: prod.privateNotes || '',
           purchaseCost: prod.purchaseCost || '',
           stockQuantity: 0,
           imeiSerialNumbers: [],
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-      }
+        });
 
-      // Always guarantee persistence in customProducts & data-store.json
-      if (!customProducts.some((p) => p.id === duplicatedProd.id)) {
-        customProducts.unshift(duplicatedProd);
-        deletedProductIds = deletedProductIds.filter((dId) => dId !== duplicatedProd.id);
-        persistDataStore();
-      }
+        const insertedId = Number(insertRes?.insertId);
+        if (!insertedId) {
+          throw new HttpRouteError(500, 'Failed to duplicate product.');
+        }
+
+        const dto = await fetchAdminProductDto(tx, insertedId);
+        if (!dto) {
+          throw new HttpRouteError(500, 'Failed to load duplicated product.');
+        }
+        return dto;
+      });
 
       await logAudit(
         'PRODUCT_DUPLICATE',
-        `Duplicated product ID ${id} to "${duplicatedProd.nameEn}" [SKU: ${newSku}]`,
+        `Duplicated product ID ${id} to "${duplicatedProd.nameEn}" [SKU: ${duplicatedProd.sku}]`,
         req.user?.email
       );
 
-      res.status(201).json(duplicatedProd);
+      return res.status(201).json(duplicatedProd);
     } catch (error: any) {
-      console.error('Error duplicating product:', error);
-      res.status(500).json({ error: error.message || 'Failed to duplicate product' });
+      return handleDbRouteError(error, res, 'Error duplicating product:');
     }
   });
 
   // Admin: Delete Product
   app.delete('/api/admin/products/:id', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Product deletion unavailable.' });
+      }
+
       const id = parseInt(req.params.id, 10);
-      let prodName = `Product ID ${id}`;
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
+      }
 
-      if (isPostgresAvailable) {
-        try {
-          const prod = await db.select().from(products).where(eq(products.id, id)).limit(1);
-          if (prod.length > 0) {
-            prodName = prod[0].nameEn;
-            await db.delete(products).where(eq(products.id, id));
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL product delete note:', dbErr);
+      const prodName = await withTransaction(async (tx) => {
+        const prod = await tx.select().from(products).where(eq(products.id, id)).limit(1);
+        if (prod.length === 0) {
+          throw new HttpRouteError(404, 'Product not found');
         }
-      }
-
-      // 2. Remove from customProducts and track in deletedProductIds
-      const foundCustom = customProducts.find((p) => p.id === id);
-      if (foundCustom) {
-        prodName = foundCustom.nameEn;
-      }
-      customProducts = customProducts.filter((p) => p.id !== id);
-      if (!deletedProductIds.includes(id)) {
-        deletedProductIds.push(id);
-      }
-      persistDataStore();
+        await tx.delete(products).where(eq(products.id, id));
+        return prod[0].nameEn || `Product #${id}`;
+      });
 
       await logAudit(
         'PRODUCT_DELETE',
-        `Deleted product "${prodName}"`,
+        `Deleted product "${prodName}" (ID: ${id})`,
         req.user?.email
       );
 
-      res.json({ success: true, message: 'Product deleted', id });
+      return res.json({ success: true, message: 'Product deleted', id });
     } catch (error: any) {
-      res.json({ success: true, message: 'Product deleted' });
+      return handleDbRouteError(error, res, 'Error deleting product:');
     }
   });
 
   // Admin: Update Status (publish / unpublish / archive)
   app.patch('/api/admin/products/:id/status', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Status update unavailable.' });
+      }
+
       const id = parseInt(req.params.id, 10);
-      const { status } = req.body;
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
+      }
+
+      const { status, storefrontVisible, version: clientVersion } = req.body;
       if (!['published', 'draft', 'archived'].includes(status)) {
         return res.status(400).json({ error: 'Invalid status' });
       }
 
-      let updatedProd: any = null;
-
-      if (isPostgresAvailable) {
-        try {
-          const updated = await db
-            .update(products)
-            .set({ status, updatedAt: new Date() })
-            .where(eq(products.id, id))
-            .returning();
-
-          if (updated && updated.length > 0) {
-            updatedProd = updated[0];
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL status update note:', dbErr);
+      const updatedProd = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(products).where(eq(products.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Product not found');
         }
-      }
 
-      const idx = customProducts.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        customProducts[idx] = { ...customProducts[idx], status, updatedAt: new Date().toISOString() };
-        if (!updatedProd) updatedProd = customProducts[idx];
-        persistDataStore();
-      } else {
-        const fallbackProd = FALLBACK_PRODUCTS.find((p) => p.id === id);
-        if (fallbackProd || updatedProd) {
-          const baseProd = updatedProd || fallbackProd;
-          const newCustomProd = { ...baseProd, status, updatedAt: new Date().toISOString() };
-          customProducts.push(newCustomProd);
-          if (!updatedProd) updatedProd = newCustomProd;
-          persistDataStore();
+        const hasClientVersion =
+          clientVersion !== undefined && clientVersion !== null && !isNaN(parseInt(String(clientVersion), 10));
+        const expectedVersion = hasClientVersion ? parseInt(String(clientVersion), 10) : null;
+        const whereCondition = hasClientVersion
+          ? and(eq(products.id, id), eq(products.version, expectedVersion!))
+          : eq(products.id, id);
+
+        const updateFields: any = {
+          status,
+          version: sql`${products.version} + 1`,
+          updatedAt: new Date(),
+        };
+        if (storefrontVisible !== undefined) {
+          updateFields.storefrontVisible = Boolean(storefrontVisible);
         }
-      }
 
-      if (!updatedProd) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
+        const [updateRes]: any = await tx.update(products).set(updateFields).where(whereCondition);
+        if (hasClientVersion && Number(updateRes?.affectedRows || 0) === 0) {
+          const latestProduct = await fetchAdminProductDto(tx, id);
+          throw new HttpRouteError(409, 'Product was modified by another session. Latest data loaded.', { latestProduct });
+        }
+
+        const dto = await fetchAdminProductDto(tx, id);
+        if (!dto) {
+          throw new HttpRouteError(404, 'Product not found after status update.');
+        }
+        return dto;
+      });
 
       await logAudit(
         'PRODUCT_STATUS_CHANGE',
@@ -2174,101 +1554,91 @@ async function startServer() {
         req.user?.email
       );
 
-      res.json(updatedProd);
+      return res.json(updatedProd);
     } catch (error: any) {
-      console.error('Error changing product status:', error);
-      res.status(500).json({ error: error.message || 'Failed to update status' });
+      return handleDbRouteError(error, res, 'Error changing product status:');
     }
   });
 
-  // Admin: Quick Product Field Update (e.g. isFeatured, isNewArrival, stockQuantity, status)
+  // Admin: Quick Product Field Update (isFeatured, isNewArrival, stockQuantity, status, storefrontVisible)
   app.patch('/api/admin/products/:id/quick-update', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({
+          error: 'Database service is offline. Modifications are paused to prevent catalog split-brain inconsistency with the persistent store.',
+        });
+      }
+
       const id = parseInt(req.params.id, 10);
-      const { isFeatured, isNewArrival, stockQuantity, status } = req.body;
-
-      const updateData: any = { updatedAt: new Date() };
-      if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
-      if (isNewArrival !== undefined) updateData.isNewArrival = Boolean(isNewArrival);
-      if (stockQuantity !== undefined) {
-        updateData.stockQuantity = Math.max(0, parseInt(String(stockQuantity), 10) || 0);
-      }
-      if (status !== undefined && ['published', 'draft', 'archived'].includes(status)) {
-        updateData.status = status;
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid product ID' });
       }
 
-      let updatedProd: any = null;
+      const { isFeatured, isNewArrival, stockQuantity, status, storefrontVisible, version: clientVersion } = req.body;
 
-      // 1. Try PostgreSQL update
-      if (isPostgresAvailable) {
-        try {
-          const updated = await db
-            .update(products)
-            .set(updateData)
-            .where(eq(products.id, id))
-            .returning();
-
-          if (updated && updated.length > 0) {
-            updatedProd = updated[0];
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL quick-update note:', dbErr);
+      const updatedProd = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(products).where(eq(products.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Product not found');
         }
-      }
 
-      // 2. Always sync with customProducts and data-store.json
-      const idx = customProducts.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        customProducts[idx] = {
-          ...customProducts[idx],
-          ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
-          ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
-          ...(stockQuantity !== undefined ? { stockQuantity: Math.max(0, parseInt(String(stockQuantity), 10) || 0) } : {}),
-          ...(status !== undefined && ['published', 'draft', 'archived'].includes(status) ? { status } : {}),
-          updatedAt: new Date().toISOString(),
+        const updateData: any = {
+          updatedAt: new Date(),
+          version: sql`${products.version} + 1`,
         };
-        if (!updatedProd) updatedProd = customProducts[idx];
-        persistDataStore();
-      } else {
-        // If not in customProducts, look in FALLBACK_PRODUCTS or use updatedProd from DB
-        const fallbackProd = FALLBACK_PRODUCTS.find((p) => p.id === id);
-        if (fallbackProd || updatedProd) {
-          const baseProd = updatedProd || fallbackProd;
-          const newCustomProd = {
-            ...baseProd,
-            ...(isFeatured !== undefined ? { isFeatured: Boolean(isFeatured) } : {}),
-            ...(isNewArrival !== undefined ? { isNewArrival: Boolean(isNewArrival) } : {}),
-            ...(stockQuantity !== undefined ? { stockQuantity: Math.max(0, parseInt(String(stockQuantity), 10) || 0) } : {}),
-            ...(status !== undefined && ['published', 'draft', 'archived'].includes(status) ? { status } : {}),
-            updatedAt: new Date().toISOString(),
-          };
-          customProducts.push(newCustomProd);
-          if (!updatedProd) updatedProd = newCustomProd;
-          persistDataStore();
+        if (isFeatured !== undefined) updateData.isFeatured = Boolean(isFeatured);
+        if (isNewArrival !== undefined) updateData.isNewArrival = Boolean(isNewArrival);
+        if (storefrontVisible !== undefined) updateData.storefrontVisible = Boolean(storefrontVisible);
+        if (stockQuantity !== undefined) {
+          updateData.stockQuantity = Math.max(0, parseInt(String(stockQuantity), 10) || 0);
         }
-      }
+        if (status !== undefined) {
+          if (!['published', 'draft', 'archived'].includes(status)) {
+            throw new HttpRouteError(400, 'Invalid status value.');
+          }
+          updateData.status = status;
+        }
 
-      if (!updatedProd) {
-        return res.status(404).json({ error: 'Product not found' });
-      }
+        const hasClientVersion =
+          clientVersion !== undefined && clientVersion !== null && !isNaN(parseInt(String(clientVersion), 10));
+        const expectedVersion = hasClientVersion ? parseInt(String(clientVersion), 10) : null;
+        const whereCondition = hasClientVersion
+          ? and(eq(products.id, id), eq(products.version, expectedVersion!))
+          : eq(products.id, id);
+
+        const [updateRes]: any = await tx.update(products).set(updateData).where(whereCondition);
+        if (hasClientVersion && Number(updateRes?.affectedRows || 0) === 0) {
+          const latestProduct = await fetchAdminProductDto(tx, id);
+          throw new HttpRouteError(409, 'Product was modified by another session. Latest data loaded.', { latestProduct });
+        }
+
+        const dto = await fetchAdminProductDto(tx, id);
+        if (!dto) {
+          throw new HttpRouteError(404, 'Product not found after quick update.');
+        }
+        return dto;
+      });
 
       await logAudit(
         'PRODUCT_QUICK_UPDATE',
-        `Quick updated "${updatedProd.nameEn || `Product #${id}`}" (stock: ${updatedProd.stockQuantity ?? 0}, status: ${updatedProd.status})`,
+        `Quick updated "${updatedProd.nameEn || `Product #${id}`}" (stock: ${updatedProd.stockQuantity ?? 0}, status: ${updatedProd.status}, visible: ${updatedProd.storefrontVisible})`,
         req.user?.email
       );
 
-      res.json(updatedProd);
+      return res.json(updatedProd);
     } catch (error: any) {
-      console.error('Error quick updating product:', error);
-      res.status(500).json({ error: error.message || 'Failed to quick update product' });
+      return handleDbRouteError(error, res, 'Error quick updating product:');
     }
   });
 
   // Admin: Bulk Products Status Action
   app.post('/api/admin/products/bulk-status', requireAuth, async (req: AuthRequest, res) => {
     try {
-      const { ids, status } = req.body;
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Bulk status update unavailable.' });
+      }
+
+      const { ids, status, storefrontVisible } = req.body;
       if (!Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ error: 'No product IDs provided' });
       }
@@ -2277,26 +1647,23 @@ async function startServer() {
       }
 
       const numIds = ids.map((id: any) => parseInt(String(id), 10)).filter((n) => !isNaN(n));
-
-      // 1. Update in PostgreSQL
-      if (isPostgresAvailable) {
-        try {
-          for (const id of numIds) {
-            await db.update(products).set({ status, updatedAt: new Date() }).where(eq(products.id, id));
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL bulk status update note:', dbErr);
-        }
+      if (numIds.length === 0) {
+        return res.status(400).json({ error: 'No valid numeric product IDs provided' });
       }
 
-      // 2. Update in customProducts
-      for (const id of numIds) {
-        const idx = customProducts.findIndex((p) => p.id === id);
-        if (idx !== -1) {
-          customProducts[idx] = { ...customProducts[idx], status, updatedAt: new Date().toISOString() };
+      await withTransaction(async (tx) => {
+        const updateSet: any = {
+          status,
+          version: sql`${products.version} + 1`,
+          updatedAt: new Date(),
+        };
+        if (storefrontVisible !== undefined) {
+          updateSet.storefrontVisible = Boolean(storefrontVisible);
         }
-      }
-      persistDataStore();
+        for (const id of numIds) {
+          await tx.update(products).set(updateSet).where(eq(products.id, id));
+        }
+      });
 
       await logAudit(
         'PRODUCT_BULK_STATUS',
@@ -2304,254 +1671,232 @@ async function startServer() {
         req.user?.email
       );
 
-      res.json({ success: true, count: numIds.length, status });
+      return res.json({ success: true, count: numIds.length, status });
     } catch (error: any) {
-      console.error('Error updating bulk status:', error);
-      res.status(500).json({ error: error.message || 'Failed to update bulk status' });
+      return handleDbRouteError(error, res, 'Error updating bulk status:');
     }
   });
 
   // Admin: Bulk Products Delete Action
   app.post('/api/admin/products/bulk-delete', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Bulk delete unavailable.' });
+      }
+
       const { ids } = req.body;
       if (!Array.isArray(ids) || ids.length === 0) {
         return res.status(400).json({ error: 'No product IDs provided' });
       }
 
       const numIds = ids.map((id: any) => parseInt(String(id), 10)).filter((n) => !isNaN(n));
-
-      // 1. Delete in PostgreSQL
-      if (isPostgresAvailable) {
-        try {
-          for (const id of numIds) {
-            await db.delete(products).where(eq(products.id, id));
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL bulk delete note:', dbErr);
-        }
+      if (numIds.length === 0) {
+        return res.status(400).json({ error: 'No valid numeric product IDs provided' });
       }
 
-      // 2. Delete from customProducts and track in deletedProductIds
-      customProducts = customProducts.filter((p) => !numIds.includes(p.id));
-      for (const id of numIds) {
-        if (!deletedProductIds.includes(id)) {
-          deletedProductIds.push(id);
+      await withTransaction(async (tx) => {
+        for (const id of numIds) {
+          await tx.delete(products).where(eq(products.id, id));
         }
-      }
-      persistDataStore();
+      });
 
       await logAudit('PRODUCT_BULK_DELETE', `Deleted ${numIds.length} products`, req.user?.email);
-      res.json({ success: true, count: numIds.length });
+      return res.json({ success: true, count: numIds.length });
     } catch (error: any) {
-      console.error('Error deleting bulk products:', error);
-      res.status(500).json({ error: error.message || 'Failed to delete bulk products' });
+      return handleDbRouteError(error, res, 'Error deleting bulk products:');
     }
   });
 
-  // Admin: Upload Single Image (with persistent disk storage & database backup)
+  // Admin: Upload Single Image (Fail-closed: requires live MySQL commit + verified disk write, rollback on error)
   app.post('/api/admin/upload-image', requireAuth, async (req: AuthRequest, res) => {
+    const writtenDiskPaths: string[] = [];
     try {
-      const { fileName, mimeType, data } = req.body;
-      if (!data) {
-        return res.status(400).json({ error: 'Image data is required.' });
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Image upload requires active database persistence.' });
       }
 
-      const safeMime = mimeType || 'image/jpeg';
-      const ext = safeMime.includes('png') ? 'png' : safeMime.includes('webp') ? 'webp' : 'jpg';
+      const { mimeType, data } = req.body;
+      const decoded = decodeAndValidateImageUpload(data, mimeType);
       const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-      const diskFileName = `product_${uniqueToken}.${ext}`;
+      const diskFileName = `product_${uniqueToken}.${decoded.ext}`;
       const diskFilePath = path.join(UPLOADS_DIR, diskFileName);
 
-      // Decode base64 buffer safely
-      let buffer: Buffer;
-      if (data.startsWith('data:')) {
-        const matches = data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-        if (matches && matches.length === 3) {
-          buffer = Buffer.from(matches[2], 'base64');
-        } else {
-          buffer = Buffer.from(data, 'base64');
-        }
-      } else {
-        buffer = Buffer.from(data, 'base64');
+      // 1. Write file to disk and verify exact byte count
+      fs.writeFileSync(diskFilePath, decoded.buffer);
+      writtenDiskPaths.push(diskFilePath);
+      const stat = fs.statSync(diskFilePath);
+      if (stat.size !== decoded.buffer.length || stat.size === 0) {
+        throw new HttpRouteError(500, 'Uploaded image disk write size verification failed.');
       }
 
-      // 1. Write file to persistent disk storage immediately (accessible via /uploads/...)
-      fs.writeFileSync(diskFilePath, buffer);
+      // 2. Commit authoritatively inside MySQL transaction and read back inserted row
+      const canonicalDataUri = `data:${decoded.mimeType};base64,${decoded.buffer.toString('base64')}`;
+      const imageId = await withTransaction(async (tx) => {
+        const [savedImageRes]: any = await tx.insert(images).values({
+          fileName: diskFileName,
+          mimeType: decoded.mimeType,
+          data: canonicalDataUri,
+        });
+        const insertedId = Number(savedImageRes?.insertId);
+        if (!insertedId) {
+          throw new HttpRouteError(500, 'MySQL did not return an inserted image ID.');
+        }
+        const verified = await tx
+          .select({ id: images.id, fileName: images.fileName })
+          .from(images)
+          .where(eq(images.id, insertedId))
+          .limit(1);
+        if (verified.length === 0) {
+          throw new HttpRouteError(500, 'Failed to verify image record persistence in MySQL.');
+        }
+        return insertedId;
+      });
+
       const imageUrl = `/uploads/${diskFileName}`;
+      fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: decoded.mimeType, data: canonicalDataUri });
+      fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: decoded.mimeType, data: canonicalDataUri });
 
-      // 2. Also register in PostgreSQL if available
-      let imageId: number | null = null;
-      if (isPostgresAvailable) {
-        try {
-          const savedImage = await db
-            .insert(images)
-            .values({
-              fileName: diskFileName,
-              mimeType: safeMime,
-              data: data,
-            })
-            .returning();
-
-          if (savedImage && savedImage.length > 0) {
-            imageId = savedImage[0].id;
-          }
-        } catch (dbErr) {
-          console.warn('PostgreSQL image insertion error (persisted to disk successfully):', dbErr);
-        }
-      }
-
-      // 3. Cache in fallback store for backward compatibility
-      fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: safeMime, data });
-      if (imageId) {
-        fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: safeMime, data });
-      }
-
-      res.status(201).json({
-        id: imageId || uniqueToken,
+      return res.status(201).json({
+        id: imageId,
         url: imageUrl,
         fileName: diskFileName,
       });
     } catch (error: any) {
-      console.error('Error storing image:', error);
-      res.status(500).json({ error: error?.message || 'Failed to process and store image' });
+      for (const filePath of writtenDiskPaths) {
+        try {
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        } catch {}
+      }
+      return handleDbRouteError(error, res, 'Error storing image:');
     }
   });
 
-  // Admin: Upload Multiple Images in Batch (with persistent disk storage & natural dimensions)
+  // Admin: Upload Multiple Images in Batch (Transactional disk + MySQL commit with full rollback)
   app.post('/api/admin/upload-images', requireAuth, async (req: AuthRequest, res) => {
+    const writtenDiskPaths: string[] = [];
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Batch image upload requires active database persistence.' });
+      }
+
       const { items } = req.body;
       if (!Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ error: 'Array of image items is required.' });
       }
 
-      const uploadedResults = [];
+      const preparedItems: Array<{
+        diskFileName: string;
+        diskFilePath: string;
+        mimeType: string;
+        buffer: Buffer;
+        canonicalDataUri: string;
+      }> = [];
+
       for (const item of items) {
-        if (!item.data) continue;
-        const safeMime = item.mimeType || 'image/jpeg';
-        const ext = safeMime.includes('png') ? 'png' : safeMime.includes('webp') ? 'webp' : 'jpg';
+        const decoded = decodeAndValidateImageUpload(item?.data, item?.mimeType);
         const uniqueToken = `${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
-        const diskFileName = `product_${uniqueToken}.${ext}`;
+        const diskFileName = `product_${uniqueToken}.${decoded.ext}`;
         const diskFilePath = path.join(UPLOADS_DIR, diskFileName);
-
-        // Decode base64 buffer safely
-        let buffer: Buffer;
-        if (item.data.startsWith('data:')) {
-          const matches = item.data.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
-          if (matches && matches.length === 3) {
-            buffer = Buffer.from(matches[2], 'base64');
-          } else {
-            buffer = Buffer.from(item.data, 'base64');
-          }
-        } else {
-          buffer = Buffer.from(item.data, 'base64');
-        }
-
-        // Write directly to disk
-        fs.writeFileSync(diskFilePath, buffer);
-        const imageUrl = `/uploads/${diskFileName}`;
-
-        let imageId: number | null = null;
-        if (isPostgresAvailable) {
-          try {
-            const savedImage = await db
-              .insert(images)
-              .values({
-                fileName: diskFileName,
-                mimeType: safeMime,
-                data: item.data,
-              })
-              .returning();
-            if (savedImage && savedImage.length > 0) {
-              imageId = savedImage[0].id;
-            }
-          } catch (dbErr) {
-            console.warn('DB batch item error (persisted to disk successfully):', dbErr);
-          }
-        }
-
-        fallbackImagesStore.set(diskFileName, { fileName: diskFileName, mimeType: safeMime, data: item.data });
-        if (imageId) {
-          fallbackImagesStore.set(imageId, { fileName: diskFileName, mimeType: safeMime, data: item.data });
-        }
-
-        uploadedResults.push({
-          id: imageId || uniqueToken,
-          url: imageUrl,
-          fileName: diskFileName,
+        preparedItems.push({
+          diskFileName,
+          diskFilePath,
+          mimeType: decoded.mimeType,
+          buffer: decoded.buffer,
+          canonicalDataUri: `data:${decoded.mimeType};base64,${decoded.buffer.toString('base64')}`,
         });
       }
 
-      res.status(201).json({
+      for (const prep of preparedItems) {
+        fs.writeFileSync(prep.diskFilePath, prep.buffer);
+        writtenDiskPaths.push(prep.diskFilePath);
+        const stat = fs.statSync(prep.diskFilePath);
+        if (stat.size !== prep.buffer.length || stat.size === 0) {
+          throw new HttpRouteError(500, `Disk size verification failed for ${prep.diskFileName}.`);
+        }
+      }
+
+      const uploadedResults = await withTransaction(async (tx) => {
+        const results: Array<{ id: number; url: string; fileName: string; mimeType: string; canonicalDataUri: string }> = [];
+        for (const prep of preparedItems) {
+          const [savedImageRes]: any = await tx.insert(images).values({
+            fileName: prep.diskFileName,
+            mimeType: prep.mimeType,
+            data: prep.canonicalDataUri,
+          });
+          const insertedId = Number(savedImageRes?.insertId);
+          if (!insertedId) {
+            throw new HttpRouteError(500, 'MySQL did not return an inserted image ID during batch upload.');
+          }
+          const verified = await tx
+            .select({ id: images.id })
+            .from(images)
+            .where(eq(images.id, insertedId))
+            .limit(1);
+          if (verified.length === 0) {
+            throw new HttpRouteError(500, 'Batch image verification failed in MySQL.');
+          }
+          results.push({
+            id: insertedId,
+            url: `/uploads/${prep.diskFileName}`,
+            fileName: prep.diskFileName,
+            mimeType: prep.mimeType,
+            canonicalDataUri: prep.canonicalDataUri,
+          });
+        }
+        return results;
+      });
+
+      for (const item of uploadedResults) {
+        fallbackImagesStore.set(item.fileName, { fileName: item.fileName, mimeType: item.mimeType, data: item.canonicalDataUri });
+        fallbackImagesStore.set(item.id, { fileName: item.fileName, mimeType: item.mimeType, data: item.canonicalDataUri });
+      }
+
+      return res.status(201).json({
         success: true,
         count: uploadedResults.length,
-        images: uploadedResults,
+        images: uploadedResults.map(({ id, url, fileName }) => ({ id, url, fileName })),
       });
     } catch (error: any) {
-      console.error('Error storing batch images:', error);
-      res.status(500).json({ error: error.message || 'Failed to upload images' });
+      for (const filePath of writtenDiskPaths) {
+        try {
+          if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+        } catch {}
+      }
+      return handleDbRouteError(error, res, 'Error storing batch images:');
     }
   });
 
   // Admin: Categories Management
   app.post('/api/admin/categories', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Category creation unavailable.' });
+      }
+
       const { nameEn, nameAr, descriptionEn, descriptionAr, icon, displayOrder } = req.body;
-      if (!nameEn) return res.status(400).json({ error: 'Category name (English) is required' });
-
-      let baseSlug = makeSlug(nameEn.trim());
-      if (!baseSlug) {
-        baseSlug = `cat-${Date.now().toString(36)}`;
+      if (!nameEn || !nameEn.trim()) {
+        return res.status(400).json({ error: 'Category name (English) is required' });
       }
-      let finalSlug = baseSlug;
 
-      let savedCat: any = null;
-
-      // 1. Try PostgreSQL if reachable
-      if (isPostgresAvailable) {
-        try {
-          let counter = 1;
-          while (counter <= 50) {
-            const check = await db
-              .select({ id: categories.id })
-              .from(categories)
-              .where(eq(categories.slug, finalSlug))
-              .limit(1);
-            if (check.length === 0) break;
-            finalSlug = `${baseSlug}-${counter++}`;
-          }
-
-          const cat = await db
-            .insert(categories)
-            .values({
-              slug: finalSlug,
-              nameEn: nameEn.trim(),
-              nameAr: (nameAr || nameEn).trim(),
-              descriptionEn: descriptionEn || '',
-              descriptionAr: descriptionAr || '',
-              icon: (icon || 'Smartphone').trim(),
-              displayOrder: displayOrder ? parseInt(displayOrder, 10) : 0,
-            })
-            .returning();
-
-          if (cat && cat.length > 0) {
-            savedCat = cat[0];
-          }
-        } catch (dbErr: any) {
-          console.warn('PostgreSQL category insert note, saving to persistent store:', dbErr?.message || dbErr);
+      const savedCat = await withTransaction(async (tx) => {
+        let baseSlug = makeSlug(nameEn.trim());
+        if (!baseSlug) {
+          baseSlug = `cat-${Date.now().toString(36)}`;
         }
-      }
+        let finalSlug = baseSlug;
 
-      // 2. Persistent file-backed fallback (zero 500 error!)
-      if (!savedCat) {
         let counter = 1;
-        while (customCategories.some((c) => c.slug === finalSlug) || FALLBACK_CATEGORIES.some((c) => c.slug === finalSlug)) {
+        while (counter <= 50) {
+          const check = await tx
+            .select({ id: categories.id })
+            .from(categories)
+            .where(eq(categories.slug, finalSlug))
+            .limit(1);
+          if (check.length === 0) break;
           finalSlug = `${baseSlug}-${counter++}`;
         }
 
-        savedCat = {
-          id: Date.now(),
+        const [catRes]: any = await tx.insert(categories).values({
           slug: finalSlug,
           nameEn: nameEn.trim(),
           nameAr: (nameAr || nameEn).trim(),
@@ -2559,292 +1904,225 @@ async function startServer() {
           descriptionAr: descriptionAr || '',
           icon: (icon || 'Smartphone').trim(),
           displayOrder: displayOrder ? parseInt(displayOrder, 10) : 0,
-          createdAt: new Date().toISOString(),
-        };
-      }
+        });
 
-      // ALWAYS mirror to customCategories and persistDataStore
-      const existCatIdx = customCategories.findIndex((c) => c.id === savedCat.id || c.slug === savedCat.slug);
-      if (existCatIdx !== -1) {
-        customCategories[existCatIdx] = savedCat;
-      } else {
-        customCategories.push(savedCat);
-      }
-      persistDataStore();
+        const insertedId = Number(catRes?.insertId);
+        if (!insertedId) {
+          throw new HttpRouteError(500, 'Failed to obtain inserted category ID');
+        }
 
-      await logAudit('CATEGORY_CREATE', `Created category "${nameEn}"`, req.user?.email);
-      res.status(201).json(savedCat);
+        const fetched = await tx.select().from(categories).where(eq(categories.id, insertedId)).limit(1);
+        return fetched[0];
+      });
+
+      await logAudit('CATEGORY_CREATE', `Created category "${nameEn.trim()}" (ID: ${savedCat.id})`, req.user?.email);
+      return res.status(201).json(savedCat);
     } catch (error: any) {
-      console.error('Error creating category:', error);
-      const safeCat = {
-        id: Date.now(),
-        slug: makeSlug(req.body?.nameEn || 'category') || `cat-${Date.now()}`,
-        nameEn: req.body?.nameEn || 'Category',
-        nameAr: req.body?.nameAr || req.body?.nameEn || 'Category',
-        icon: req.body?.icon || 'Smartphone',
-        displayOrder: 0,
-        createdAt: new Date().toISOString(),
-      };
-      customCategories.push(safeCat as any);
-      persistDataStore();
-      res.status(201).json(safeCat);
+      return handleDbRouteError(error, res, 'Error creating category:');
     }
   });
 
   app.put('/api/admin/categories/:id', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Category update unavailable.' });
+      }
+
       const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+
       const { nameEn, nameAr, descriptionEn, descriptionAr, icon, displayOrder } = req.body;
-      let updatedCat: any = null;
 
-      if (isPostgresAvailable) {
-        try {
-          const updated = await db
-            .update(categories)
-            .set({
-              nameEn: nameEn ? nameEn.trim() : undefined,
-              nameAr: nameAr ? nameAr.trim() : undefined,
-              descriptionEn: descriptionEn !== undefined ? descriptionEn : undefined,
-              descriptionAr: descriptionAr !== undefined ? descriptionAr : undefined,
-              icon: icon || undefined,
-              displayOrder: displayOrder !== undefined ? parseInt(displayOrder, 10) : undefined,
-            })
-            .where(eq(categories.id, id))
-            .returning();
-
-          if (updated && updated.length > 0) {
-            updatedCat = updated[0];
-          }
-        } catch (dbErr) {
-          console.warn('DB category update note:', dbErr);
+      const updatedCat = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(categories).where(eq(categories.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Category not found');
         }
-      }
 
-      const idx = customCategories.findIndex((c) => c.id === id);
-      if (!updatedCat) {
-        if (idx !== -1) {
-          if (nameEn) customCategories[idx].nameEn = nameEn.trim();
-          if (nameAr) customCategories[idx].nameAr = nameAr.trim();
-          if (icon) customCategories[idx].icon = icon;
-          if (displayOrder !== undefined) customCategories[idx].displayOrder = parseInt(displayOrder, 10);
-          updatedCat = customCategories[idx];
-          persistDataStore();
-        } else {
-          updatedCat = { id, nameEn, nameAr, icon: icon || 'Smartphone', displayOrder: 0 };
-          customCategories.push(updatedCat);
-          persistDataStore();
-        }
-      } else {
-        if (idx !== -1) {
-          customCategories[idx] = { ...customCategories[idx], ...updatedCat };
-        } else {
-          customCategories.push(updatedCat);
-        }
-        persistDataStore();
-      }
+        await tx
+          .update(categories)
+          .set({
+            nameEn: nameEn ? nameEn.trim() : undefined,
+            nameAr: nameAr ? nameAr.trim() : undefined,
+            descriptionEn: descriptionEn !== undefined ? descriptionEn : undefined,
+            descriptionAr: descriptionAr !== undefined ? descriptionAr : undefined,
+            icon: icon || undefined,
+            displayOrder: displayOrder !== undefined ? parseInt(displayOrder, 10) : undefined,
+          })
+          .where(eq(categories.id, id));
 
-      await logAudit('CATEGORY_UPDATE', `Updated category "${nameEn || id}"`, req.user?.email);
-      res.json(updatedCat);
+        const updated = await tx.select().from(categories).where(eq(categories.id, id)).limit(1);
+        return updated[0];
+      });
+
+      await logAudit('CATEGORY_UPDATE', `Updated category "${updatedCat.nameEn || id}"`, req.user?.email);
+      return res.json(updatedCat);
     } catch (error: any) {
-      res.json({ id: parseInt(req.params.id, 10), nameEn: req.body?.nameEn, icon: req.body?.icon });
+      return handleDbRouteError(error, res, 'Error updating category:');
     }
   });
 
   app.delete('/api/admin/categories/:id', requireAuth, async (req: AuthRequest, res) => {
     try {
-      const id = parseInt(req.params.id, 10);
-      if (isPostgresAvailable) {
-        try {
-          const prods = await db.select().from(products).where(eq(products.categoryId, id)).limit(1);
-          if (prods.length > 0) {
-            return res.status(400).json({ error: 'Cannot delete category containing existing products. Reassign or delete products first.' });
-          }
-          await db.delete(categories).where(eq(categories.id, id));
-        } catch (dbErr) {
-          console.warn('DB category delete note:', dbErr);
-        }
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Category deletion unavailable.' });
       }
 
-      customCategories = customCategories.filter((c) => c.id !== id);
-      persistDataStore();
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid category ID' });
+      }
+
+      await withTransaction(async (tx) => {
+        const prods = await tx.select({ id: products.id }).from(products).where(eq(products.categoryId, id)).limit(1);
+        if (prods.length > 0) {
+          throw new HttpRouteError(400, 'Cannot delete category containing existing products. Reassign or delete products first.');
+        }
+
+        const existing = await tx.select({ id: categories.id }).from(categories).where(eq(categories.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Category not found');
+        }
+
+        await tx.delete(categories).where(eq(categories.id, id));
+      });
 
       await logAudit('CATEGORY_DELETE', `Deleted category ID ${id}`, req.user?.email);
-      res.json({ success: true });
+      return res.json({ success: true, message: 'Category deleted', id });
     } catch (error: any) {
-      res.json({ success: true });
+      return handleDbRouteError(error, res, 'Error deleting category:');
     }
   });
 
   // Admin: Brands Management
   app.post('/api/admin/brands', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Brand creation unavailable.' });
+      }
+
       const { name, logoUrl } = req.body;
       if (!name || typeof name !== 'string' || !name.trim()) {
         return res.status(400).json({ error: 'Brand name is required' });
       }
 
-      let baseSlug = makeSlug(name.trim());
-      if (!baseSlug) {
-        baseSlug = `brand-${Date.now().toString(36)}`;
-      }
-      let finalSlug = baseSlug;
-
-      let savedBrand: any = null;
-
-      // 1. Try PostgreSQL if reachable
-      if (isPostgresAvailable) {
-        try {
-          let counter = 1;
-          while (counter <= 50) {
-            const check = await db
-              .select({ id: brands.id })
-              .from(brands)
-              .where(eq(brands.slug, finalSlug))
-              .limit(1);
-            if (check.length === 0) break;
-            finalSlug = `${baseSlug}-${counter++}`;
-          }
-
-          const br = await db
-            .insert(brands)
-            .values({
-              slug: finalSlug,
-              name: name.trim(),
-              logoUrl: (logoUrl || '').trim(),
-            })
-            .returning();
-
-          if (br && br.length > 0) {
-            savedBrand = br[0];
-          }
-        } catch (dbErr: any) {
-          console.warn('PostgreSQL brand insert note, safely saving to persistent store:', dbErr?.message || dbErr);
+      const savedBrand = await withTransaction(async (tx) => {
+        let baseSlug = makeSlug(name.trim());
+        if (!baseSlug) {
+          baseSlug = `brand-${Date.now().toString(36)}`;
         }
-      }
+        let finalSlug = baseSlug;
 
-      // 2. Persistent file-backed fallback (zero 500 error!)
-      if (!savedBrand) {
         let counter = 1;
-        while (customBrands.some((b) => b.slug === finalSlug) || FALLBACK_BRANDS.some((b) => b.slug === finalSlug)) {
+        while (counter <= 50) {
+          const check = await tx
+            .select({ id: brands.id })
+            .from(brands)
+            .where(eq(brands.slug, finalSlug))
+            .limit(1);
+          if (check.length === 0) break;
           finalSlug = `${baseSlug}-${counter++}`;
         }
 
-        savedBrand = {
-          id: Date.now(),
+        const [brRes]: any = await tx.insert(brands).values({
           slug: finalSlug,
           name: name.trim(),
           logoUrl: (logoUrl || '').trim(),
-          createdAt: new Date().toISOString(),
-        };
-      }
+        });
 
-      // ALWAYS mirror to customBrands and persistDataStore
-      const existBrandIdx = customBrands.findIndex((b) => b.id === savedBrand.id || b.slug === savedBrand.slug);
-      if (existBrandIdx !== -1) {
-        customBrands[existBrandIdx] = savedBrand;
-      } else {
-        customBrands.push(savedBrand);
-      }
-      persistDataStore();
+        const insertedId = Number(brRes?.insertId);
+        if (!insertedId) {
+          throw new HttpRouteError(500, 'Failed to obtain inserted brand ID');
+        }
 
-      await logAudit('BRAND_CREATE', `Created brand "${name.trim()}" (slug: ${finalSlug})`, req.user?.email);
-      res.status(201).json(savedBrand);
+        const fetched = await tx.select().from(brands).where(eq(brands.id, insertedId)).limit(1);
+        return fetched[0];
+      });
+
+      await logAudit('BRAND_CREATE', `Created brand "${name.trim()}" (ID: ${savedBrand.id}, slug: ${savedBrand.slug})`, req.user?.email);
+      return res.status(201).json(savedBrand);
     } catch (error: any) {
-      console.error('Error creating brand:', error);
-      const safeBrand = {
-        id: Date.now(),
-        slug: makeSlug(req.body?.name || 'brand') || `brand-${Date.now()}`,
-        name: req.body?.name || 'Brand',
-        logoUrl: (req.body?.logoUrl || '').trim(),
-        createdAt: new Date().toISOString(),
-      };
-      customBrands.push(safeBrand);
-      persistDataStore();
-      res.status(201).json(safeBrand);
+      return handleDbRouteError(error, res, 'Error creating brand:');
     }
   });
 
   app.put('/api/admin/brands/:id', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Brand update unavailable.' });
+      }
+
       const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid brand ID' });
+      }
+
       const { name, logoUrl } = req.body;
-      let updatedBrand: any = null;
 
-      if (isPostgresAvailable) {
-        try {
-          const updated = await db
-            .update(brands)
-            .set({
-              name: name ? name.trim() : undefined,
-              logoUrl: logoUrl !== undefined ? logoUrl : undefined,
-            })
-            .where(eq(brands.id, id))
-            .returning();
-
-          if (updated && updated.length > 0) {
-            updatedBrand = updated[0];
-          }
-        } catch (dbErr) {
-          console.warn('DB brand update note:', dbErr);
+      const updatedBrand = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(brands).where(eq(brands.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Brand not found');
         }
-      }
 
-      const idx = customBrands.findIndex((b) => b.id === id);
-      if (!updatedBrand) {
-        if (idx !== -1) {
-          if (name) customBrands[idx].name = name.trim();
-          if (logoUrl !== undefined) customBrands[idx].logoUrl = logoUrl.trim();
-          updatedBrand = customBrands[idx];
-          persistDataStore();
-        } else {
-          updatedBrand = { id, name: name?.trim() || 'Brand', logoUrl: (logoUrl || '').trim() };
-          customBrands.push(updatedBrand);
-          persistDataStore();
-        }
-      } else {
-        if (idx !== -1) {
-          customBrands[idx] = { ...customBrands[idx], ...updatedBrand };
-        } else {
-          customBrands.push(updatedBrand);
-        }
-        persistDataStore();
-      }
+        await tx
+          .update(brands)
+          .set({
+            name: name ? name.trim() : undefined,
+            logoUrl: logoUrl !== undefined ? logoUrl.trim() : undefined,
+          })
+          .where(eq(brands.id, id));
 
-      await logAudit('BRAND_UPDATE', `Updated brand "${name || id}"`, req.user?.email);
-      res.json(updatedBrand);
+        const updated = await tx.select().from(brands).where(eq(brands.id, id)).limit(1);
+        return updated[0];
+      });
+
+      await logAudit('BRAND_UPDATE', `Updated brand "${updatedBrand.name || id}"`, req.user?.email);
+      return res.json(updatedBrand);
     } catch (error: any) {
-      res.json({ id: parseInt(req.params.id, 10), name: req.body?.name, logoUrl: req.body?.logoUrl });
+      return handleDbRouteError(error, res, 'Error updating brand:');
     }
   });
 
   app.delete('/api/admin/brands/:id', requireAuth, async (req: AuthRequest, res) => {
     try {
-      const id = parseInt(req.params.id, 10);
-      if (isPostgresAvailable) {
-        try {
-          const prods = await db.select().from(products).where(eq(products.brandId, id)).limit(1);
-          if (prods.length > 0) {
-            return res.status(400).json({ error: 'Cannot delete brand with associated products.' });
-          }
-          await db.delete(brands).where(eq(brands.id, id));
-        } catch (dbErr) {
-          console.warn('DB brand delete note:', dbErr);
-        }
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Brand deletion unavailable.' });
       }
 
-      customBrands = customBrands.filter((b) => b.id !== id);
-      persistDataStore();
+      const id = parseInt(req.params.id, 10);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid brand ID' });
+      }
+
+      await withTransaction(async (tx) => {
+        const prods = await tx.select({ id: products.id }).from(products).where(eq(products.brandId, id)).limit(1);
+        if (prods.length > 0) {
+          throw new HttpRouteError(400, 'Cannot delete brand with associated products.');
+        }
+
+        const existing = await tx.select({ id: brands.id }).from(brands).where(eq(brands.id, id)).limit(1);
+        if (existing.length === 0) {
+          throw new HttpRouteError(404, 'Brand not found');
+        }
+
+        await tx.delete(brands).where(eq(brands.id, id));
+      });
 
       await logAudit('BRAND_DELETE', `Deleted brand ID ${id}`, req.user?.email);
-      res.json({ success: true });
+      return res.json({ success: true, message: 'Brand deleted', id });
     } catch (error: any) {
-      res.json({ success: true });
+      return handleDbRouteError(error, res, 'Error deleting brand:');
     }
   });
 
   // ----------------------------------------------------
-  // Admin: Services Management (Dual-persistent: PostgreSQL + data-store.json)
+  // Admin: Services Management (Legacy in-memory store)
   // ----------------------------------------------------
+  let customServices: any[] = [];
+
   app.post('/api/admin/services', requireAuth, async (req: AuthRequest, res) => {
     try {
       const {
@@ -2896,7 +2174,6 @@ async function startServer() {
       }
 
       customServices.push(savedService);
-      persistDataStore();
 
       await logAudit('SERVICE_CREATE', `Created service "${savedService.titleEn}"`, req.user?.email);
       res.status(201).json(savedService);
@@ -2967,7 +2244,6 @@ async function startServer() {
         customServices.push(updatedService);
       }
 
-      persistDataStore();
       await logAudit('SERVICE_UPDATE', `Updated service "${updatedService.titleEn || id}"`, req.user?.email);
       res.json(updatedService);
     } catch (error: any) {
@@ -2979,7 +2255,6 @@ async function startServer() {
   app.delete('/api/admin/services/:id', requireAuth, async (req: AuthRequest, res) => {
     const id = parseInt(req.params.id, 10);
     customServices = customServices.filter((s) => s.id !== id);
-    persistDataStore();
     res.json({ success: true, id });
   });
 
@@ -2991,22 +2266,25 @@ async function startServer() {
   // Admin: WhatsApp Settings
   app.get('/api/admin/whatsapp-settings', requireAuth, async (_req: AuthRequest, res) => {
     try {
-      if (!isPostgresAvailable) {
-        return res.json({ id: 1, ...FALLBACK_WHATSAPP });
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. WhatsApp settings unavailable.' });
       }
       const settings = await db.select().from(whatsappSettings).limit(1);
       if (settings.length === 0) {
-        return res.json({ id: 1, ...FALLBACK_WHATSAPP });
+        return res.status(404).json({ error: 'WhatsApp settings not configured.' });
       }
-      res.json(settings[0]);
-    } catch (error) {
-      console.warn('Database note: Using fallback admin WhatsApp settings:', (error as any)?.message);
-      res.json({ id: 1, ...FALLBACK_WHATSAPP });
+      return res.json(settings[0]);
+    } catch (error: any) {
+      return handleDbRouteError(error, res, 'Database error fetching admin WhatsApp settings:');
     }
   });
 
   app.put('/api/admin/whatsapp-settings', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Modifications unavailable.' });
+      }
+
       const {
         primaryNumber,
         secondaryNumber,
@@ -3016,68 +2294,72 @@ async function startServer() {
         templateAr,
       } = req.body;
 
-      const existing = await db.select().from(whatsappSettings).limit(1);
-      let updated;
-      if (existing.length === 0) {
-        updated = await db
-          .insert(whatsappSettings)
-          .values({
+      const updatedRow = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(whatsappSettings).limit(1);
+        if (existing.length === 0) {
+          const [insertRes]: any = await tx.insert(whatsappSettings).values({
             primaryNumber: primaryNumber || '+971522523900',
             secondaryNumber: secondaryNumber || '+971563903672',
             activeNumber: activeNumber || '+971522523900',
             isEnabled: isEnabled !== undefined ? Boolean(isEnabled) : true,
             templateEn: templateEn || '',
             templateAr: templateAr || '',
-          })
-          .returning();
-      } else {
-        updated = await db
-          .update(whatsappSettings)
-          .set({
-            primaryNumber: primaryNumber || existing[0].primaryNumber,
-            secondaryNumber: secondaryNumber || existing[0].secondaryNumber,
-            activeNumber: activeNumber || existing[0].activeNumber,
-            isEnabled: isEnabled !== undefined ? Boolean(isEnabled) : existing[0].isEnabled,
-            templateEn: templateEn !== undefined ? templateEn : existing[0].templateEn,
-            templateAr: templateAr !== undefined ? templateAr : existing[0].templateAr,
-            updatedAt: new Date(),
-          })
-          .where(eq(whatsappSettings.id, existing[0].id))
-          .returning();
-      }
+          });
+          const insertedId = Number(insertRes?.insertId) || 1;
+          const rows = await tx.select().from(whatsappSettings).where(eq(whatsappSettings.id, insertedId)).limit(1);
+          return rows[0];
+        } else {
+          await tx
+            .update(whatsappSettings)
+            .set({
+              primaryNumber: primaryNumber || existing[0].primaryNumber,
+              secondaryNumber: secondaryNumber || existing[0].secondaryNumber,
+              activeNumber: activeNumber || existing[0].activeNumber,
+              isEnabled: isEnabled !== undefined ? Boolean(isEnabled) : existing[0].isEnabled,
+              templateEn: templateEn !== undefined ? templateEn : existing[0].templateEn,
+              templateAr: templateAr !== undefined ? templateAr : existing[0].templateAr,
+              updatedAt: new Date(),
+            })
+            .where(eq(whatsappSettings.id, existing[0].id));
+          const rows = await tx.select().from(whatsappSettings).where(eq(whatsappSettings.id, existing[0].id)).limit(1);
+          return rows[0];
+        }
+      });
 
       await logAudit(
         'WHATSAPP_UPDATE',
-        `Updated WhatsApp settings (Active: ${updated[0].activeNumber}, Enabled: ${updated[0].isEnabled})`,
+        `Updated WhatsApp settings (Active: ${updatedRow.activeNumber}, Enabled: ${updatedRow.isEnabled})`,
         req.user?.email
       );
 
-      res.json(updated[0]);
+      return res.json(updatedRow);
     } catch (error: any) {
-      console.error('Error updating WhatsApp settings:', error);
-      res.status(500).json({ error: error.message || 'Failed to update WhatsApp settings' });
+      return handleDbRouteError(error, res, 'Error updating WhatsApp settings:');
     }
   });
 
   // Admin: Site Content
   app.get('/api/admin/site-content', requireAuth, async (_req: AuthRequest, res) => {
     try {
-      if (!isPostgresAvailable) {
-        return res.json({ id: 1, ...FALLBACK_SITE_CONTENT });
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Site content unavailable.' });
       }
       const content = await db.select().from(siteContent).limit(1);
       if (content.length === 0) {
-        return res.json({ id: 1, ...FALLBACK_SITE_CONTENT });
+        return res.status(404).json({ error: 'Site content not configured.' });
       }
-      res.json(content[0]);
-    } catch (error) {
-      console.warn('Database note: Using fallback admin site content:', (error as any)?.message);
-      res.json({ id: 1, ...FALLBACK_SITE_CONTENT });
+      return res.json(content[0]);
+    } catch (error: any) {
+      return handleDbRouteError(error, res, 'Database error fetching admin site content:');
     }
   });
 
   app.put('/api/admin/site-content', requireAuth, async (req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service is offline. Modifications unavailable.' });
+      }
+
       const {
         heroTitleEn,
         heroTitleAr,
@@ -3095,12 +2377,10 @@ async function startServer() {
         openingHoursAr,
       } = req.body;
 
-      const existing = await db.select().from(siteContent).limit(1);
-      let updated;
-      if (existing.length === 0) {
-        updated = await db
-          .insert(siteContent)
-          .values({
+      const updatedRow = await withTransaction(async (tx) => {
+        const existing = await tx.select().from(siteContent).limit(1);
+        if (existing.length === 0) {
+          const [insertRes]: any = await tx.insert(siteContent).values({
             heroTitleEn,
             heroTitleAr,
             heroSubtitleEn,
@@ -3115,49 +2395,54 @@ async function startServer() {
             contactEmail,
             openingHoursEn,
             openingHoursAr,
-          })
-          .returning();
-      } else {
-        updated = await db
-          .update(siteContent)
-          .set({
-            heroTitleEn: heroTitleEn !== undefined ? heroTitleEn : existing[0].heroTitleEn,
-            heroTitleAr: heroTitleAr !== undefined ? heroTitleAr : existing[0].heroTitleAr,
-            heroSubtitleEn: heroSubtitleEn !== undefined ? heroSubtitleEn : existing[0].heroSubtitleEn,
-            heroSubtitleAr: heroSubtitleAr !== undefined ? heroSubtitleAr : existing[0].heroSubtitleAr,
-            announcementEn: announcementEn !== undefined ? announcementEn : existing[0].announcementEn,
-            announcementAr: announcementAr !== undefined ? announcementAr : existing[0].announcementAr,
-            announcementActive:
-              announcementActive !== undefined ? Boolean(announcementActive) : existing[0].announcementActive,
-            aboutEn: aboutEn !== undefined ? aboutEn : existing[0].aboutEn,
-            aboutAr: aboutAr !== undefined ? aboutAr : existing[0].aboutAr,
-            contactAddressEn: contactAddressEn !== undefined ? contactAddressEn : existing[0].contactAddressEn,
-            contactAddressAr: contactAddressAr !== undefined ? contactAddressAr : existing[0].contactAddressAr,
-            contactEmail: contactEmail !== undefined ? contactEmail : existing[0].contactEmail,
-            openingHoursEn: openingHoursEn !== undefined ? openingHoursEn : existing[0].openingHoursEn,
-            openingHoursAr: openingHoursAr !== undefined ? openingHoursAr : existing[0].openingHoursAr,
-            updatedAt: new Date(),
-          })
-          .where(eq(siteContent.id, existing[0].id))
-          .returning();
-      }
+          });
+          const insertedId = Number(insertRes?.insertId) || 1;
+          const rows = await tx.select().from(siteContent).where(eq(siteContent.id, insertedId)).limit(1);
+          return rows[0];
+        } else {
+          await tx
+            .update(siteContent)
+            .set({
+              heroTitleEn: heroTitleEn !== undefined ? heroTitleEn : existing[0].heroTitleEn,
+              heroTitleAr: heroTitleAr !== undefined ? heroTitleAr : existing[0].heroTitleAr,
+              heroSubtitleEn: heroSubtitleEn !== undefined ? heroSubtitleEn : existing[0].heroSubtitleEn,
+              heroSubtitleAr: heroSubtitleAr !== undefined ? heroSubtitleAr : existing[0].heroSubtitleAr,
+              announcementEn: announcementEn !== undefined ? announcementEn : existing[0].announcementEn,
+              announcementAr: announcementAr !== undefined ? announcementAr : existing[0].announcementAr,
+              announcementActive:
+                announcementActive !== undefined ? Boolean(announcementActive) : existing[0].announcementActive,
+              aboutEn: aboutEn !== undefined ? aboutEn : existing[0].aboutEn,
+              aboutAr: aboutAr !== undefined ? aboutAr : existing[0].aboutAr,
+              contactAddressEn: contactAddressEn !== undefined ? contactAddressEn : existing[0].contactAddressEn,
+              contactAddressAr: contactAddressAr !== undefined ? contactAddressAr : existing[0].contactAddressAr,
+              contactEmail: contactEmail !== undefined ? contactEmail : existing[0].contactEmail,
+              openingHoursEn: openingHoursEn !== undefined ? openingHoursEn : existing[0].openingHoursEn,
+              openingHoursAr: openingHoursAr !== undefined ? openingHoursAr : existing[0].openingHoursAr,
+              updatedAt: new Date(),
+            })
+            .where(eq(siteContent.id, existing[0].id));
+          const rows = await tx.select().from(siteContent).where(eq(siteContent.id, existing[0].id)).limit(1);
+          return rows[0];
+        }
+      });
 
       await logAudit('CONTENT_UPDATE', 'Updated homepage banner and site information', req.user?.email);
-      res.json(updated[0]);
+      return res.json(updatedRow);
     } catch (error: any) {
-      console.error('Error updating site content:', error);
-      res.status(500).json({ error: error.message || 'Failed to update site content' });
+      return handleDbRouteError(error, res, 'Error updating site content:');
     }
   });
 
   // Admin: Audit Logs
   app.get('/api/admin/audit-logs', requireAuth, async (_req: AuthRequest, res) => {
     try {
+      if (!(await ensureDbAvailable())) {
+        return res.status(503).json({ error: 'Database service temporarily unavailable. Please retry shortly.' });
+      }
       const logs = await db.select().from(auditLogs).orderBy(desc(auditLogs.createdAt)).limit(100);
-      res.json(logs);
-    } catch (error) {
-      console.error('Error fetching audit logs:', error);
-      res.status(500).json({ error: 'Failed to fetch audit logs' });
+      return res.json(logs);
+    } catch (error: any) {
+      return handleDbRouteError(error, res, 'Error fetching audit logs:');
     }
   });
 
@@ -3200,7 +2485,7 @@ async function startServer() {
 
   // Synchronize visitor settings & counts from database on boot
   const syncVisitorDataFromDb = async () => {
-    if (!isPostgresAvailable) return;
+    if (!(await ensureDbAvailable())) return;
     try {
       // 1. Load settings
       const settingsRows = await db.select().from(visitorSettings).where(eq(visitorSettings.id, 1)).limit(1);
@@ -3233,7 +2518,7 @@ async function startServer() {
 
       // 4. Load lifetime count from total logs or distinct count
       const allVisitorCount = await db
-        .select({ count: sql<number>`count(distinct ${visitorLogs.visitorId})::int` })
+        .select({ count: sql<number>`count(distinct ${visitorLogs.visitorId})` })
         .from(visitorLogs);
       const totalDistinct = allVisitorCount[0]?.count ?? 0;
       if (totalDistinct > visitorState.lifetimeVisitors.size) {
@@ -3280,8 +2565,8 @@ async function startServer() {
         visitorState.todayVisitors.add(visitorId);
         visitorState.lifetimeVisitors.add(visitorId);
 
-        // Async persist to PostgreSQL if available
-        if (isPostgresAvailable && isNewToday) {
+        // Async persist to MySQL if available
+        if ((await ensureDbAvailable()) && isNewToday) {
           (async () => {
             try {
               const todayDubai = getDubaiDate();
@@ -3301,8 +2586,7 @@ async function startServer() {
                   pageViews: visitorState.todayPageViews,
                   updatedAt: new Date(),
                 })
-                .onConflictDoUpdate({
-                  target: visitorDailyStats.date,
+                .onDuplicateKeyUpdate({
                   set: {
                     uniqueVisitors: visitorState.todayVisitors.size,
                     pageViews: visitorState.todayPageViews,
@@ -3438,7 +2722,7 @@ async function startServer() {
         visitorState.settings.totalAdjustment = Math.round(totalAdjustment);
       }
 
-      if (isPostgresAvailable) {
+      if (await ensureDbAvailable()) {
         await db
           .insert(visitorSettings)
           .values({
@@ -3449,8 +2733,7 @@ async function startServer() {
             totalAdjustment: visitorState.settings.totalAdjustment,
             updatedAt: new Date(),
           })
-          .onConflictDoUpdate({
-            target: visitorSettings.id,
+          .onDuplicateKeyUpdate({
             set: {
               isEnabled: visitorState.settings.isEnabled,
               displayMode: visitorState.settings.displayMode,
@@ -3483,7 +2766,7 @@ async function startServer() {
       visitorState.settings.todayAdjustment = 0;
       visitorState.settings.totalAdjustment = 0;
 
-      if (isPostgresAvailable) {
+      if (await ensureDbAvailable()) {
         await db
           .update(visitorSettings)
           .set({
@@ -3520,7 +2803,15 @@ async function startServer() {
 
   if (process.env.NODE_ENV === 'production') {
     if (hasDist) {
-      app.use(express.static(distDir));
+      app.use(express.static(distDir, {
+        setHeaders(res, filePath) {
+          if (/\/assets\/.*-[A-Za-z0-9_-]{8,}\.(js|css)$/.test(filePath.replace(/\\/g, '/'))) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          } else if (filePath.endsWith('index.html')) {
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          }
+        }
+      }));
       app.get('*', (_req, res) => {
         res.sendFile(indexHtml);
       });
@@ -3552,15 +2843,24 @@ async function startServer() {
     }
   } else {
     try {
+      const { createServer: createViteServer } = await import('vite');
       const vite = await createViteServer({
-        server: { middlewareMode: true },
+        server: { middlewareMode: true, hmr: false },
         appType: 'spa',
       });
       app.use(vite.middlewares);
     } catch (viteErr) {
       console.warn('Vite middleware could not be loaded, using fallback:', viteErr);
       if (hasDist) {
-        app.use(express.static(distDir));
+        app.use(express.static(distDir, {
+        setHeaders(res, filePath) {
+          if (/\/assets\/.*-[A-Za-z0-9_-]{8,}\.(js|css)$/.test(filePath.replace(/\\/g, '/'))) {
+            res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+          } else if (filePath.endsWith('index.html')) {
+            res.setHeader('Cache-Control', 'no-cache, must-revalidate');
+          }
+        }
+      }));
         app.get('*', (_req, res) => res.sendFile(indexHtml));
       }
     }
@@ -3569,29 +2869,38 @@ async function startServer() {
   // ----------------------------------------------------
   // PORT & PASSENGER SOCKET BINDING (Hostinger / Cloud / AI Studio)
   // ----------------------------------------------------
-  const rawPort = process.env.PORT;
+  // Parse command line arguments for --port and --host (e.g. tsx server.ts --port 3000 --host 0.0.0.0)
+  const args = process.argv.slice(2);
+  let cliPort: number | null = null;
+  let cliHost = '0.0.0.0';
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--port' && args[i + 1]) {
+      cliPort = parseInt(args[i + 1], 10);
+    } else if (args[i] === '--host' && args[i + 1]) {
+      cliHost = args[i + 1];
+    }
+  }
+
   let portToListen: any = 3000;
 
   if (typeof (global as any).PhusionPassenger !== 'undefined') {
     portToListen = 'passenger';
+  } else if (cliPort && !isNaN(cliPort)) {
+    portToListen = cliPort;
   } else if (process.env.DEFAULT_APP_PORT) {
-    // In AI Studio container environment: Nginx listens on 8080 and proxies to 3000
     portToListen = Number(process.env.DEFAULT_APP_PORT) || 3000;
-  } else if (rawPort) {
-    if (isNaN(Number(rawPort))) {
-      // Unix domain socket (Hostinger/Passenger socket or named pipe)
-      portToListen = rawPort;
-    } else {
-      portToListen = Number(rawPort);
-    }
+  } else if (process.env.NODE_ENV === 'production' && process.env.PORT) {
+    portToListen = isNaN(Number(process.env.PORT)) ? process.env.PORT : Number(process.env.PORT);
+  } else {
+    portToListen = 3000;
   }
 
   const server = typeof portToListen === 'string'
     ? app.listen(portToListen, () => {
         console.log(`Nasir Mobile server listening on socket: ${portToListen}`);
       })
-    : app.listen(portToListen, '0.0.0.0', () => {
-        console.log(`Nasir Mobile Full-Stack server running at http://0.0.0.0:${portToListen}`);
+    : app.listen(portToListen, cliHost, () => {
+        console.log(`Nasir Mobile Full-Stack server running at http://${cliHost}:${portToListen}`);
       });
 
   server.on('error', (err: any) => {

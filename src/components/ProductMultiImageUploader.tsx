@@ -85,7 +85,22 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
     Authorization: `Bearer ${token}`,
   };
 
-  // Convert files to 1080x1080 base64 and batch upload
+  const isValidPersistedImageUrl = (url: unknown): url is string => {
+    if (typeof url !== 'string') return false;
+    const trimmed = url.trim();
+    if (!trimmed) return false;
+    if (/^data:/i.test(trimmed)) return false;
+    return (
+      trimmed.startsWith('/uploads/') ||
+      trimmed.startsWith('/api/images/') ||
+      trimmed.startsWith('/assets/') ||
+      trimmed.startsWith('/src/assets/') ||
+      trimmed.startsWith('http://') ||
+      trimmed.startsWith('https://')
+    );
+  };
+
+  // Convert files to 1080x1080 base64 and batch upload (fail-closed)
   const handleFiles = async (fileList: FileList | File[]) => {
     const validFiles: File[] = [];
     for (let i = 0; i < fileList.length; i++) {
@@ -110,16 +125,30 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
         validFiles.map((file) => processImageTo1080x1080(file, fitMode))
       );
 
-      // 2. Attempt fast batch upload
+      // 2. Attempt batch upload with cache: 'no-store'
       const res = await fetch('/api/admin/upload-images', {
         method: 'POST',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify({ items: filePayloads }),
       });
 
       if (res.ok) {
-        const data = await res.json();
-        const newUrls = (data.images || []).map((img: any) => img.url);
+        let data: any = null;
+        try {
+          data = await res.json();
+        } catch {
+          data = null;
+        }
+        const rawItems = Array.isArray(data?.images) ? data.images : [];
+        const newUrls = rawItems
+          .map((img: any) => (typeof img?.url === 'string' ? img.url.trim() : ''))
+          .filter((url: string) => isValidPersistedImageUrl(url));
+        if (newUrls.length === 0 || newUrls.length !== filePayloads.length) {
+          throw new Error(
+            data?.error || 'Server did not return valid persistent URLs for all uploaded images.'
+          );
+        }
         onChange([...images, ...newUrls]);
         setUploadProgress(null);
         setUploadSuccess(`Successfully uploaded ${newUrls.length} image(s) with original dimensions preserved!`);
@@ -127,20 +156,53 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
         return;
       }
 
-      // Fallback: sequential single uploads
+      let batchErrorMsg = `Image upload failed (HTTP ${res.status}).`;
+      try {
+        const errData = await res.json();
+        if (errData?.error) batchErrorMsg = errData.error;
+      } catch {}
+
+      // Fail closed immediately for 400, 401, 403, 503 and all server/validation errors.
+      // Sequential fallback is permitted ONLY when a server explicitly lacks the batch route (404 / 405).
+      const isBatchEndpointUnsupported = res.status === 404 || res.status === 405;
+      if (
+        res.status === 400 ||
+        res.status === 401 ||
+        res.status === 403 ||
+        res.status === 503 ||
+        !isBatchEndpointUnsupported
+      ) {
+        throw new Error(batchErrorMsg);
+      }
+
+      // Compatibility fallback (404 / 405 batch-unsupported only): upload sequentially and fail closed on any error
       const uploadedUrls: string[] = [];
       for (let i = 0; i < filePayloads.length; i++) {
         const item = filePayloads[i];
         const singleRes = await fetch('/api/admin/upload-image', {
           method: 'POST',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify(item),
         });
-        if (singleRes.ok) {
-          const singleData = await singleRes.json();
-          uploadedUrls.push(singleData.url);
+        let singleData: any = null;
+        try {
+          singleData = await singleRes.json();
+        } catch {
+          singleData = null;
         }
+        if (!singleRes.ok || !isValidPersistedImageUrl(singleData?.url)) {
+          throw new Error(
+            singleData?.error ||
+              `Failed to upload image ${i + 1} of ${filePayloads.length} (HTTP ${singleRes.status}).`
+          );
+        }
+        uploadedUrls.push(singleData.url.trim());
         setUploadProgress({ total: validFiles.length, done: i + 1 });
+      }
+
+      if (uploadedUrls.length !== filePayloads.length) {
+        throw new Error('Image upload incomplete; zero images were added to gallery.');
       }
 
       onChange([...images, ...uploadedUrls]);
@@ -149,8 +211,12 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
       setTimeout(() => setUploadSuccess(null), 4000);
     } catch (err: any) {
       setUploadProgress(null);
-      setUploadError(err.message || 'Error occurred while processing or uploading images.');
+      setUploadError(err?.message || 'Error occurred while processing or uploading images.');
       setTimeout(() => setUploadError(null), 5000);
+    } finally {
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -176,18 +242,23 @@ export const ProductMultiImageUploader: React.FC<ProductMultiImageUploaderProps>
     }
   };
 
-  // Direct URL submission
+  // Direct URL submission (rejects base64 data URIs or invalid paths)
   const handleAddDirectUrl = (e?: React.SyntheticEvent) => {
     if (e) {
       e.preventDefault();
       e.stopPropagation();
     }
-    if (directUrlInput.trim()) {
-      onChange([...images, directUrlInput.trim()]);
-      setDirectUrlInput('');
-      setUploadSuccess('Image URL added to gallery!');
-      setTimeout(() => setUploadSuccess(null), 3000);
+    const candidate = directUrlInput.trim();
+    if (!isValidPersistedImageUrl(candidate)) {
+      setUploadError('Please enter a valid http(s) or /uploads/ image URL (base64 data URIs are not allowed).');
+      setTimeout(() => setUploadError(null), 4000);
+      return;
     }
+    setUploadError(null);
+    onChange([...images, candidate]);
+    setDirectUrlInput('');
+    setUploadSuccess('Image URL added to gallery!');
+    setTimeout(() => setUploadSuccess(null), 3000);
   };
 
   // Reordering helpers

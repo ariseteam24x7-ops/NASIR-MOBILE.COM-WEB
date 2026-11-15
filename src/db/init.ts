@@ -1,43 +1,49 @@
-import { db, createPool, setPostgresAvailable } from './index.ts';
+import { db, createPool, setDbAvailable } from './index.ts';
 
 export async function initDatabase() {
+  const pool = createPool();
+
   try {
-    const pool = createPool();
-
-    // Fast probe to verify PostgreSQL is reachable
     await pool.query('SELECT 1');
-    setPostgresAvailable(true);
-    console.log('PostgreSQL database connected and verified successfully');
-
-    // Attempt table creations/verifications safely (catch DDL permission errors gracefully)
-    try {
-      await pool.query('SELECT 1 FROM brands LIMIT 1');
-    } catch {
-      // Table check attempt
-    }
-
-    // Seed default settings row if missing (DML is permitted)
-    try {
-      await pool.query(`
-        INSERT INTO whatsapp_settings (id, primary_number, secondary_number, active_number, is_enabled)
-        VALUES (1, '+971522523900', '+971563903672', '+971522523900', true)
-        ON CONFLICT (id) DO NOTHING;
-
-        INSERT INTO visitor_settings (id, is_enabled, display_mode, today_adjustment, total_adjustment)
-        VALUES (1, true, 'both', 0, 0)
-        ON CONFLICT (id) DO NOTHING;
-
-        INSERT INTO security_settings (id, master_key)
-        VALUES (1, 'NasirMobileDubai2026!')
-        ON CONFLICT (id) DO NOTHING;
-      `);
-    } catch (seedErr) {
-      console.warn('Note: Default settings seed note:', (seedErr as any)?.message);
-    }
-
-    setPostgresAvailable(true);
-  } catch (err) {
-    console.warn('PostgreSQL database probe warning:', (err as any)?.message);
-    setPostgresAvailable(false);
+    setDbAvailable(true);
+    console.log('MySQL database connected and verified successfully');
+  } catch (err: any) {
+    setDbAvailable(false);
+    console.warn('[WARN] MySQL offline on startup; API endpoints will return HTTP 503 until connected:', err?.message || 'Connection unavailable');
+    return;
   }
+
+  // Auto-restore any images stored in MySQL to public/uploads on startup
+  try {
+    const fs = await import('fs');
+    const path = await import('path');
+    const { images } = await import('./schema.ts');
+    const uploadsDir = path.resolve(process.cwd(), 'public/uploads');
+    if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+    const dbImgs = await db.select().from(images);
+    for (const img of dbImgs) {
+      if (!img.data || !img.fileName) continue;
+      const safeFileName = path.basename(String(img.fileName));
+      if (!safeFileName || safeFileName === '.' || safeFileName === '..') continue;
+      const targetPath = path.resolve(uploadsDir, safeFileName);
+      if (!targetPath.startsWith(uploadsDir + path.sep)) continue;
+
+      if (!fs.existsSync(targetPath)) {
+        let buffer: Buffer;
+        if (img.data.startsWith('data:')) {
+          const match = img.data.match(/^data:[^;]+;base64,(.+)$/);
+          buffer = Buffer.from(match ? match[1] : img.data, 'base64');
+        } else {
+          buffer = Buffer.from(img.data, 'base64');
+        }
+        if (buffer.length > 0) {
+          fs.writeFileSync(targetPath, buffer);
+        }
+      }
+    }
+  } catch (imgErr) {
+    console.warn('Note: Startup image cache check:', (imgErr as any)?.message);
+  }
+
+  setDbAvailable(true);
 }

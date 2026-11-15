@@ -1,35 +1,28 @@
-import { createClient } from '@supabase/supabase-js';
-import { createRequire } from 'module';
+import { createPool, ensureDbAvailable } from './src/db/index.ts';
 
-// Polyfill require for CommonJS compatibility in ES module scope if needed
-const require = createRequire(import.meta.url);
+export const pool = createPool();
 
-const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://your-project-id.supabase.co';
-const supabaseKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.VITE_SUPABASE_ANON_KEY ||
-  process.env.SUPABASE_ANON_KEY ||
-  'your-anon-key';
-
-export const supabase = createClient(supabaseUrl, supabaseKey);
-
-// Self-test function to verify connection with Supabase
+// Self-test function to verify connection with MySQL
 export async function testConnection() {
   try {
-    const { data, error } = await supabase.from('products').select('*').limit(1);
-    if (error) {
-      console.warn('Supabase test connection note:', error.message);
-    } else {
-      console.log('Supabase connection verified successfully. Products sample:', data ? data.length : 0);
+    const ok = await ensureDbAvailable(true);
+    if (!ok) {
+      console.warn('MySQL test connection note: database is unreachable.');
+      return false;
     }
+    const [rows] = await pool.query('SELECT COUNT(*) AS productCount FROM products');
+    const count = Array.isArray(rows) ? rows[0]?.productCount ?? 0 : 0;
+    console.log('MySQL connection verified successfully. Products count:', count);
+    return true;
   } catch (err) {
-    console.warn('Supabase test connection note:', err?.message || err);
+    console.warn('MySQL test connection note:', err?.message || err);
+    return false;
   }
 }
 
 // Run test if executed directly
 if (process.argv[1] && process.argv[1].endsWith('db.js')) {
-  testConnection();
+  testConnection().then((ok) => process.exit(ok ? 0 : 1));
 }
 
-export default supabase;
+export default pool;

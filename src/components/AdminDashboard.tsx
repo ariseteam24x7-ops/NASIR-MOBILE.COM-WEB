@@ -95,15 +95,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState<string | null>(null);
   const [passwordChangeError, setPasswordChangeError] = useState<string | null>(null);
 
-  // Master Key Reset & Management State
-  const [masterKeyInfo, setMasterKeyInfo] = useState<{ isDefault: boolean; maskedKey: string; hasCustomKey: boolean } | null>(null);
-  const [newMasterKeyInput, setNewMasterKeyInput] = useState('');
-  const [confirmMasterKeyInput, setConfirmMasterKeyInput] = useState('');
-  const [masterKeyVerifyPassword, setMasterKeyVerifyPassword] = useState('');
-  const [masterKeyLoading, setMasterKeyLoading] = useState(false);
-  const [masterKeySuccess, setMasterKeySuccess] = useState<string | null>(null);
-  const [masterKeyError, setMasterKeyError] = useState<string | null>(null);
-
   // Overview Stats
   const [stats, setStats] = useState<{
     totalProducts: number;
@@ -141,6 +132,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     isOpen: boolean;
     title: string;
     message: string;
+    confirmLabel?: string;
+    confirmTone?: 'danger' | 'primary';
     onConfirm: () => void;
   } | null>(null);
 
@@ -154,6 +147,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [formCategoryId, setFormCategoryId] = useState<number | ''>('');
   const [formBrandId, setFormBrandId] = useState<number | ''>('');
   const [formStatus, setFormStatus] = useState<ProductStatus>('published');
+  const [formStorefrontVisible, setFormStorefrontVisible] = useState(true);
   const [formIsFeatured, setFormIsFeatured] = useState(false);
   const [formIsNewArrival, setFormIsNewArrival] = useState(false);
   const [formImages, setFormImages] = useState<string[]>([]);
@@ -206,7 +200,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Fetch Overview Stats
   const fetchOverview = async () => {
     try {
-      const res = await fetch('/api/admin/overview', { headers: authHeaders });
+      const res = await fetch('/api/admin/overview', { headers: authHeaders, cache: 'no-store' });
       if (res.status === 401) {
         onLogout();
         return;
@@ -240,7 +234,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (catId) url += `&categoryId=${catId}`;
       if (brandId) url += `&brandId=${brandId}`;
       if (condition !== 'all') url += `&condition=${condition}`;
-      const res = await fetch(url, { headers: authHeaders });
+      const res = await fetch(url, { headers: authHeaders, cache: 'no-store' });
       if (res.status === 401) {
         onLogout();
         return;
@@ -257,7 +251,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Fetch Categories
   const fetchCategories = async () => {
     try {
-      const res = await fetch('/api/categories');
+      const res = await fetch('/api/categories', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setCategoriesList(data);
@@ -270,7 +264,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Fetch Brands
   const fetchBrands = async () => {
     try {
-      const res = await fetch('/api/brands');
+      const res = await fetch('/api/brands', { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
         setBrandsList(data);
@@ -283,7 +277,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Fetch WhatsApp Settings
   const fetchWhatsappSettings = async () => {
     try {
-      const res = await fetch('/api/admin/whatsapp-settings', { headers: authHeaders });
+      const res = await fetch('/api/admin/whatsapp-settings', { headers: authHeaders, cache: 'no-store' });
       if (res.status === 401) {
         onLogout();
         return;
@@ -300,7 +294,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Fetch Site Content
   const fetchSiteContent = async () => {
     try {
-      const res = await fetch('/api/admin/site-content', { headers: authHeaders });
+      const res = await fetch('/api/admin/site-content', { headers: authHeaders, cache: 'no-store' });
       if (res.status === 401) {
         onLogout();
         return;
@@ -317,7 +311,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Fetch Audit Logs
   const fetchAuditLogs = async () => {
     try {
-      const res = await fetch('/api/admin/audit-logs', { headers: authHeaders });
+      const res = await fetch('/api/admin/audit-logs', { headers: authHeaders, cache: 'no-store' });
       if (res.status === 401) {
         onLogout();
         return;
@@ -335,7 +329,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const fetchVisitorAnalytics = async () => {
     try {
       setVisitorLoading(true);
-      const res = await fetch('/api/admin/visitors', { headers: authHeaders });
+      const res = await fetch('/api/admin/visitors', { headers: authHeaders, cache: 'no-store' });
       if (res.status === 401) {
         onLogout();
         return;
@@ -362,6 +356,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     try {
       const res = await fetch('/api/admin/visitors/settings', {
         method: 'POST',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify({
           isEnabled: editVisitorEnabled,
@@ -381,106 +376,35 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     }
   };
 
-  // Reset Adjustments to 0 (1-Click Restore Actual Tracking)
-  const handleResetVisitorAdjustments = async () => {
-    if (!window.confirm('Restore actual analytics? This will reset public display adjustments (+/-) back to 0 so the public counter directly reflects true tracked visitors.')) return;
-    setVisitorResetting(true);
-    try {
-      const res = await fetch('/api/admin/visitors/reset-adjustments', {
-        method: 'POST',
-        headers: authHeaders,
-      });
-      if (!res.ok) throw new Error('Failed to reset adjustments');
-      setEditVisitorTodayAdj(0);
-      setEditVisitorTotalAdj(0);
-      showNotification('Adjustments reset to 0! Public counter now reflects real actual visits.');
-      fetchVisitorAnalytics();
-    } catch (err: any) {
-      showNotification(err.message || 'Failed to reset adjustments', true);
-    } finally {
-      setVisitorResetting(false);
-    }
-  };
-
-  // Fetch Master Key info
-  const fetchMasterKeyInfo = async () => {
-    try {
-      const res = await fetch('/api/admin/master-key-info', { headers: authHeaders });
-      if (res.ok) {
-        const data = await res.json();
-        setMasterKeyInfo(data);
-      }
-    } catch (e) {
-      console.error('Failed to load master key info', e);
-    }
-  };
-
-  // Reset Master Key to Default (NasirMobileDubai2026!)
-  const handleResetMasterKeyToDefault = async () => {
-    const password = window.prompt('Enter your current Owner Password or Master Key to authorize resetting to the default factory key (NasirMobileDubai2026!):');
-    if (!password) return;
-    setMasterKeyLoading(true);
-    setMasterKeyError(null);
-    setMasterKeySuccess(null);
-    try {
-      const res = await fetch('/api/admin/reset-master-key', {
-        method: 'POST',
-        headers: authHeaders,
-        body: JSON.stringify({ currentPassword: password, resetToDefault: true }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to reset Master Key');
-      setMasterKeySuccess(data.message || 'Master Key restored to default!');
-      showNotification('Master Key restored to default (NasirMobileDubai2026!)');
-      fetchMasterKeyInfo();
-    } catch (err: any) {
-      setMasterKeyError(err.message || 'Failed to reset Master Key');
-    } finally {
-      setMasterKeyLoading(false);
-    }
-  };
-
-  // Change Master Key to a New Custom Key
-  const handleChangeMasterKey = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setMasterKeyError(null);
-    setMasterKeySuccess(null);
-    if (!masterKeyVerifyPassword) {
-      setMasterKeyError('Owner Password verification is required to authorize Master Key change.');
-      return;
-    }
-    if (newMasterKeyInput.length < 6) {
-      setMasterKeyError('New Master Key must be at least 6 characters long.');
-      return;
-    }
-    if (newMasterKeyInput !== confirmMasterKeyInput) {
-      setMasterKeyError('New Master Keys do not match. Please re-enter.');
-      return;
-    }
-    setMasterKeyLoading(true);
-    try {
-      const res = await fetch('/api/admin/reset-master-key', {
-        method: 'POST',
-        headers: authHeaders,
-        body: JSON.stringify({
-          currentPassword: masterKeyVerifyPassword,
-          newMasterKey: newMasterKeyInput.trim(),
-          resetToDefault: false,
-        }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to update Master Key');
-      setMasterKeySuccess('Master Key updated successfully! Your team can now log in using the new Master Key.');
-      setNewMasterKeyInput('');
-      setConfirmMasterKeyInput('');
-      setMasterKeyVerifyPassword('');
-      showNotification('Master Key updated successfully!');
-      fetchMasterKeyInfo();
-    } catch (err: any) {
-      setMasterKeyError(err.message || 'Failed to update Master Key');
-    } finally {
-      setMasterKeyLoading(false);
-    }
+  // Reset Adjustments to 0 (1-Click Restore Actual Tracking using in-app modal)
+  const handleResetVisitorAdjustments = () => {
+    setDeleteConfirmDialog({
+      isOpen: true,
+      title: 'Restore Actual Analytics',
+      message: 'Restore actual analytics? This will reset public display adjustments (+/-) back to 0 so the public counter directly reflects true tracked visitors.',
+      confirmLabel: 'Restore Analytics',
+      confirmTone: 'primary',
+      onConfirm: async () => {
+        setDeleteConfirmDialog(null);
+        setVisitorResetting(true);
+        try {
+          const res = await fetch('/api/admin/visitors/reset-adjustments', {
+            method: 'POST',
+            cache: 'no-store',
+            headers: authHeaders,
+          });
+          if (!res.ok) throw new Error('Failed to reset adjustments');
+          setEditVisitorTodayAdj(0);
+          setEditVisitorTotalAdj(0);
+          showNotification('Adjustments reset to 0! Public counter now reflects real actual visits.');
+          fetchVisitorAnalytics();
+        } catch (err: any) {
+          showNotification(err.message || 'Failed to reset adjustments', true);
+        } finally {
+          setVisitorResetting(false);
+        }
+      },
+    });
   };
 
   useEffect(() => {
@@ -490,7 +414,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     fetchWhatsappSettings();
     fetchSiteContent();
     fetchVisitorAnalytics();
-    fetchMasterKeyInfo();
   }, []);
 
   useEffect(() => {
@@ -499,7 +422,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     if (activeTab === 'brands') fetchBrands();
     if (activeTab === 'overview') fetchOverview();
     if (activeTab === 'audit') fetchAuditLogs();
-    if (activeTab === 'security') fetchMasterKeyInfo();
   }, [activeTab, productStatusFilter, productCategoryFilter, productBrandFilter, productConditionFilter]);
 
   // Reset all product form fields
@@ -514,6 +436,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setFormCategoryId('');
     setFormBrandId('');
     setFormStatus('published');
+    setFormStorefrontVisible(true);
     setFormIsFeatured(false);
     setFormIsNewArrival(true);
     setFormImages([]);
@@ -532,6 +455,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   // Open Add Product
   const handleOpenAddProduct = () => {
     resetProductFormState();
+    setFormStorefrontVisible(true);
     setFormSku(`NM-${Math.floor(10000 + Math.random() * 90000)}`);
     setFormCategoryId(categoriesList.length > 0 ? categoriesList[0].id : '');
     setFormBrandId(brandsList.length > 0 ? brandsList[0].id : '');
@@ -554,6 +478,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setFormCategoryId(prod.categoryId || '');
     setFormBrandId(prod.brandId || '');
     setFormStatus(prod.status);
+    setFormStorefrontVisible(Boolean(prod.storefrontVisible));
     setFormIsFeatured(prod.isFeatured);
     setFormIsNewArrival(prod.isNewArrival);
     setFormImages(prod.images || []);
@@ -572,11 +497,18 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setProductModalOpen(true);
   };
 
-  // Quick update product attributes (featured, new arrival, stock, status)
+  // Quick update product attributes (featured, new arrival, storefront visibility, stock, status)
   const handleQuickUpdateProduct = async (
     id: number,
-    updates: { isFeatured?: boolean; isNewArrival?: boolean; stockQuantity?: number; status?: ProductStatus }
+    updates: {
+      isFeatured?: boolean;
+      isNewArrival?: boolean;
+      storefrontVisible?: boolean;
+      stockQuantity?: number;
+      status?: ProductStatus;
+    }
   ) => {
+    const currentProduct = productsList.find((p) => p.id === id);
     try {
       // Optimistically update local state immediately for snappy response
       setProductsList((prev) =>
@@ -585,11 +517,22 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const res = await fetch(`/api/admin/products/${id}/quick-update`, {
         method: 'PATCH',
+        cache: 'no-store',
         headers: authHeaders,
-        body: JSON.stringify(updates),
+        body: JSON.stringify({
+          ...updates,
+          ...(currentProduct?.version !== undefined ? { version: currentProduct.version } : {}),
+        }),
       });
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 409 && data?.latestProduct) {
+          setProductsList((prev) =>
+            prev.map((p) => (p.id === id ? { ...p, ...data.latestProduct } : p))
+          );
+          showNotification(data.error || 'Product was updated by another session. Loaded latest data.', true);
+          return;
+        }
         throw new Error(data.error || 'Failed to update product');
       }
       // Reconcile with authoritative updated product from backend
@@ -652,6 +595,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const res = await fetch('/api/admin/products/bulk-status', {
         method: 'POST',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify({ ids: targetIds, status }),
       });
@@ -691,6 +635,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           const res = await fetch('/api/admin/products/bulk-delete', {
             method: 'POST',
+            cache: 'no-store',
             headers: authHeaders,
             body: JSON.stringify({ ids: targetIds }),
           });
@@ -730,6 +675,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       setLoading(true);
       const res = await fetch(`/api/admin/products/${id}/duplicate`, {
         method: 'POST',
+        cache: 'no-store',
         headers: authHeaders,
       });
       const data = await res.json();
@@ -767,6 +713,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
           const res = await fetch(`/api/admin/products/${id}`, {
             method: 'DELETE',
+            cache: 'no-store',
             headers: authHeaders,
           });
           if (!res.ok) {
@@ -843,6 +790,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       isFeatured: formIsFeatured,
       isNewArrival: formIsNewArrival,
       status: formStatus,
+      storefrontVisible: formStorefrontVisible,
+      version: isEditing ? editingProduct?.version : 1,
       images: formImages,
       specifications: cleanSpecs,
       variants: formVariants,
@@ -879,6 +828,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       categoryId: formCategoryId || null,
       brandId: formBrandId || null,
       status: formStatus,
+      storefrontVisible: formStorefrontVisible,
       isFeatured: formIsFeatured,
       isNewArrival: formIsNewArrival,
       images: formImages,
@@ -888,19 +838,23 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       purchaseCost: formPurchaseCost,
       stockQuantity: Number(formStockQuantity) || 0,
       imeiSerialNumbers: formImeis,
+      ...(isEditing && editingProduct?.version !== undefined ? { version: editingProduct.version } : {}),
     };
 
+    let conflictSynced = false;
     try {
       let res;
       if (isEditing) {
         res = await fetch(`/api/admin/products/${editingProduct!.id}`, {
           method: 'PUT',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify(payload),
         });
       } else {
         res = await fetch('/api/admin/products', {
           method: 'POST',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify(payload),
         });
@@ -908,6 +862,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const data = await res.json();
       if (!res.ok) {
+        if (res.status === 409 && data?.latestProduct) {
+          conflictSynced = true;
+          setProductsList(
+            previousProductsList.map((p) =>
+              p.id === data.latestProduct.id ? { ...p, ...data.latestProduct } : p
+            )
+          );
+          setEditingProduct(data.latestProduct);
+          await fetchProducts();
+        }
         throw new Error(data.error || 'Failed to save product');
       }
 
@@ -932,7 +896,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       showNotification(isEditing ? 'Product updated successfully' : 'Product created successfully');
 
-      // 6. Await fresh data fetch to guarantee full synchronization with PostgreSQL & data-store
+      // 6. Await fresh data fetch to guarantee full synchronization with MySQL
       if (isEditing) {
         await fetchProducts();
       } else {
@@ -941,8 +905,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       }
       await fetchOverview();
     } catch (e: any) {
-      // 7. On error: rollback optimistic list update, leave form inputs and modal open so the user doesn't lose entered data
-      setProductsList(previousProductsList);
+      // 7. On error: rollback optimistic list update unless conflict already synced latest server row, leave form inputs and modal open
+      if (!conflictSynced) {
+        setProductsList(previousProductsList);
+      }
       setFormError(e.message || 'Failed to save product. Please check your inputs.');
       showNotification(e.message || 'Failed to save product', true);
     } finally {
@@ -967,6 +933,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
       const res = await fetch('/api/admin/upload-image', {
         method: 'POST',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify({
           fileName: processed.fileName,
@@ -1013,6 +980,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     try {
       const res = await fetch('/api/admin/whatsapp-settings', {
         method: 'PUT',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify(whatsappSettingsData),
       });
@@ -1035,6 +1003,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     try {
       const res = await fetch('/api/admin/site-content', {
         method: 'PUT',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify(siteContentData),
       });
@@ -1075,6 +1044,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setBrandLogoUploading(true);
         const res = await fetch('/api/admin/upload-image', {
           method: 'POST',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify({
             fileName: file.name,
@@ -1114,6 +1084,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
         setCatIconUploading(true);
         const res = await fetch('/api/admin/upload-image', {
           method: 'POST',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify({
             fileName: file.name,
@@ -1146,6 +1117,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (editingCategory) {
         res = await fetch(`/api/admin/categories/${editingCategory.id}`, {
           method: 'PUT',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify({
             nameEn: catNameEn.trim(),
@@ -1156,6 +1128,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       } else {
         res = await fetch('/api/admin/categories', {
           method: 'POST',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify({
             nameEn: catNameEn.trim(),
@@ -1200,6 +1173,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setCategoriesList((prev) => prev.filter((c) => c.id !== id));
           const res = await fetch(`/api/admin/categories/${id}`, {
             method: 'DELETE',
+            cache: 'no-store',
             headers: authHeaders,
           });
           if (!res.ok) {
@@ -1229,6 +1203,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       if (editingBrand) {
         res = await fetch(`/api/admin/brands/${editingBrand.id}`, {
           method: 'PUT',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify({
             name: brandName.trim(),
@@ -1238,6 +1213,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
       } else {
         res = await fetch('/api/admin/brands', {
           method: 'POST',
+          cache: 'no-store',
           headers: authHeaders,
           body: JSON.stringify({
             name: brandName.trim(),
@@ -1280,6 +1256,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           setBrandsList((prev) => prev.filter((b) => b.id !== id));
           const res = await fetch(`/api/admin/brands/${id}`, {
             method: 'DELETE',
+            cache: 'no-store',
             headers: authHeaders,
           });
           if (!res.ok) {
@@ -1306,12 +1283,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     setPasswordChangeSuccess(null);
 
     if (!currPassword) {
-      setPasswordChangeError('Current password or Master Setup Key is required.');
+      setPasswordChangeError('Current account password is required.');
       return;
     }
 
-    if (newPassword.length < 8) {
-      setPasswordChangeError('New password must be at least 8 characters long.');
+    if (newPassword.length < 12) {
+      setPasswordChangeError('New password must be at least 12 characters long.');
       return;
     }
 
@@ -1324,6 +1301,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
     try {
       const res = await fetch('/api/admin/change-password', {
         method: 'POST',
+        cache: 'no-store',
         headers: authHeaders,
         body: JSON.stringify({
           currentPassword: currPassword,
@@ -1654,9 +1632,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </div>
 
                 <div className="p-3.5 rounded-2xl bg-[#242129] border border-white/5 flex flex-col">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Live Published</span>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Live Storefront</span>
                   <span className="text-xl font-black text-emerald-300 mt-1 font-mono">
-                    {productsList.filter((p) => p.status === 'published').length}
+                    {productsList.filter((p) => p.status === 'published' && p.storefrontVisible).length}
                   </span>
                   <span className="text-[10px] text-zinc-500 mt-0.5">Visible to customers</span>
                 </div>
@@ -1904,6 +1882,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             <th className="p-3.5">Category & Brand</th>
                             <th className="p-3.5">Condition</th>
                             <th className="p-3.5">Status</th>
+                            <th className="p-3.5 text-center">Storefront</th>
                             <th className="p-3.5 text-center">Stock Inventory</th>
                             <th className="p-3.5">Badges</th>
                             <th className="p-3.5 text-right">Actions</th>
@@ -2033,6 +2012,30 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                                     </button>
                                   </td>
 
+                                  {/* Customer Storefront Visibility Toggle */}
+                                  <td className="p-3.5 text-center">
+                                    <button
+                                      type="button"
+                                      onClick={() =>
+                                        handleQuickUpdateProduct(p.id, {
+                                          storefrontVisible: !p.storefrontVisible,
+                                        })
+                                      }
+                                      className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase cursor-pointer transition-all ${
+                                        p.storefrontVisible
+                                          ? 'bg-[#B7F34B]/15 text-[#B7F34B] border border-[#B7F34B]/40 hover:bg-[#B7F34B]/25'
+                                          : 'bg-zinc-800 text-zinc-400 border border-zinc-700 hover:bg-zinc-700'
+                                      }`}
+                                      title={
+                                        p.storefrontVisible
+                                          ? 'Shown on public storefront when published (click to hide)'
+                                          : 'Hidden from public storefront (click to show)'
+                                      }
+                                    >
+                                      {p.storefrontVisible ? 'Visible' : 'Hidden'}
+                                    </button>
+                                  </td>
+
                                   {/* Inline Stock Quantity Adjuster */}
                                   <td className="p-3.5 text-center">
                                     <div className="inline-flex items-center gap-1 p-1 rounded-xl bg-[#151419] border border-white/10 shadow-inner">
@@ -2148,7 +2151,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                             })
                           ) : (
                             <tr>
-                              <td colSpan={9} className="p-8 text-center text-zinc-400">
+                              <td colSpan={10} className="p-8 text-center text-zinc-400">
                                 No products found matching current filters. Click "Add Product" to add a new device!
                               </td>
                             </tr>
@@ -2884,19 +2887,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                         {adminUser.role}
                       </span>
                     </div>
-
-                    <div className="flex items-center justify-between p-3 rounded-xl bg-[#151419] border border-white/5">
-                      <span className="text-zinc-400">Master Setup Key Status:</span>
-                      <div className="flex items-center gap-2">
-                        <span className={`px-2 py-0.5 rounded-full font-mono text-[11px] font-bold ${
-                          masterKeyInfo?.hasCustomKey
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        }`}>
-                          {masterKeyInfo?.hasCustomKey ? 'Custom Master Key Active' : 'Factory Default Active'}
-                        </span>
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -2946,20 +2936,20 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span>Change Owner Password</span>
                   </h3>
                   <p className="text-xs text-zinc-400 mt-0.5">
-                    Update your owner password securely. It will be encrypted with bcrypt (10 rounds) in the database.
+                    Update your owner password securely. It will be encrypted with bcrypt (12 rounds) in the database.
                   </p>
                 </div>
 
                 <form onSubmit={handleChangePassword} className="space-y-4 max-w-lg">
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                      Current Password OR Master Setup Key *
+                      Current Password *
                     </label>
                     <input
                       type="password"
                       value={currPassword}
                       onChange={(e) => setCurrPassword(e.target.value)}
-                      placeholder="Enter current password or NasirMobileDubai2026!"
+                      placeholder="Enter your current password"
                       className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
                       required
                     />
@@ -2967,7 +2957,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                   <div>
                     <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                      New Password (Minimum 8 Characters) *
+                      New Password (Minimum 12 Characters) *
                     </label>
                     <input
                       type="password"
@@ -2980,8 +2970,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     {newPassword && (
                       <div className="mt-1 flex items-center gap-2 text-[10px]">
                         <span className="text-zinc-400">Strength:</span>
-                        <span className={`font-bold ${newPassword.length >= 10 ? 'text-emerald-400' : newPassword.length >= 8 ? 'text-yellow-400' : 'text-red-400'}`}>
-                          {newPassword.length >= 10 ? 'Strong' : newPassword.length >= 8 ? 'Good' : 'Too Short'}
+                        <span className={`font-bold ${newPassword.length >= 12 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {newPassword.length >= 12 ? 'Strong' : 'Too Short'}
                         </span>
                       </div>
                     )}
@@ -3013,168 +3003,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 </form>
               </div>
 
-              {/* Master Key Management & Reset Section */}
-              <div className="p-6 sm:p-8 rounded-3xl bg-[#242129] border border-white/5 space-y-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-white/5 pb-5">
-                  <div className="flex items-start gap-3">
-                    <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#922CB5] to-[#B7F34B] p-[1px] flex-shrink-0">
-                      <div className="w-full h-full rounded-2xl bg-[#151419] flex items-center justify-center text-[#B7F34B]">
-                        <Key className="w-5 h-5" />
-                      </div>
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <h3 className="text-base font-black text-white uppercase tracking-tight">
-                          Master Key Management & Reset
-                        </h3>
-                        <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider ${
-                          masterKeyInfo?.hasCustomKey
-                            ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
-                            : 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                        }`}>
-                          {masterKeyInfo?.hasCustomKey ? 'Custom Key Active' : 'Default Factory Key Active'}
-                        </span>
-                      </div>
-                      <p className="text-xs text-zinc-400 mt-1">
-                        The Master Key provides direct access for the store owner and authorized team. You can change it to a custom key or reset it back to factory default at any time.
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* 1-Click Reset to Default Button */}
-                  <button
-                    type="button"
-                    onClick={handleResetMasterKeyToDefault}
-                    disabled={masterKeyLoading}
-                    className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 text-red-300 hover:text-red-200 text-xs font-bold transition-all cursor-pointer whitespace-nowrap self-start sm:self-auto disabled:opacity-50"
-                  >
-                    <RotateCcw className={`w-3.5 h-3.5 ${masterKeyLoading ? 'animate-spin' : ''}`} />
-                    <span>Reset Master Key to Default</span>
-                  </button>
-                </div>
-
-                {/* Status & Masked Preview */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div className="p-4 rounded-2xl bg-[#151419] border border-white/5 space-y-1.5">
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
-                      Current Master Key Status
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                      <span className="text-sm font-bold text-white">
-                        {masterKeyInfo?.hasCustomKey ? 'Custom Master Key Configured' : 'Factory Default (NasirMobileDubai2026!)'}
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-500">
-                      Masked preview: <span className="font-mono text-zinc-300 font-bold">{masterKeyInfo?.maskedKey || '••••••••'}</span>
-                    </p>
-                  </div>
-
-                  <div className="p-4 rounded-2xl bg-[#151419] border border-white/5 space-y-1.5">
-                    <span className="text-[11px] font-bold text-zinc-400 uppercase tracking-wider block">
-                      Self-Service Recovery
-                    </span>
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-[#B7F34B]" />
-                      <span className="text-sm font-bold text-white">
-                        Reset from Anywhere
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-zinc-500">
-                      If ever forgotten or compromised, authorized owners can reset it here or directly from the Admin Login screen using Owner Account credentials.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Feedback notifications */}
-                {masterKeySuccess && (
-                  <div className="p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-3 text-xs text-emerald-300">
-                    <CheckCircle2 className="w-4 h-4 flex-shrink-0" />
-                    <span>{masterKeySuccess}</span>
-                  </div>
-                )}
-                {masterKeyError && (
-                  <div className="p-3.5 rounded-2xl bg-red-500/10 border border-red-500/30 flex items-center gap-3 text-xs text-red-300">
-                    <AlertCircle className="w-4 h-4 flex-shrink-0" />
-                    <span>{masterKeyError}</span>
-                  </div>
-                )}
-
-                {/* Set New Custom Master Key Form */}
-                <form onSubmit={handleChangeMasterKey} className="space-y-4 max-w-lg pt-2">
-                  <div className="border-t border-white/5 pt-4">
-                    <h4 className="text-xs font-bold text-white uppercase tracking-wider mb-1">
-                      Set New Custom Master Key
-                    </h4>
-                    <p className="text-[11px] text-zinc-400 mb-4">
-                      Create a strong custom secret key for your team. Minimum 6 characters.
-                    </p>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                      New Master Key *
-                    </label>
-                    <input
-                      type="password"
-                      value={newMasterKeyInput}
-                      onChange={(e) => setNewMasterKeyInput(e.target.value)}
-                      placeholder="Enter new master key (min. 6 characters)"
-                      className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                      Confirm New Master Key *
-                    </label>
-                    <input
-                      type="password"
-                      value={confirmMasterKeyInput}
-                      onChange={(e) => setConfirmMasterKeyInput(e.target.value)}
-                      placeholder="Re-enter new master key"
-                      className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
-                      required
-                      minLength={6}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-zinc-300 uppercase tracking-wider mb-1.5">
-                      Verify Current Owner Password or Current Master Key *
-                    </label>
-                    <input
-                      type="password"
-                      value={masterKeyVerifyPassword}
-                      onChange={(e) => setMasterKeyVerifyPassword(e.target.value)}
-                      placeholder="Enter your owner password to authorize change"
-                      className="w-full bg-[#151419] border border-white/10 rounded-xl py-2.5 px-3.5 text-xs text-white focus:outline-none focus:border-[#922CB5]"
-                      required
-                    />
-                  </div>
-
-                  <div className="pt-2 flex flex-wrap items-center gap-3">
-                    <button
-                      type="submit"
-                      disabled={masterKeyLoading}
-                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#922CB5] to-[#B7F34B] hover:opacity-95 text-[#151419] text-xs font-black uppercase tracking-wider transition-all shadow-[0_0_20px_rgba(183,243,75,0.2)] disabled:opacity-50 cursor-pointer"
-                    >
-                      {masterKeyLoading ? 'Updating Master Key...' : 'Save New Master Key'}
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={handleResetMasterKeyToDefault}
-                      disabled={masterKeyLoading}
-                      className="px-4 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-zinc-300 hover:text-white text-xs font-bold transition-all cursor-pointer"
-                    >
-                      Reset to Default
-                    </button>
-                  </div>
-                </form>
-              </div>
             </div>
           )}
 
@@ -3866,6 +3694,16 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                 <label className="flex items-center gap-2 text-xs font-bold text-white cursor-pointer">
                   <input
                     type="checkbox"
+                    checked={formStorefrontVisible}
+                    onChange={(e) => setFormStorefrontVisible(e.target.checked)}
+                    className="w-4 h-4 accent-emerald-400 rounded"
+                  />
+                  <span>Visible on Customer Storefront</span>
+                </label>
+
+                <label className="flex items-center gap-2 text-xs font-bold text-white cursor-pointer">
+                  <input
+                    type="checkbox"
                     checked={formIsFeatured}
                     onChange={(e) => setFormIsFeatured(e.target.checked)}
                     className="w-4 h-4 accent-[#922CB5] rounded"
@@ -4242,14 +4080,19 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               <button
                 type="button"
                 onClick={deleteConfirmDialog.onConfirm}
-                className="px-5 py-2 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 text-white text-xs font-black uppercase tracking-wider shadow-lg shadow-rose-900/30 cursor-pointer active:scale-95 transition-all"
+                className={`px-5 py-2 rounded-xl text-white text-xs font-black uppercase tracking-wider shadow-lg cursor-pointer active:scale-95 transition-all ${
+                  deleteConfirmDialog.confirmTone === 'primary'
+                    ? 'bg-gradient-to-r from-[#922CB5] to-purple-600 hover:from-purple-500 hover:to-[#922CB5] shadow-purple-900/30'
+                    : 'bg-gradient-to-r from-rose-600 to-red-600 hover:from-rose-500 hover:to-red-500 shadow-rose-900/30'
+                }`}
               >
-                Confirm Delete
+                {deleteConfirmDialog.confirmLabel || 'Confirm Delete'}
               </button>
             </div>
           </div>
         </div>
       )}
+
     </div>
   );
 };
